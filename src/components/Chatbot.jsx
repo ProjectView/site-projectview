@@ -171,7 +171,7 @@ const Chatbot = () => {
       {isOpen && (
         <div
           className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border-2 border-[#72B0CC]/20 flex flex-col overflow-hidden min-h-0 animate-slide-up"
-          style={{ maxHeight: '40vh' }}
+          style={{ maxHeight: '60vh' }}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] p-4 flex items-center gap-3">
