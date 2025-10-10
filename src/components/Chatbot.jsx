@@ -16,7 +16,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Bonjour ! Je suis l\'assistant virtuel de Projectview. Comment puis-je vous aider aujourd\'hui ?',
+      content: "🧩 Charade du jour :\nMon premier est tactile 👆,\nMon deuxième attire les passants 👀,\nMon tout fait vivre ton expérience client.\nJe suis… ? 😄",
       timestamp: new Date()
     }
   ]);
@@ -169,7 +169,10 @@ const Chatbot = () => {
 
       {/* Chatbot Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border-2 border-[#72B0CC]/20 flex flex-col overflow-hidden animate-slide-up">
+        <div
+          className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border-2 border-[#72B0CC]/20 flex flex-col overflow-hidden min-h-0 animate-slide-up"
+          style={{ maxHeight: '40vh' }}
+        >
           {/* Header */}
           <div className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] p-4 flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-full">
@@ -190,7 +193,7 @@ const Chatbot = () => {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 h-96">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
             {messages.map((message, index) => (
               <div
                 key={index}
