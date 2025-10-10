@@ -66,6 +66,18 @@
   .animate-shimmer {
     animation: shimmer 2.5s infinite;
   }
+
+  .animate-gradient-orbit {
+    animation: gradientOrbit 12s linear infinite;
+  }
+
+  .animate-orb-drift {
+    animation: orbDrift 16s ease-in-out infinite;
+  }
+
+  .animate-orb-drift-delayed {
+    animation: orbDriftReverse 20s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -183,6 +195,45 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes gradientOrbit {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.6;
+  }
+}
+
+@keyframes orbDrift {
+  0%,
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(0.95);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(8%, 10%, 0) scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes orbDriftReverse {
+  0%,
+  100% {
+    transform: translate3d(10%, 12%, 0) scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate3d(-12%, -8%, 0) scale(1.1);
+    opacity: 0.85;
   }
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronRight, Monitor, Tv, Table2, Compass, Bot, Sparkles, Zap, Eye, Radio, Users, Presentation } from 'lucide-react';
+import { Menu, X, ChevronRight, Monitor, Tv, Table2, Compass, Bot, Sparkles, Zap, Eye, Radio, Users, Presentation, Gamepad2, RefreshCcw, Trophy } from 'lucide-react';
 import Chatbot from './Chatbot';
 
 const ProjectviewWebsite = () => {
@@ -21,6 +21,12 @@ const ProjectviewWebsite = () => {
     satisfaction: 0,
     years: 0
   });
+  const [gameRound, setGameRound] = useState(0);
+  const [currentChallenge, setCurrentChallenge] = useState(null);
+  const [challengeOptions, setChallengeOptions] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [gameStatus, setGameStatus] = useState(null);
+  const [streak, setStreak] = useState(0);
 
   const heroRef = useRef(null);
   const statsRef = useRef(null);
@@ -126,6 +132,167 @@ const ProjectviewWebsite = () => {
       ...prev,
       [index]: value
     }));
+  };
+
+  const trustBrands = [
+    {
+      name: "Leroy Merlin",
+      sector: "Retail & Showroom",
+      initials: "LM",
+      gradient: "from-[#72B0CC] to-[#82BC6C]"
+    },
+    {
+      name: "Accor Live Limitless",
+      sector: "Hospitality",
+      initials: "ALL",
+      gradient: "from-[#CF6E3F] to-[#72B0CC]"
+    },
+    {
+      name: "Décathlon",
+      sector: "Sport & Expérience",
+      initials: "DEC",
+      gradient: "from-[#82BC6C] to-[#CF6E3F]"
+    },
+    {
+      name: "Renault",
+      sector: "Automobile",
+      initials: "RN",
+      gradient: "from-[#72B0CC] to-[#CF6E3F]"
+    },
+    {
+      name: "Galeries Lafayette",
+      sector: "Retail Premium",
+      initials: "GL",
+      gradient: "from-[#CF6E3F] to-[#82BC6C]"
+    },
+    {
+      name: "La Poste",
+      sector: "Service & Réseau",
+      initials: "LP",
+      gradient: "from-[#72B0CC] to-[#82BC6C]"
+    },
+    {
+      name: "Bouygues Immobilier",
+      sector: "Immobilier & VR",
+      initials: "BI",
+      gradient: "from-[#82BC6C] to-[#72B0CC]"
+    },
+    {
+      name: "EDF",
+      sector: "Innovation & Industrie",
+      initials: "EDF",
+      gradient: "from-[#CF6E3F] to-[#72B0CC]"
+    }
+  ];
+
+  const challengePool = [
+    {
+      brand: "Leroy Merlin",
+      clue: "Cette enseigne veut transformer ses corners rénovation en expériences interactives.",
+      answer: "Solutions de Présentation Innovante",
+      gradient: "from-[#72B0CC] to-[#82BC6C]"
+    },
+    {
+      brand: "Accor Live Limitless",
+      clue: "Dans leurs hôtels, chaque lobby doit devenir un hub digital inspirant et vivant.",
+      answer: "Affichage Dynamique / Interactif",
+      gradient: "from-[#CF6E3F] to-[#72B0CC]"
+    },
+    {
+      brand: "Décathlon",
+      clue: "Les coachs veulent co-créer des parcours clients avec les équipes en magasin.",
+      answer: "Solutions de Collaboration",
+      gradient: "from-[#82BC6C] to-[#CF6E3F]"
+    },
+    {
+      brand: "Renault",
+      clue: "Le constructeur souhaite configurer ses modèles en immersion totale avant l'essai.",
+      answer: "Solutions de Présentation Innovante",
+      gradient: "from-[#72B0CC] to-[#CF6E3F]"
+    },
+    {
+      brand: "Galeries Lafayette",
+      clue: "Une vitrine doit pouvoir se réinventer en temps réel selon les collections du moment.",
+      answer: "Affichage Dynamique / Interactif",
+      gradient: "from-[#CF6E3F] to-[#82BC6C]"
+    },
+    {
+      brand: "La Poste",
+      clue: "Le réseau logistique cherche un assistant disponible pour guider clients et conseillers.",
+      answer: "Assistant IA Personnalisé",
+      gradient: "from-[#72B0CC] to-[#82BC6C]"
+    },
+    {
+      brand: "Bouygues Immobilier",
+      clue: "Présenter un programme sur plan ne suffit plus, il faut le vivre avant signature.",
+      answer: "Solutions de Présentation Innovante",
+      gradient: "from-[#82BC6C] to-[#72B0CC]"
+    },
+    {
+      brand: "EDF",
+      clue: "Des équipes réparties partout doivent piloter des projets complexes en direct.",
+      answer: "Solutions de Collaboration",
+      gradient: "from-[#CF6E3F] to-[#72B0CC]"
+    }
+  ];
+
+  const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  const setupGameRound = () => {
+    const nextChallenge = challengePool[Math.floor(Math.random() * challengePool.length)];
+    const alternativeAnswers = [
+      ...new Set(
+        challengePool
+          .map((challenge) => challenge.answer)
+          .filter((answer) => answer !== nextChallenge.answer)
+      )
+    ];
+    const options = shuffleArray([
+      nextChallenge.answer,
+      ...shuffleArray(alternativeAnswers).slice(0, 2)
+    ]);
+
+    setCurrentChallenge(nextChallenge);
+    setChallengeOptions(options);
+    setSelectedOption(null);
+    setGameStatus(null);
+  };
+
+  useEffect(() => {
+    setupGameRound();
+  }, [gameRound]);
+
+  const handleGuess = (option) => {
+    if (!currentChallenge || gameStatus === 'correct') {
+      return;
+    }
+
+    setSelectedOption(option);
+
+    if (option === currentChallenge.answer) {
+      setGameStatus('correct');
+      setStreak((prev) => prev + 1);
+      setTimeout(() => {
+        setGameRound((prev) => prev + 1);
+      }, 1200);
+    } else {
+      setGameStatus('wrong');
+      setStreak(0);
+    }
+  };
+
+  const handleSkip = () => {
+    setGameStatus(null);
+    setSelectedOption(null);
+    setStreak(0);
+    setGameRound((prev) => prev + 1);
   };
 
   const offers = [
@@ -493,6 +660,160 @@ const ProjectviewWebsite = () => {
         </div>
       </section>
 
+      {/* Trust Section */}
+      <section id="confiance" className="py-32 bg-gradient-to-b from-white via-[#f6f9fb] to-white relative overflow-hidden" data-animate>
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-[#72B0CC]/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute -bottom-20 right-0 w-96 h-96 bg-[#CF6E3F]/10 rounded-full blur-3xl animate-float-delayed"></div>
+          <div className="absolute top-1/3 right-1/3 w-80 h-80 bg-[#82BC6C]/10 rounded-full blur-3xl animate-float-slow"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur px-6 py-3 rounded-full mb-8 border-2 border-[#72B0CC]/20 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
+              <Sparkles className="w-5 h-5 text-[#72B0CC]" />
+              <span className="text-sm font-bold uppercase tracking-wide text-gray-700">Ils nous font confiance</span>
+            </div>
+
+            <h2 className="text-4xl md:text-6xl font-medium mb-6" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              Des marques exigeantes <span style={{ color: '#72B0CC' }} className="inline-block hover:scale-110 transition-transform duration-300">sélectionnent</span><br />
+              Projectview pour sublimer leurs expériences
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Retail, hôtellerie, industrie ou services : partout, nos dispositifs immersifs deviennent des moments mémorables.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+            {trustBrands.map((brand, index) => (
+              <div
+                key={brand.name}
+                className="group relative bg-white/80 backdrop-blur-sm rounded-3xl border border-white/60 shadow-lg hover:shadow-2xl transition-all duration-500 p-6 flex flex-col items-center gap-4 overflow-hidden"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-white text-2xl font-bold bg-gradient-to-br ${brand.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  {brand.initials}
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Montserrat, sans-serif' }}>{brand.name}</p>
+                  <p className="text-sm text-gray-500">{brand.sector}</p>
+                </div>
+                <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-[#72B0CC]/30 transition-colors"></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-16 grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur px-5 py-3 rounded-full border border-[#72B0CC]/30 shadow-md w-fit">
+                <Gamepad2 className="w-5 h-5 text-[#72B0CC]" />
+                <span className="text-sm font-semibold uppercase tracking-wide text-gray-700">Mini-jeu immersif</span>
+              </div>
+              <h3 className="text-3xl md:text-4xl font-semibold text-gray-900 leading-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                Associez la bonne solution à la marque <span style={{ color: '#CF6E3F' }} className="inline-block hover:scale-110 transition-transform duration-300">en un clin d'œil</span>
+              </h3>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Chaque projet Projectview commence par une immersion dans vos usages. À vous de jouer : identifiez la solution qui répond le mieux au défi de la marque présentée, et découvrez comment nous créons de l&apos;émotion à chaque étape.
+              </p>
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[#CF6E3F]" />
+                  <span>Série en cours : <span className="font-semibold text-gray-900">{streak}</span></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#72B0CC]" />
+                  <span>Une mission inédite à chaque manche</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#72B0CC]/10 via-transparent to-[#CF6E3F]/10 blur-2xl rounded-3xl"></div>
+              <div className="relative bg-white rounded-3xl shadow-2xl border border-[#72B0CC]/20 p-8 overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10 rounded-full blur-2xl"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-[#CF6E3F]/10 to-transparent rounded-full blur-2xl"></div>
+
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${currentChallenge?.gradient || 'from-[#72B0CC] to-[#82BC6C]'} text-white font-bold flex items-center justify-center`}>
+                        {(currentChallenge?.brand || '...').slice(0, 3).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Mission du jour</p>
+                        <h4 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                          {currentChallenge?.brand || 'Chargement...'}
+                        </h4>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      <span className="inline-flex items-center gap-1 bg-[#82BC6C]/10 text-[#2f855a] px-3 py-1 rounded-full font-semibold border border-[#82BC6C]/30">
+                        <Bot className="w-4 h-4" />
+                        Challenge Loop
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-base text-gray-600 leading-relaxed mb-6">
+                    {currentChallenge?.clue || "Les équipes Projectview imaginent déjà une expérience... À vous de révéler la solution parfaite."}
+                  </p>
+
+                  <div className="space-y-3">
+                    {challengeOptions.length > 0 ? (
+                      challengeOptions.map((option) => {
+                        const isSelected = selectedOption === option;
+                        const isCorrect = currentChallenge && option === currentChallenge.answer && gameStatus === 'correct';
+                        const isWrongSelection = isSelected && gameStatus === 'wrong';
+
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => handleGuess(option)}
+                            disabled={gameStatus === 'correct'}
+                            className={`w-full text-left rounded-2xl px-5 py-4 border transition-all duration-300 flex items-center justify-between gap-3 ${
+                              isCorrect
+                                ? 'bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white border-transparent shadow-xl'
+                                : isWrongSelection
+                                  ? 'bg-red-50 border-red-200 text-red-600'
+                                  : isSelected
+                                    ? 'border-[#72B0CC] text-gray-900 shadow-lg bg-white'
+                                    : 'border-gray-200 text-gray-700 bg-white hover:border-[#72B0CC] hover:shadow-lg'
+                            }`}
+                          >
+                            <span className="font-semibold">{option}</span>
+                            <ChevronRight className={`w-5 h-5 ${isCorrect ? 'text-white' : isWrongSelection ? 'text-red-400' : 'text-[#72B0CC]'}`} />
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="w-full rounded-2xl px-5 py-4 border border-dashed border-[#72B0CC]/40 text-[#72B0CC] bg-[#72B0CC]/5 text-sm text-center">
+                        Préparation de la prochaine mission...
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
+                    <button
+                      type="button"
+                      onClick={handleSkip}
+                      className="inline-flex items-center gap-2 text-gray-500 hover:text-[#72B0CC] transition-colors"
+                    >
+                      <RefreshCcw className="w-4 h-4" />
+                      Passer la mission
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#72B0CC] animate-pulse"></span>
+                      <span>Plus vous jouez, plus c&apos;est inspirant</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Blog Section */}
       <section id="blog" className="py-32 bg-white relative overflow-hidden" data-animate>
         <div className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl animate-float" style={{ backgroundColor: 'rgba(114, 176, 204, 0.08)' }}></div>
@@ -756,9 +1077,19 @@ const ProjectviewWebsite = () => {
 
       {/* CTA Section - Redesigned */}
       <section className="py-32 relative overflow-hidden" data-animate>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#72B0CC] via-[#82BC6C] to-[#CF6E3F] animate-shimmer" style={{ backgroundSize: '400% 400%' }}></div>
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#72B0CC] via-[#82BC6C] to-[#CF6E3F] opacity-90"></div>
+          <div
+            className="absolute inset-0 opacity-70 mix-blend-screen animate-gradient-orbit"
+            style={{
+              background: 'conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0.15) 0deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0.2) 180deg, rgba(255,255,255,0) 270deg, rgba(255,255,255,0.15) 360deg)'
+            }}
+          ></div>
+          <div className="absolute -top-32 left-1/4 w-72 h-72 bg-gradient-to-br from-white/50 via-white/10 to-transparent rounded-full blur-3xl opacity-60 animate-orb-drift"></div>
+          <div className="absolute -bottom-40 right-1/3 w-96 h-96 bg-gradient-to-br from-white/40 via-white/10 to-transparent rounded-full blur-[140px] opacity-70 animate-orb-drift-delayed"></div>
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30 mix-blend-soft-light"></div>
+        </div>
+        <div className="absolute inset-0 bg-black/35"></div>
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-white">
           <Sparkles className="w-16 h-16 mx-auto mb-8 animate-bounce-subtle" />
