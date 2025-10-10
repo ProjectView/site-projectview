@@ -22,6 +22,7 @@ const Chatbot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showIntroPrompt, setShowIntroPrompt] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -39,6 +40,20 @@ const Chatbot = () => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowIntroPrompt(true);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && showIntroPrompt) {
+      setShowIntroPrompt(false);
+    }
+  }, [isOpen, showIntroPrompt]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
@@ -55,7 +70,7 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://n8n.srv800894.hstgr.cloud/webhook/chat-projectview', {
+      const response = await fetch('https://n8n.srv800894.hstgr.cloud/webhook/chat-agenda-Bernard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,6 +134,24 @@ const Chatbot = () => {
 
   return (
     <>
+      {showIntroPrompt && !isOpen && (
+        <div className="fixed bottom-24 right-6 z-40 animate-fade-in-up">
+          <div className="bg-white shadow-2xl border border-[#72B0CC]/30 rounded-2xl px-4 py-3 max-w-xs relative">
+            <p className="text-sm text-gray-700 leading-relaxed pr-6 whitespace-pre-line">
+              {"🧩 Charade du jour :\nMon premier est tactile 👆,\nMon deuxième attire les passants 👀,\nMon tout fait vivre ton expérience client.\nJe suis… ? 😄"}
+            </p>
+            <button
+              onClick={() => setShowIntroPrompt(false)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-[#72B0CC] transition-colors"
+              aria-label="Fermer l'invitation du chat"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="absolute -bottom-3 right-8 w-4 h-4 bg-white border-r border-b border-[#72B0CC]/30 rotate-45"></div>
+          </div>
+        </div>
+      )}
+
       {/* Chatbot Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronRight, Monitor, Tv, Table2, Compass, Bot, Sparkles, Zap, Eye } from 'lucide-react';
+import { Menu, X, ChevronRight, Monitor, Tv, Table2, Compass, Bot, Sparkles, Zap, Eye, Radio, Users, Presentation } from 'lucide-react';
 import Chatbot from './Chatbot';
 
 const ProjectviewWebsite = () => {
@@ -9,7 +9,7 @@ const ProjectviewWebsite = () => {
   const [activeOffer, setActiveOffer] = useState(null);
   const [logoColor, setLogoColor] = useState('#72B0CC');
   const [sliderPositions, setSliderPositions] = useState({
-    0: 50, 1: 50, 2: 50, 3: 50, 4: 50
+    0: 50, 1: 50, 2: 50, 3: 50
   });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [visibleSections, setVisibleSections] = useState({});
@@ -130,79 +130,68 @@ const ProjectviewWebsite = () => {
 
   const offers = [
     {
-      icon: <Monitor className="w-16 h-16" />,
-      title: "Écrans Collaboratifs",
-      hook: "Et si vos réunions devenaient enfin productives ?",
-      pain: "Chaque minute perdue en connexion est une opportunité manquée. Vos équipes méritent mieux qu'un tableau blanc et des câbles incompatibles.",
-      solution: "La collaboration sans friction",
-      benefit: "Connectez-vous en un geste, partagez instantanément, co-créez naturellement. Vos idées méritent une technologie qui suit votre rythme, pas l'inverse.",
-      stats: "73% de temps gagné en réunion",
-      color: "from-[#72B0CC] to-[#82BC6C]",
-      gradient: "bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10",
-      beforeVideo: "URL_VIDEO_REUNION_ANARCHIQUE.mp4",
-      afterVideo: "URL_VIDEO_REUNION_MODERNE.mp4",
-      beforeLabel: "Réunion classique : câbles, connexions difficiles, temps perdu",
-      afterLabel: "Avec Projectview : connexion instantanée, collaboration fluide"
-    },
-    {
-      icon: <Tv className="w-16 h-16" />,
-      title: "Affichage Dynamique",
-      hook: "Votre showroom dort-il quand vos clients passent ?",
-      pain: "Dans un monde saturé d'écrans, votre message reste invisible. Vos supports statiques ne captent plus l'attention, ils la perdent.",
-      solution: "L'impact visuel qui marque les esprits",
-      benefit: "Animez vos messages, captez les regards, actualisez en temps réel depuis n'importe où. Faites de chaque écran un ambassadeur actif de votre marque.",
+      icon: <Radio className="w-16 h-16" />,
+      title: "Affichage Dynamique / Interactif",
+      hook: "Votre espace communique-t-il vraiment avec vos clients ?",
+      pain: "Dans un monde saturé d'écrans, votre message reste invisible. Les supports statiques ne captent plus l'attention, ils la perdent. Pendant ce temps, vos produits phares passent inaperçus.",
+      solution: "L'impact visuel qui capte et engage",
+      benefit: "Écrans publicitaires animés qui captent le regard, systèmes NFC pour mettre en avant vos produits d'un simple geste, contenus actualisables en temps réel. Transformez chaque point de contact en expérience mémorable.",
       stats: "+340% d'engagement client",
       color: "from-[#CF6E3F] to-[#72B0CC]",
       gradient: "bg-gradient-to-br from-[#CF6E3F]/10 to-[#72B0CC]/10",
-      beforeVideo: "URL_VIDEO_SHOWROOM_STATIQUE.mp4",
-      afterVideo: "URL_VIDEO_SHOWROOM_DYNAMIQUE.mp4",
-      beforeLabel: "Showroom traditionnel : supports papier, informations figées",
-      afterLabel: "Avec Projectview : écrans animés, contenus captivants"
+      beforeVideo: "URL_VIDEO_AFFICHAGE_STATIQUE.mp4",
+      afterVideo: "URL_VIDEO_AFFICHAGE_DYNAMIQUE.mp4",
+      beforeLabel: "Affichage traditionnel : supports papier figés, informations obsolètes",
+      afterLabel: "Avec Projectview : écrans dynamiques, NFC interactif, engagement maximal",
+      link: "/solutions/affichage-dynamique"
     },
     {
-      icon: <Table2 className="w-16 h-16" />,
-      title: "Tables Tactiles",
-      hook: "Arrêtez de présenter. Faites vivre.",
-      pain: "Votre client hoche la tête pendant que vous parlez, mais ne se projette pas. Les PowerPoint endorment, les catalogues restent fermés.",
-      solution: "L'expérience qui convertit",
-      benefit: "Vos clients touchent, manipulent, personnalisent en direct. Ils ne regardent plus votre produit, ils le configurent. La différence entre voir et vouloir.",
-      stats: "89% de mémorisation",
+      icon: <Users className="w-16 h-16" />,
+      title: "Solutions de Collaboration",
+      hook: "Et si vos réunions devenaient enfin productives ?",
+      pain: "Chaque minute perdue en connexion est une opportunité manquée. Câbles incompatibles, partages d'écran compliqués, visioconférences chaotiques. Vos équipes méritent mieux.",
+      solution: "La collaboration sans friction",
+      benefit: "Écrans visio tout-en-un prêts à l'emploi, systèmes de partage d'écran sans fil ultra-simplifiés. Connectez-vous en un geste, partagez instantanément, collaborez naturellement. La technologie qui suit votre rythme.",
+      stats: "73% de temps gagné en réunion",
       color: "from-[#72B0CC] to-[#82BC6C]",
       gradient: "bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10",
-      beforeVideo: "URL_VIDEO_PRESENTATION_CLASSIQUE.mp4",
-      afterVideo: "URL_VIDEO_TABLE_TACTILE.mp4",
-      beforeLabel: "Présentation passive : catalogues papier, client spectateur",
-      afterLabel: "Avec Projectview : interaction tactile, exploration active"
+      beforeVideo: "URL_VIDEO_REUNION_CHAOTIQUE.mp4",
+      afterVideo: "URL_VIDEO_COLLABORATION_FLUIDE.mp4",
+      beforeLabel: "Réunion classique : câbles, difficultés techniques, temps perdu",
+      afterLabel: "Avec Projectview : visio intégrée, partage sans fil, collaboration fluide",
+      link: "/solutions/collaboration"
     },
     {
-      icon: <Compass className="w-16 h-16" />,
-      title: "Bureau d'Étude VR",
-      hook: "Vendez le projet avant même de le construire",
-      pain: "Les plans 2D créent le doute. Les rendus 3D restent abstraits. Vos clients valident... puis changent d'avis en chantier. Chaque modification coûte cher.",
-      solution: "La validation totale avant le premier coup de pioche",
-      benefit: "Vos clients marchent dans leur futur espace, testent les volumes, ajustent les détails. Zéro surprise, zéro conflit, zéro retard. Juste la certitude du résultat.",
-      stats: "-67% de modifications",
-      color: "from-[#CF6E3F] to-[#72B0CC]",
-      gradient: "bg-gradient-to-br from-[#CF6E3F]/10 to-[#72B0CC]/10",
-      beforeVideo: "URL_VIDEO_PLANS_2D.mp4",
-      afterVideo: "URL_VIDEO_VISITE_VR.mp4",
-      beforeLabel: "Méthode classique : plans 2D, difficulté de projection",
-      afterLabel: "Avec Projectview : immersion VR totale, validation certaine"
+      icon: <Presentation className="w-16 h-16" />,
+      title: "Solutions de Présentation Innovante",
+      hook: "Arrêtez de présenter. Faites vivre l'expérience.",
+      pain: "Vos clients hochent la tête pendant que vous parlez, mais ne se projettent pas. Les catalogues restent fermés, les plans 2D créent le doute, les PowerPoint endorment. Résultat : hésitations et modifications coûteuses.",
+      solution: "L'immersion qui convertit et convainc",
+      benefit: "Écrans tactiles en showroom pour explorer vos produits, tables tactiles pour configurer en temps réel, VR pour visiter des espaces avant construction. Vos clients ne regardent plus, ils expérimentent. La différence entre voir et vouloir.",
+      stats: "89% de mémorisation • -67% modifications",
+      color: "from-[#82BC6C] to-[#CF6E3F]",
+      gradient: "bg-gradient-to-br from-[#82BC6C]/10 to-[#CF6E3F]/10",
+      beforeVideo: "URL_VIDEO_PRESENTATION_CLASSIQUE.mp4",
+      afterVideo: "URL_VIDEO_PRESENTATION_IMMERSIVE.mp4",
+      beforeLabel: "Présentation passive : catalogues papier, plans 2D, clients spectateurs",
+      afterLabel: "Avec Projectview : écrans tactiles, tables interactives, VR immersive",
+      link: "/solutions/presentation-innovante"
     },
     {
       icon: <Bot className="w-16 h-16" />,
       title: "Assistant IA Personnalisé",
       hook: "Votre expert disponible 24/7, pour chaque client",
-      pain: "Vos équipes répondent aux mêmes questions, cherchent les mêmes infos, perdent un temps précieux. Pendant ce temps, des opportunités s'évaporent.",
+      pain: "Vos équipes répondent aux mêmes questions, cherchent les mêmes infos, perdent un temps précieux. Pendant ce temps, des opportunités s'évaporent et vos clients attendent.",
       solution: "L'intelligence qui libère votre temps",
-      benefit: "Réponses instantanées, recommandations personnalisées, processus automatisés. Votre IA connaît vos produits, comprend vos clients, ne dort jamais.",
+      benefit: "Réponses instantanées, recommandations personnalisées, processus automatisés. Votre IA connaît vos produits, comprend vos clients, ne dort jamais. Libérez vos équipes pour ce qui compte vraiment : la relation humaine.",
       stats: "10h gagnées par semaine",
-      color: "from-[#82BC6C] to-[#CF6E3F]",
-      gradient: "bg-gradient-to-br from-[#82BC6C]/10 to-[#CF6E3F]/10",
+      color: "from-[#72B0CC] to-[#82BC6C]",
+      gradient: "bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10",
       beforeVideo: "URL_VIDEO_TRAVAIL_MANUEL.mp4",
       afterVideo: "URL_VIDEO_ASSISTANT_IA.mp4",
-      beforeLabel: "Travail traditionnel : recherches manuelles, temps perdu",
-      afterLabel: "Avec Projectview : IA intelligente, réponses instantanées"
+      beforeLabel: "Travail traditionnel : recherches manuelles, questions répétitives",
+      afterLabel: "Avec Projectview : IA intelligente, réponses instantanées, automatisation",
+      link: "/solutions/assistant-ia"
     }
   ];
 
@@ -428,7 +417,7 @@ const ProjectviewWebsite = () => {
             </div>
 
             <h2 className="text-4xl md:text-6xl font-medium mb-6 animate-fade-in-up" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-              Cinq façons de <span style={{ color: '#72B0CC' }} className="inline-block hover:scale-110 transition-transform duration-300">révolutionner</span><br />
+              Quatre façons de <span style={{ color: '#72B0CC' }} className="inline-block hover:scale-110 transition-transform duration-300">révolutionner</span><br />
               votre expérience client
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -488,137 +477,13 @@ const ProjectviewWebsite = () => {
                       </div>
 
                       <Link
-                        to={
-                          index === 0 ? "/solutions/ecrans-collaboratifs" :
-                          index === 2 ? "/solutions/tables-tactiles" :
-                          index === 3 ? "/solutions/bureau-etude-vr" :
-                          "#"
-                        }
+                        to={offer.link}
                         className="group/btn inline-flex items-center gap-3 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-8 py-4 rounded-full font-medium hover:shadow-xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 relative overflow-hidden"
                       >
-                        <span className="relative z-10">Découvrir cette solution</span>
+                        <span className="relative z-10">En savoir plus</span>
                         <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform relative z-10" />
                         <div className="absolute inset-0 bg-gradient-to-r from-[#82BC6C] to-[#72B0CC] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                       </Link>
-
-                      {/* Before/After Video Slider */}
-                      <div className="mt-8 rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="relative h-[500px] bg-gray-900 select-none">
-                          {/* Before Video (Left side) */}
-                          <div
-                            className="absolute inset-0 overflow-hidden"
-                            style={{ clipPath: `inset(0 ${100 - sliderPositions[index]}% 0 0)` }}
-                          >
-                            {offer.beforeVideo ? (
-                              <video
-                                className="w-full h-full object-cover"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                              >
-                                <source src={offer.beforeVideo} type="video/mp4" />
-                              </video>
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                                <div className="text-center p-8">
-                                  <div className="text-white/50 text-sm mb-4">Vidéo "AVANT" à venir</div>
-                                  <p className="text-white/70 text-sm">
-                                    Salle de réunion anarchique :<br />
-                                    Câbles emmêlés, difficultés de connexion,<br />
-                                    temps perdu, frustration
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Before Label */}
-                            <div className="absolute top-6 left-6 bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl">
-                              AVANT
-                            </div>
-
-                            <div className="absolute bottom-6 left-6 right-6 bg-black/70 backdrop-blur-sm text-white px-4 py-3 rounded-lg">
-                              <p className="text-sm font-medium leading-relaxed">
-                                {offer.beforeLabel}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* After Video (Right side) */}
-                          <div
-                            className="absolute inset-0 overflow-hidden"
-                            style={{ clipPath: `inset(0 0 0 ${sliderPositions[index]}%)` }}
-                          >
-                            {offer.afterVideo ? (
-                              <video
-                                className="w-full h-full object-cover"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                              >
-                                <source src={offer.afterVideo} type="video/mp4" />
-                              </video>
-                            ) : (
-                              <div className={`w-full h-full bg-gradient-to-br ${offer.color} flex items-center justify-center`}>
-                                <div className="text-center p-8">
-                                  <div className="text-white/90 text-sm mb-4">Vidéo "APRÈS" à venir</div>
-                                  <p className="text-white font-medium text-sm">
-                                    Salle de réunion moderne :<br />
-                                    Écran collaboratif élégant, connexion instantanée,<br />
-                                    espace zen et lumineux, équipe productive
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* After Label */}
-                            <div className="absolute top-6 right-6 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl" style={{ backgroundColor: '#82BC6C' }}>
-                              APRÈS
-                            </div>
-
-                            <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm px-4 py-3 rounded-lg">
-                              <p className="text-sm font-bold text-gray-900 leading-relaxed">
-                                {offer.afterLabel}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Slider Handle */}
-                          <div
-                            className="absolute top-0 bottom-0 w-1 bg-white shadow-2xl cursor-ew-resize z-30"
-                            style={{ left: `${sliderPositions[index]}%` }}
-                          >
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-gray-200">
-                              <div className="flex gap-0.5">
-                                <ChevronRight className="w-5 h-5 text-gray-700 transform rotate-180" />
-                                <ChevronRight className="w-5 h-5 text-gray-700" />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Slider Input */}
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={sliderPositions[index]}
-                            onChange={(e) => handleSliderChange(index, parseInt(e.target.value))}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-40"
-                            aria-label="Faites glisser pour comparer avant et après"
-                          />
-
-                          {/* Instruction Label */}
-                          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 pointer-events-none">
-                            <div className="bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-xl">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18m-4 0l4-4m-4 4l4 4" />
-                              </svg>
-                              Glissez pour comparer
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -755,10 +620,10 @@ const ProjectviewWebsite = () => {
                   <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Showroom</span>
                 </div>
 
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#82BC6C' }}>
+                <Link to="/article/moderniser-showroom" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#82BC6C' }}>
                   Lire l'article
                   <ChevronRight className="w-4 h-4" />
-                </a>
+                </Link>
               </div>
             </article>
 
