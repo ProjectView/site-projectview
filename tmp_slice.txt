@@ -1,0 +1,81 @@
+
+                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#CF6E3F' }}>
+                  Lire l'étude de cas
+                  <ChevronRight className="w-4 h-4" />
+                </a>
+              </div>
+            </article>
+
+            {/* Article 3 - Article informatif */}
+            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <div className="h-48 bg-gradient-to-br from-[#82BC6C] to-[#CF6E3F] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+                </div>
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#82BC6C' }}>
+                    Article Informatif
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#82BC6C] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  5 signes qu'il est temps de moderniser votre showroom
+                </h3>
+
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Vos clients comparent en ligne avant de venir. Votre espace physique doit offrir une expérience qu'ils ne peuvent pas avoir sur internet. Découvrez les signaux d'alerte.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Expérience client</span>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Digital</span>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Showroom</span>
+                </div>
+
+                <Link to="/article/moderniser-showroom" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#82BC6C' }}>
+                  Lire l'article
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </article>
+
+            {/* Article 4 - Case Study */}
+            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="h-48 bg-gradient-to-br from-[#72B0CC] to-[#CF6E3F] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Tv className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+                </div>
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#72B0CC' }}>
+                    Installation Client
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  Enseigne Retail : L'affichage dynamique qui booste les ventes
+                </h3>
+
+                <div className="mb-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
+                  <div className="text-xs font-bold text-red-600 uppercase mb-2">Situation avant</div>
+                  <p className="text-sm text-gray-700">
+                    Affiches statiques, promotions non actualisées, clients qui passent sans s'arrêter
+                  </p>
+                </div>
+
+                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4" style={{ borderColor: '#82BC6C' }}>
+                  <div className="text-xs font-bold uppercase mb-2" style={{ color: '#82BC6C' }}>Après Projectview</div>
+                  <p className="text-sm text-gray-700">
+                    Contenus animés attractifs, mise à jour en temps réel, +340% d'attention captée
+                  </p>
+                </div>
+
+                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#72B0CC' }}>
+                  Lire l'étude de cas
+                  <ChevronRight className="w-4 h-4" />
+                </a>
+              </div>
+            </article>

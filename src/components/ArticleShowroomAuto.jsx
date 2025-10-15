@@ -35,9 +35,12 @@ const ArticleShowroomAuto = () => {
             <span className="text-2xl font-light tracking-tight text-[#72B0CC]">VIEW</span>
           </div>
 
-          <a href="#contact" className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium">
+          <button
+            onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+            className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium"
+          >
             Nous contacter
-          </a>
+          </button>
         </div>
       </nav>
 
@@ -495,13 +498,19 @@ const ArticleShowroomAuto = () => {
               Que vous soyez dans l'automobile, l'immobilier, l'ameublement ou tout autre secteur où l'expérience client fait la différence, nous pouvons transformer votre espace.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#contact" className="inline-flex items-center justify-center gap-3 bg-white text-[#72B0CC] px-8 py-4 rounded-full text-lg font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300">
+              <button
+                onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+                className="inline-flex items-center justify-center gap-3 bg-white text-[#72B0CC] px-8 py-4 rounded-full text-lg font-bold hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+              >
                 Demander une démo
                 <ChevronRight className="w-5 h-5" />
-              </a>
-              <a href="tel:+33000000000" className="inline-flex items-center justify-center gap-3 bg-white/10 backdrop-blur-lg border-2 border-white text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white hover:text-[#72B0CC] transition-all duration-300">
-                Appelez-nous
-              </a>
+              </button>
+              <button
+                onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+                className="inline-flex items-center justify-center gap-3 bg-white/10 backdrop-blur-lg border-2 border-white text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white hover:text-[#72B0CC] transition-all duration-300"
+              >
+                Contactez-nous
+              </button>
             </div>
             <p className="text-sm opacity-75 mt-6">
               Audit gratuit de votre espace · Devis personnalisé sous 48h · ROI garanti

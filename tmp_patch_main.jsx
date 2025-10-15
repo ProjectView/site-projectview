@@ -2,10 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import ProjectviewWebsite from './components/ProjectviewWebsite'
-import BlogPage from './components/BlogPage'
 import ArticleShowroomAuto from './components/ArticleShowroomAuto'
 import ArticleModerniserShowroom from './components/ArticleModerniserShowroom'
-import ArticleErreursReunion from './components/ArticleErreursReunion'
 import BureauEtudeVR from './components/BureauEtudeVR'
 import TablesTactiles from './components/TablesTactiles'
 import EcransCollaboratifs from './components/EcransCollaboratifs'
@@ -20,10 +18,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ProjectviewWebsite />} />
-        <Route path="/blog" element={<BlogPage />} />
         <Route path="/article/showroom-automobile" element={<ArticleShowroomAuto />} />
         <Route path="/article/moderniser-showroom" element={<ArticleModerniserShowroom />} />
-        <Route path="/article/erreurs-reunion" element={<ArticleErreursReunion />} />
         <Route path="/solutions/bureau-etude-vr" element={<BureauEtudeVR />} />
         <Route path="/solutions/tables-tactiles" element={<TablesTactiles />} />
         <Route path="/solutions/ecrans-collaboratifs" element={<EcransCollaboratifs />} />

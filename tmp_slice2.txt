@@ -1,0 +1,81 @@
+            </article>
+
+            {/* Article 5 - Article informatif */}
+            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <div className="h-48 bg-gradient-to-br from-[#CF6E3F] to-[#82BC6C] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Eye className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+                </div>
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#CF6E3F' }}>
+                    Article Informatif
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#CF6E3F] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  ROI des technologies immersives : Ce que disent les chiffres
+                </h3>
+
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Tables tactiles, VR, affichage dynamique : au-delà de l'effet "wow", quel est le retour sur investissement réel ? Analyse basée sur nos 500+ installations.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">ROI</span>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Innovation</span>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Business</span>
+                </div>
+
+                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#CF6E3F' }}>
+                  Lire l'article
+                  <ChevronRight className="w-4 h-4" />
+                </a>
+              </div>
+            </article>
+
+            {/* Article 6 - Case Study */}
+            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <div className="h-48 bg-gradient-to-br from-[#82BC6C] to-[#72B0CC] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Bot className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+                </div>
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#82BC6C' }}>
+                    Installation Client
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#82BC6C] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  Cabinet d'Architecture : L'IA au service de la conception
+                </h3>
+
+                <div className="mb-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
+                  <div className="text-xs font-bold text-red-600 uppercase mb-2">Situation avant</div>
+                  <p className="text-sm text-gray-700">
+                    Recherches documentaires chronophages, temps perdu sur des questions récurrentes
+                  </p>
+                </div>
+
+                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4" style={{ borderColor: '#82BC6C' }}>
+                  <div className="text-xs font-bold uppercase mb-2" style={{ color: '#82BC6C' }}>Après Projectview</div>
+                  <p className="text-sm text-gray-700">
+                    Assistant IA formé sur leurs projets, 10h/semaine gagnées, focus sur la création
+                  </p>
+                </div>
+
+                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#82BC6C' }}>
+                  Lire l'étude de cas
+                  <ChevronRight className="w-4 h-4" />
+                </a>
+              </div>
+            </article>
+          </div>
+
+          <div className="text-center mt-12">
+            <a
+              href="#"
+              className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-10 py-4 rounded-full text-lg font-medium hover:shadow-2xl transform hover:-translate-y-2 hover:scale-110 transition-all duration-300 relative overflow-hidden animate-pulse-glow"

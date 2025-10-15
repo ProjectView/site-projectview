@@ -206,7 +206,7 @@ const ProjectviewWebsite = () => {
 
   const activeBrand = trustBrands[activeBrandIndex] || null;
 
-  // Constellation animation
+  // Interactive Constellation with Drag & Drop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -214,6 +214,8 @@ const ProjectviewWebsite = () => {
     const ctx = canvas.getContext('2d');
     let animationFrame;
     let time = 0;
+    let draggingIndexRef = null;
+    let dragOffset = { x: 0, y: 0 };
 
     const setCanvasSize = () => {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio;
@@ -225,27 +227,27 @@ const ProjectviewWebsite = () => {
     // Positions des logos en constellation (réparties de manière organique)
     const getRadius = () => {
       const width = canvas.offsetWidth;
-      if (width < 640) return 100; // Mobile
-      if (width < 1024) return 140; // Tablet
-      return 180; // Desktop
+      if (width < 640) return 100;
+      if (width < 1024) return 140;
+      return 180;
     };
 
     const brandPositions = trustBrands.map((_, index) => {
       const angle = (index / trustBrands.length) * Math.PI * 2;
       const baseRadius = getRadius();
-      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28); // Variation organique proportionnelle
+      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28);
       return {
         x: canvas.offsetWidth / 2 + Math.cos(angle) * radius,
         y: canvas.offsetHeight / 2 + Math.sin(angle) * radius,
-        baseX: canvas.offsetWidth / 2 + Math.cos(angle) * radius,
-        baseY: canvas.offsetHeight / 2 + Math.sin(angle) * radius,
+        vx: (Math.random() - 0.5) * 0.5, // Vélocité pour mouvement organique
+        vy: (Math.random() - 0.5) * 0.5,
         pulseOffset: Math.random() * Math.PI * 2
       };
     });
 
     // Particules qui voyagent le long des connexions
     const particles = [];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 20; i++) {
       const from = Math.floor(Math.random() * trustBrands.length);
       let to = Math.floor(Math.random() * trustBrands.length);
       while (to === from) to = Math.floor(Math.random() * trustBrands.length);
@@ -254,47 +256,96 @@ const ProjectviewWebsite = () => {
         from,
         to,
         progress: Math.random(),
-        speed: 0.002 + Math.random() * 0.003
+        speed: 0.003 + Math.random() * 0.005
       });
     }
+
+    // Trouver les 3 plus proches voisins
+    const findClosestNeighbors = (index) => {
+      const pos1 = brandPositions[index];
+      if (!pos1) return [];
+
+      const distances = trustBrands
+        .map((_, j) => {
+          if (index === j) return null;
+          const pos2 = brandPositions[j];
+          if (!pos2) return null;
+          const dx = pos2.x - pos1.x;
+          const dy = pos2.y - pos1.y;
+          return { index: j, dist: Math.sqrt(dx * dx + dy * dy) };
+        })
+        .filter(d => d !== null)
+        .sort((a, b) => a.dist - b.dist);
+
+      return distances.slice(0, 3);
+    };
 
     const animate = () => {
       time += 0.01;
       ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
-      // Dessiner les connexions
+      // Mouvement organique des bulles (sauf si en cours de drag)
+      brandPositions.forEach((pos, i) => {
+        if (draggingIndexRef === i) return;
+
+        // Mouvement fluide et organique
+        pos.x += pos.vx;
+        pos.y += pos.vy;
+
+        // Rebond sur les bords avec padding
+        const padding = 50;
+        if (pos.x < padding || pos.x > canvas.offsetWidth - padding) pos.vx *= -1;
+        if (pos.y < padding || pos.y > canvas.offsetHeight - padding) pos.vy *= -1;
+
+        // Friction douce
+        pos.vx *= 0.99;
+        pos.vy *= 0.99;
+
+        // Ajout d'une légère force aléatoire pour éviter l'immobilité
+        pos.vx += (Math.random() - 0.5) * 0.02;
+        pos.vy += (Math.random() - 0.5) * 0.02;
+
+        // Limiter la vitesse
+        const maxSpeed = 1.5;
+        const speed = Math.sqrt(pos.vx ** 2 + pos.vy ** 2);
+        if (speed > maxSpeed) {
+          pos.vx = (pos.vx / speed) * maxSpeed;
+          pos.vy = (pos.vy / speed) * maxSpeed;
+        }
+      });
+
+      // Dessiner les connexions aux 3 plus proches
       trustBrands.forEach((_, i) => {
         const pos1 = brandPositions[i];
         if (!pos1) return;
 
-        // Connecter aux 2-3 logos les plus proches
-        const distances = trustBrands
-          .map((_, j) => {
-            if (i === j) return null;
-            const pos2 = brandPositions[j];
-            if (!pos2) return null;
-            const dx = pos2.x - pos1.x;
-            const dy = pos2.y - pos1.y;
-            return { index: j, dist: Math.sqrt(dx * dx + dy * dy) };
-          })
-          .filter(d => d !== null)
-          .sort((a, b) => a.dist - b.dist);
+        const closestNeighbors = findClosestNeighbors(i);
 
-        distances.slice(0, 3).forEach(({ index: j }) => {
+        closestNeighbors.forEach(({ index: j }) => {
           const pos2 = brandPositions[j];
           if (!pos2) return;
 
           // Ligne avec gradient
           const gradient = ctx.createLinearGradient(pos1.x, pos1.y, pos2.x, pos2.y);
           const isHovered = hoveredBrand === i || hoveredBrand === j;
-          gradient.addColorStop(0, isHovered ? 'rgba(114, 176, 204, 0.4)' : 'rgba(114, 176, 204, 0.15)');
-          gradient.addColorStop(1, isHovered ? 'rgba(207, 110, 63, 0.4)' : 'rgba(207, 110, 63, 0.15)');
+          const isDragging = draggingIndexRef === i || draggingIndexRef === j;
+
+          if (isDragging) {
+            gradient.addColorStop(0, 'rgba(114, 176, 204, 0.6)');
+            gradient.addColorStop(1, 'rgba(207, 110, 63, 0.6)');
+          } else if (isHovered) {
+            gradient.addColorStop(0, 'rgba(114, 176, 204, 0.4)');
+            gradient.addColorStop(1, 'rgba(207, 110, 63, 0.4)');
+          } else {
+            gradient.addColorStop(0, 'rgba(114, 176, 204, 0.15)');
+            gradient.addColorStop(1, 'rgba(207, 110, 63, 0.15)');
+          }
 
           ctx.beginPath();
           ctx.moveTo(pos1.x, pos1.y);
           ctx.lineTo(pos2.x, pos2.y);
           ctx.strokeStyle = gradient;
-          ctx.lineWidth = isHovered ? 2 : 1;
+          ctx.lineWidth = isDragging ? 3 : (isHovered ? 2 : 1);
           ctx.stroke();
         });
       });
@@ -319,26 +370,27 @@ const ProjectviewWebsite = () => {
         const y = from.y + (to.y - from.y) * particle.progress;
 
         ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(114, 176, 204, 0.6)';
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(114, 176, 204, 0.7)';
         ctx.fill();
       });
 
-      // Dessiner les nœuds (logos) avec effet de respiration
+      // Dessiner les nœuds (logos)
       brandPositions.forEach((pos, i) => {
         if (!pos) return;
 
         const isHovered = hoveredBrand === i;
+        const isDragging = draggingIndexRef === i;
         const pulseScale = 1 + Math.sin(time * 2 + pos.pulseOffset) * 0.05;
-        const baseSize = canvas.offsetWidth < 640 ? 24 : 32; // Taille réduite sur mobile
-        const radius = isHovered ? baseSize + 8 : baseSize * pulseScale;
+        const baseSize = canvas.offsetWidth < 640 ? 26 : 34;
+        const radius = isDragging ? baseSize + 12 : (isHovered ? baseSize + 8 : baseSize * pulseScale);
 
-        // Glow effect pour hover
-        if (isHovered) {
+        // Glow effect pour hover et drag
+        if (isHovered || isDragging) {
           ctx.beginPath();
-          ctx.arc(pos.x, pos.y, radius + 15, 0, Math.PI * 2);
-          const glowGradient = ctx.createRadialGradient(pos.x, pos.y, radius, pos.x, pos.y, radius + 15);
-          glowGradient.addColorStop(0, 'rgba(114, 176, 204, 0.3)');
+          ctx.arc(pos.x, pos.y, radius + (isDragging ? 20 : 15), 0, Math.PI * 2);
+          const glowGradient = ctx.createRadialGradient(pos.x, pos.y, radius, pos.x, pos.y, radius + (isDragging ? 20 : 15));
+          glowGradient.addColorStop(0, isDragging ? 'rgba(114, 176, 204, 0.5)' : 'rgba(114, 176, 204, 0.3)');
           glowGradient.addColorStop(1, 'rgba(114, 176, 204, 0)');
           ctx.fillStyle = glowGradient;
           ctx.fill();
@@ -353,7 +405,6 @@ const ProjectviewWebsite = () => {
           pos.x + radius, pos.y + radius
         );
 
-        // Extraire les couleurs du gradient
         const gradientColors = brand.gradient.includes('from-[#72B0CC]')
           ? ['rgba(114, 176, 204, 0.95)', 'rgba(130, 188, 108, 0.95)']
           : brand.gradient.includes('from-[#CF6E3F]')
@@ -366,13 +417,13 @@ const ProjectviewWebsite = () => {
         ctx.fill();
 
         // Bordure
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isDragging ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = isDragging ? 3 : 2;
         ctx.stroke();
 
         // Initiales
         ctx.fillStyle = 'white';
-        const fontSize = canvas.offsetWidth < 640 ? (isHovered ? '12px' : '10px') : (isHovered ? '16px' : '14px');
+        const fontSize = canvas.offsetWidth < 640 ? (isDragging ? '14px' : (isHovered ? '12px' : '10px')) : (isDragging ? '18px' : (isHovered ? '16px' : '14px'));
         ctx.font = `bold ${fontSize} Montserrat, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -382,19 +433,130 @@ const ProjectviewWebsite = () => {
       animationFrame = requestAnimationFrame(animate);
     };
 
+    // Gestion du drag & drop
+    const getMousePos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    };
+
+    const getTouchPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    };
+
+    const findBrandAtPosition = (x, y) => {
+      const baseSize = canvas.offsetWidth < 640 ? 26 : 34;
+      for (let i = 0; i < brandPositions.length; i++) {
+        const pos = brandPositions[i];
+        const dx = x - pos.x;
+        const dy = y - pos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < baseSize + 8) {
+          return i;
+        }
+      }
+      return null;
+    };
+
+    const handleMouseDown = (e) => {
+      const mousePos = getMousePos(e);
+      const brandIndex = findBrandAtPosition(mousePos.x, mousePos.y);
+      if (brandIndex !== null) {
+        draggingIndexRef = brandIndex;
+        dragOffset = {
+          x: mousePos.x - brandPositions[brandIndex].x,
+          y: mousePos.y - brandPositions[brandIndex].y
+        };
+        canvas.style.cursor = 'grabbing';
+      }
+    };
+
+    const handleMouseMove = (e) => {
+      const mousePos = getMousePos(e);
+
+      if (draggingIndexRef !== null) {
+        brandPositions[draggingIndexRef].x = mousePos.x - dragOffset.x;
+        brandPositions[draggingIndexRef].y = mousePos.y - dragOffset.y;
+        brandPositions[draggingIndexRef].vx = 0;
+        brandPositions[draggingIndexRef].vy = 0;
+      } else {
+        const brandIndex = findBrandAtPosition(mousePos.x, mousePos.y);
+        if (brandIndex !== null) {
+          setHoveredBrand(brandIndex);
+          setActiveBrandIndex(brandIndex);
+          canvas.style.cursor = 'grab';
+        } else if (hoveredBrand !== null) {
+          setHoveredBrand(null);
+          canvas.style.cursor = 'default';
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (draggingIndexRef !== null) {
+        // Ajouter une petite vélocité basée sur le dernier mouvement
+        draggingIndexRef = null;
+        canvas.style.cursor = 'default';
+      }
+    };
+
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      const touchPos = getTouchPos(e);
+      const brandIndex = findBrandAtPosition(touchPos.x, touchPos.y);
+      if (brandIndex !== null) {
+        draggingIndexRef = brandIndex;
+        setHoveredBrand(brandIndex);
+        setActiveBrandIndex(brandIndex);
+        dragOffset = {
+          x: touchPos.x - brandPositions[brandIndex].x,
+          y: touchPos.y - brandPositions[brandIndex].y
+        };
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      if (draggingIndexRef !== null) {
+        const touchPos = getTouchPos(e);
+        brandPositions[draggingIndexRef].x = touchPos.x - dragOffset.x;
+        brandPositions[draggingIndexRef].y = touchPos.y - dragOffset.y;
+        brandPositions[draggingIndexRef].vx = 0;
+        brandPositions[draggingIndexRef].vy = 0;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (draggingIndexRef !== null) {
+        draggingIndexRef = null;
+      }
+    };
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('mouseleave', handleMouseUp);
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+
     animate();
 
     const handleResize = () => {
       setCanvasSize();
-      // Recalculer les positions
       const newBaseRadius = getRadius();
       brandPositions.forEach((pos, index) => {
         const angle = (index / trustBrands.length) * Math.PI * 2;
         const radius = newBaseRadius + Math.sin(angle * 3) * (newBaseRadius * 0.28);
         pos.x = canvas.offsetWidth / 2 + Math.cos(angle) * radius;
         pos.y = canvas.offsetHeight / 2 + Math.sin(angle) * radius;
-        pos.baseX = pos.x;
-        pos.baseY = pos.y;
       });
     };
 
@@ -402,9 +564,16 @@ const ProjectviewWebsite = () => {
 
     return () => {
       cancelAnimationFrame(animationFrame);
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('mouseleave', handleMouseUp);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
     };
-  }, [trustBrands]);
+  }, [trustBrands, hoveredBrand]);
 
   const challengePool = [
     {
@@ -588,9 +757,26 @@ const ProjectviewWebsite = () => {
       {/* Navigation */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-lg shadow-xl py-3' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-            <span className="text-2xl font-medium tracking-tight" style={{ color: '#1f2937' }}>PROJECT</span>
-            <span className="text-2xl font-light tracking-tight transition-colors duration-1000" style={{ color: logoColor }}>VIEW</span>
+          <div className="flex items-center">
+            <svg
+              width="150"
+              height="67"
+              viewBox="0 0 648 290"
+              className="transition-all duration-1000"
+              style={{ fill: logoColor }}
+            >
+              <path d="M0.102701 2.2667C0.502701 4.40003 3.16937 4.6667 29.1694 5.0667L57.7027 5.33336L61.436 8.93337C66.3694 13.7334 66.636 22.1334 61.9694 27.6L58.7694 31.3334L29.5694 32L0.502701 32.6667L0.102701 53.8667C-0.163965 72.8 -0.030632 74.9334 1.96937 74.1334C3.03603 73.7334 4.36937 73.3334 4.63603 73.3334C4.9027 73.3334 5.16937 65.2 5.16937 55.3334V37.3334H30.636C51.3027 37.3334 56.9027 36.9334 60.636 35.2C73.436 29.0667 73.836 8.53336 61.3027 2.00003C58.1027 0.400029 51.836 2.86785e-05 28.5027 2.86785e-05C1.7027 2.86785e-05 -0.297299 0.133362 0.102701 2.2667Z"/>
+              <path d="M96.1026 34.9333C96.5026 67.0667 96.6359 70 98.9026 70.4C101.036 70.8 101.169 68.5333 101.169 38.1333V5.33334H127.569C152.503 5.33334 154.103 5.46667 157.036 8.13334C163.436 14.1333 163.703 22.4 157.703 28.1333C154.636 30.9333 152.769 31.4667 140.236 32L126.236 32.6667L145.836 54C156.636 65.7333 165.703 75.6 165.969 75.8667C166.236 76.1333 166.503 74.6667 166.503 72.5333C166.503 69.4667 163.436 65.4667 152.103 53.3333L137.836 38L146.503 37.3333C151.303 36.9333 156.503 35.8667 158.236 34.9333C166.103 30.4 169.036 16.8 163.836 8.4C159.169 0.533338 156.503 4.17963e-06 124.503 4.17963e-06H95.8359L96.1026 34.9333Z"/>
+              <path d="M216.636 1.33338C207.836 4.00005 198.236 13.4667 194.636 23.0667C193.836 25.2 193.169 30.5334 193.169 35.0667C193.169 65.7334 228.902 81.6 251.436 60.9334C259.569 53.4667 263.036 45.7334 262.902 34.6667C262.902 20.1334 255.302 8.66671 241.836 2.53338C236.102 -0.133288 223.436 -0.666622 216.636 1.33338ZM240.636 7.46671C247.169 10.6667 255.436 20.1334 257.169 26.8C259.969 36.9334 256.369 50 248.902 56.9334C231.836 72.9334 203.569 64.1334 198.636 41.3334C195.702 27.7334 202.236 14.4 215.169 7.60005C220.502 4.80005 234.769 4.66671 240.636 7.46671Z"/>
+              <path d="M320.369 2.13344C320.769 3.33344 321.169 4.53344 321.169 4.80011C321.169 5.06677 328.636 5.33344 337.836 5.33344H354.503V22.1334C354.503 42.9334 353.036 48.1334 345.169 56.1334C333.036 68.2668 315.036 68.2668 302.903 56.1334C297.836 51.2001 294.503 44.1334 294.503 38.8001C294.503 35.6001 293.969 34.6668 291.836 34.6668C285.969 34.6668 289.969 49.4668 298.369 58.9334C310.769 73.0668 333.303 74.0001 347.436 60.9334C357.969 51.2001 359.036 47.8668 359.569 22.2668L360.103 0.000110273H339.836C321.836 0.000110273 319.703 0.266773 320.369 2.13344Z"/>
+              <path d="M385.169 35.3332V70.6665H420.502C454.902 70.6665 455.836 70.5332 455.836 67.9998C455.836 65.4665 454.902 65.3332 423.169 65.3332H390.502V51.3332V37.3332H423.169C454.902 37.3332 455.836 37.1998 455.836 34.6665C455.836 32.1332 454.902 31.9998 423.169 31.9998H390.502V18.6665V5.33317H424.369C453.969 5.33317 458.369 5.0665 459.036 3.19983C459.436 1.99983 459.836 0.799834 459.836 0.533167C459.836 0.2665 443.036 -0.000166446 422.502 -0.000166446H385.169V35.3332Z"/>
+              <path d="M502.502 2.80002C475.702 14.9334 474.102 51.4667 499.836 65.8667L507.169 70L532.236 70.4C557.169 70.9334 557.436 70.9334 555.969 68.2667C554.636 65.7334 553.036 65.4667 530.636 65.0667L506.769 64.6667L501.036 60.6667C491.836 54.1334 487.436 46.8 486.769 36.9334C486.369 29.8667 486.769 27.6 490.102 21.3334C492.502 16.8 496.102 12.5334 499.702 10L505.436 6.00002L528.636 5.60002C550.502 5.20002 551.836 5.06668 551.836 2.53335C551.836 0.13335 550.769 2.07279e-05 530.236 2.07279e-05C511.302 2.07279e-05 507.702 0.400017 502.502 2.80002Z"/>
+              <path d="M577.436 2.26685C577.836 4.40018 579.836 4.66685 594.236 5.06685L610.503 5.46685V40.1335C610.503 71.3335 610.77 74.9335 612.636 74.1335C613.836 73.7335 615.036 73.3335 615.303 73.3335C615.57 73.3335 615.836 58.0002 615.836 39.3335V5.33352H631.836C646.903 5.33352 647.836 5.20018 647.836 2.66685C647.836 0.133517 646.903 0.000183303 612.37 0.000183303C579.436 0.000183303 577.036 0.133517 577.436 2.26685Z"/>
+              <path d="M179.169 99.3333C170.636 107.733 179.969 121.467 191.169 116.8C196.769 114.4 199.036 110.4 197.969 104.533C196.236 95.9999 185.436 92.9333 179.169 99.3333Z"/>
+              <path d="M4.76902 137.333C2.90236 138.8 1.03569 141.867 0.502356 144C-0.297644 147.6 3.96902 154.533 43.8357 215.067C68.2357 251.867 89.969 283.733 92.1024 285.733C95.4357 288.933 96.9024 289.467 100.236 288.8C102.502 288.4 105.436 287.067 106.636 285.867C107.969 284.667 123.836 261.2 142.102 233.6L175.169 183.467L175.836 233.067C176.502 282.133 176.502 282.667 179.436 285.6C183.836 290 191.302 289.6 195.302 284.8L198.502 281.2V211.2V141.2L195.169 138C191.169 133.867 182.236 133.333 179.169 136.933C178.102 138.267 159.969 165.067 138.902 196.533C117.702 228 99.969 253.733 99.3024 253.867C98.6357 253.867 81.3024 229.067 60.9024 198.667C40.5024 168.267 22.2357 141.333 20.5024 138.933C16.369 133.867 10.1024 133.2 4.76902 137.333Z"/>
+              <path d="M231.303 137.6C225.57 142.667 225.97 150.934 232.236 154.667C236.37 157.2 239.17 157.334 323.303 157.334H410.236L425.17 191.6C433.303 210.534 445.836 239.467 452.903 255.734C463.703 280.8 466.503 285.867 469.57 287.6C473.97 289.734 480.103 288.934 482.77 285.734C483.703 284.534 494.503 259.867 506.77 230.8C519.036 201.734 529.436 178 529.836 178C530.37 178 541.303 202.267 554.37 232C577.703 285.2 578.103 286 582.77 287.734C586.77 289.334 588.236 289.334 591.303 287.734C594.77 286.134 597.57 279.734 621.436 218C636.103 180.134 647.836 148 647.836 145.6C647.836 139.6 642.903 134.667 636.503 134.667C628.236 134.667 630.77 129.467 598.37 212.934C591.436 230.667 585.436 244.8 585.036 244.267C584.503 243.734 574.103 220.267 561.836 192C547.97 160 538.236 139.467 536.236 137.6C532.236 134 525.17 133.734 522.103 137.067C520.77 138.4 509.836 163.2 497.703 192.134C485.436 221.067 475.17 245.067 474.636 245.6C474.236 246.134 463.436 222.4 450.636 192.934C437.97 163.467 426.37 138.267 424.903 136.934C422.37 134.8 415.836 134.667 328.37 134.667H234.636L231.303 137.6Z"/>
+              <path d="M231.303 198.8L227.836 201.467V242.133C227.836 280.667 227.969 282.8 230.503 285.333C231.969 286.8 234.503 288.267 236.103 288.667C237.836 289.067 279.569 289.2 328.903 289.067L418.769 288.667L421.969 284.933C426.103 280.133 426.103 274.533 421.969 269.733L418.769 266L333.969 265.6L249.169 265.333V242V218.667H324.636H400.103L403.969 214.8C406.236 212.4 407.836 209.467 407.836 207.333C407.836 205.2 406.236 202.267 403.969 199.867L400.103 196H317.436C235.969 196 234.769 196 231.303 198.8Z"/>
+            </svg>
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
@@ -914,96 +1100,16 @@ const ProjectviewWebsite = () => {
                 <canvas
                   ref={canvasRef}
                   className="w-full h-full"
-                  onMouseMove={(e) => {
-                    const canvas = canvasRef.current;
-                    if (!canvas) return;
-
-                    const rect = canvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    // Calculer les positions des logos
-                    const centerX = canvas.offsetWidth / 2;
-                    const centerY = canvas.offsetHeight / 2;
-
-                    const getRadius = () => {
-                      const width = canvas.offsetWidth;
-                      if (width < 640) return 100;
-                      if (width < 1024) return 140;
-                      return 180;
-                    };
-
-                    let foundHover = null;
-                    trustBrands.forEach((_, index) => {
-                      const angle = (index / trustBrands.length) * Math.PI * 2;
-                      const baseRadius = getRadius();
-                      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28);
-                      const logoX = centerX + Math.cos(angle) * radius;
-                      const logoY = centerY + Math.sin(angle) * radius;
-                      const distance = Math.sqrt((x - logoX) ** 2 + (y - logoY) ** 2);
-                      const hitRadius = canvas.offsetWidth < 640 ? 32 : 40;
-
-                      if (distance < hitRadius) {
-                        foundHover = index;
-                      }
-                    });
-
-                    if (foundHover !== null) {
-                      setHoveredBrand(foundHover);
-                      setActiveBrandIndex(foundHover);
-                    } else if (hoveredBrand !== null) {
-                      setHoveredBrand(null);
-                    }
-                  }}
-                  onTouchStart={(e) => {
-                    const canvas = canvasRef.current;
-                    if (!canvas || e.touches.length === 0) return;
-
-                    const rect = canvas.getBoundingClientRect();
-                    const touch = e.touches[0];
-                    const x = touch.clientX - rect.left;
-                    const y = touch.clientY - rect.top;
-
-                    const centerX = canvas.offsetWidth / 2;
-                    const centerY = canvas.offsetHeight / 2;
-
-                    const getRadius = () => {
-                      const width = canvas.offsetWidth;
-                      if (width < 640) return 100;
-                      if (width < 1024) return 140;
-                      return 180;
-                    };
-
-                    let foundHover = null;
-                    trustBrands.forEach((_, index) => {
-                      const angle = (index / trustBrands.length) * Math.PI * 2;
-                      const baseRadius = getRadius();
-                      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28);
-                      const logoX = centerX + Math.cos(angle) * radius;
-                      const logoY = centerY + Math.sin(angle) * radius;
-                      const distance = Math.sqrt((x - logoX) ** 2 + (y - logoY) ** 2);
-
-                      if (distance < 40) {
-                        foundHover = index;
-                      }
-                    });
-
-                    if (foundHover !== null) {
-                      setHoveredBrand(foundHover);
-                      setActiveBrandIndex(foundHover);
-                    }
-                  }}
-                  onMouseLeave={() => setHoveredBrand(null)}
-                  style={{ cursor: hoveredBrand !== null ? 'pointer' : 'default', touchAction: 'manipulation' }}
+                  style={{ touchAction: 'none' }}
                 />
 
                 {/* Légende interactive */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-lg rounded-2xl px-4 sm:px-6 py-2 sm:py-3 shadow-lg border border-white/60 max-w-[90%]">
                   <p className="text-xs sm:text-sm text-gray-600 text-center">
                     <span className="font-semibold text-[#72B0CC]">
-                      <span className="hidden sm:inline">Survolez</span>
-                      <span className="sm:hidden">Touchez</span>
-                    </span> les logos pour découvrir nos collaborations
+                      <span className="hidden sm:inline">Déplacez</span>
+                      <span className="sm:hidden">Bougez</span>
+                    </span> les logos pour les repositionner • Les connexions s'adaptent aux 3 plus proches
                   </p>
                 </div>
               </div>
@@ -1055,115 +1161,6 @@ const ProjectviewWebsite = () => {
               </div>
             )}
           </div>
-
-          <div className="mt-16 grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur px-5 py-3 rounded-full border border-[#72B0CC]/30 shadow-md w-fit">
-                <Gamepad2 className="w-5 h-5 text-[#72B0CC]" />
-                <span className="text-sm font-semibold uppercase tracking-wide text-gray-700">Mini-jeu immersif</span>
-              </div>
-              <h3 className="text-3xl md:text-4xl font-semibold text-gray-900 leading-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                Associez la bonne solution à la marque <span style={{ color: '#CF6E3F' }} className="inline-block hover:scale-110 transition-transform duration-300">en un clin d'œil</span>
-              </h3>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Chaque projet Projectview commence par une immersion dans vos usages. À vous de jouer : identifiez la solution qui répond le mieux au défi de la marque présentée, et découvrez comment nous créons de l&apos;émotion à chaque étape.
-              </p>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-[#CF6E3F]" />
-                  <span>Série en cours : <span className="font-semibold text-gray-900">{streak}</span></span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#72B0CC]" />
-                  <span>Une mission inédite à chaque manche</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#72B0CC]/10 via-transparent to-[#CF6E3F]/10 blur-2xl rounded-3xl"></div>
-              <div className="relative bg-white rounded-3xl shadow-2xl border border-[#72B0CC]/20 p-8 overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10 rounded-full blur-2xl"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-[#CF6E3F]/10 to-transparent rounded-full blur-2xl"></div>
-
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${currentChallenge?.gradient || 'from-[#72B0CC] to-[#82BC6C]'} text-white font-bold flex items-center justify-center`}>
-                        {(currentChallenge?.brand || '...').slice(0, 3).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Mission du jour</p>
-                        <h4 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                          {currentChallenge?.brand || 'Chargement...'}
-                        </h4>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">
-                      <span className="inline-flex items-center gap-1 bg-[#82BC6C]/10 text-[#2f855a] px-3 py-1 rounded-full font-semibold border border-[#82BC6C]/30">
-                        <Bot className="w-4 h-4" />
-                        Challenge Loop
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-base text-gray-600 leading-relaxed mb-6">
-                    {currentChallenge?.clue || "Les équipes Projectview imaginent déjà une expérience... À vous de révéler la solution parfaite."}
-                  </p>
-
-                  <div className="space-y-3">
-                    {challengeOptions.length > 0 ? (
-                      challengeOptions.map((option) => {
-                        const isSelected = selectedOption === option;
-                        const isCorrect = currentChallenge && option === currentChallenge.answer && gameStatus === 'correct';
-                        const isWrongSelection = isSelected && gameStatus === 'wrong';
-
-                        return (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => handleGuess(option)}
-                            disabled={gameStatus === 'correct'}
-                            className={`w-full text-left rounded-2xl px-5 py-4 border transition-all duration-300 flex items-center justify-between gap-3 ${
-                              isCorrect
-                                ? 'bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white border-transparent shadow-xl'
-                                : isWrongSelection
-                                  ? 'bg-red-50 border-red-200 text-red-600'
-                                  : isSelected
-                                    ? 'border-[#72B0CC] text-gray-900 shadow-lg bg-white'
-                                    : 'border-gray-200 text-gray-700 bg-white hover:border-[#72B0CC] hover:shadow-lg'
-                            }`}
-                          >
-                            <span className="font-semibold">{option}</span>
-                            <ChevronRight className={`w-5 h-5 ${isCorrect ? 'text-white' : isWrongSelection ? 'text-red-400' : 'text-[#72B0CC]'}`} />
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="w-full rounded-2xl px-5 py-4 border border-dashed border-[#72B0CC]/40 text-[#72B0CC] bg-[#72B0CC]/5 text-sm text-center">
-                        Préparation de la prochaine mission...
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
-                    <button
-                      type="button"
-                      onClick={handleSkip}
-                      className="inline-flex items-center gap-2 text-gray-500 hover:text-[#72B0CC] transition-colors"
-                    >
-                      <RefreshCcw className="w-4 h-4" />
-                      Passer la mission
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#72B0CC] animate-pulse"></span>
-                      <span>Plus vous jouez, plus c&apos;est inspirant</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1188,6 +1185,41 @@ const ProjectviewWebsite = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Article - Guide Réunions */}
+            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="h-48 bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
+                </div>
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: '#72B0CC' }}>
+                    Article Informatif
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  Les 5 erreurs qui font perdre du temps en réunion
+                </h3>
+
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Départs chaotiques, objectifs flous, participants passifs : transformez vos réunions en leviers d’efficacité grâce à quelques bonnes pratiques et à ProjectView.
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Collaboration</span>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Réunions</span>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Productivité</span>
+                </div>
+
+                <Link to="/article/erreurs-reunion" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#72B0CC' }}>
+                  Lire l'article
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </article>
+
             {/* Article 1 - Case Study */}
             <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div className="h-48 bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
@@ -1227,45 +1259,6 @@ const ProjectviewWebsite = () => {
               </div>
             </article>
 
-            {/* Article 2 - Case Study */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#CF6E3F] to-[#72B0CC] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Compass className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#CF6E3F' }}>
-                    Installation Client
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#CF6E3F] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Promoteur Immobilier : Vendre sur plan avec la VR
-                </h3>
-
-                <div className="mb-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
-                  <div className="text-xs font-bold text-red-600 uppercase mb-2">Situation avant</div>
-                  <p className="text-sm text-gray-700">
-                    Difficultés de projection, 40% de modifications en cours de chantier, délais rallongés
-                  </p>
-                </div>
-
-                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4" style={{ borderColor: '#82BC6C' }}>
-                  <div className="text-xs font-bold uppercase mb-2" style={{ color: '#82BC6C' }}>Après Projectview</div>
-                  <p className="text-sm text-gray-700">
-                    Visite VR immersive, validation avant construction, -67% de modifications, clients confiants
-                  </p>
-                </div>
-
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#CF6E3F' }}>
-                  Lire l'étude de cas
-                  <ChevronRight className="w-4 h-4" />
-                </a>
-              </div>
-            </article>
-
             {/* Article 3 - Article informatif */}
             <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               <div className="h-48 bg-gradient-to-br from-[#82BC6C] to-[#CF6E3F] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
@@ -1300,130 +1293,17 @@ const ProjectviewWebsite = () => {
                 </Link>
               </div>
             </article>
-
-            {/* Article 4 - Case Study */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#72B0CC] to-[#CF6E3F] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Tv className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#72B0CC' }}>
-                    Installation Client
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Enseigne Retail : L'affichage dynamique qui booste les ventes
-                </h3>
-
-                <div className="mb-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
-                  <div className="text-xs font-bold text-red-600 uppercase mb-2">Situation avant</div>
-                  <p className="text-sm text-gray-700">
-                    Affiches statiques, promotions non actualisées, clients qui passent sans s'arrêter
-                  </p>
-                </div>
-
-                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4" style={{ borderColor: '#82BC6C' }}>
-                  <div className="text-xs font-bold uppercase mb-2" style={{ color: '#82BC6C' }}>Après Projectview</div>
-                  <p className="text-sm text-gray-700">
-                    Contenus animés attractifs, mise à jour en temps réel, +340% d'attention captée
-                  </p>
-                </div>
-
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#72B0CC' }}>
-                  Lire l'étude de cas
-                  <ChevronRight className="w-4 h-4" />
-                </a>
-              </div>
-            </article>
-
-            {/* Article 5 - Article informatif */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#CF6E3F] to-[#82BC6C] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Eye className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#CF6E3F' }}>
-                    Article Informatif
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#CF6E3F] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  ROI des technologies immersives : Ce que disent les chiffres
-                </h3>
-
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                  Tables tactiles, VR, affichage dynamique : au-delà de l'effet "wow", quel est le retour sur investissement réel ? Analyse basée sur nos 500+ installations.
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">ROI</span>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Innovation</span>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Business</span>
-                </div>
-
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#CF6E3F' }}>
-                  Lire l'article
-                  <ChevronRight className="w-4 h-4" />
-                </a>
-              </div>
-            </article>
-
-            {/* Article 6 - Case Study */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#82BC6C] to-[#72B0CC] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Bot className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#82BC6C' }}>
-                    Installation Client
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#82BC6C] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Cabinet d'Architecture : L'IA au service de la conception
-                </h3>
-
-                <div className="mb-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
-                  <div className="text-xs font-bold text-red-600 uppercase mb-2">Situation avant</div>
-                  <p className="text-sm text-gray-700">
-                    Recherches documentaires chronophages, temps perdu sur des questions récurrentes
-                  </p>
-                </div>
-
-                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4" style={{ borderColor: '#82BC6C' }}>
-                  <div className="text-xs font-bold uppercase mb-2" style={{ color: '#82BC6C' }}>Après Projectview</div>
-                  <p className="text-sm text-gray-700">
-                    Assistant IA formé sur leurs projets, 10h/semaine gagnées, focus sur la création
-                  </p>
-                </div>
-
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#82BC6C' }}>
-                  Lire l'étude de cas
-                  <ChevronRight className="w-4 h-4" />
-                </a>
-              </div>
-            </article>
           </div>
 
           <div className="text-center mt-12">
-            <a
-              href="#"
+            <Link
+              to="/blog"
               className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-10 py-4 rounded-full text-lg font-medium hover:shadow-2xl transform hover:-translate-y-2 hover:scale-110 transition-all duration-300 relative overflow-hidden animate-pulse-glow"
             >
               <span className="relative z-10">Voir tous les articles</span>
               <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#82BC6C] to-[#CF6E3F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -1490,9 +1370,26 @@ const ProjectviewWebsite = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 mb-16 pb-16 border-b border-white/10">
             {/* Company Info */}
             <div className="lg:col-span-5">
-              <div className="flex items-center gap-1 mb-6" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                <span className="text-3xl font-medium tracking-tight text-white">PROJECT</span>
-                <span className="text-3xl font-light tracking-tight transition-colors duration-1000" style={{ color: logoColor }}>VIEW</span>
+              <div className="flex items-center mb-6">
+                <svg
+                  width="180"
+                  height="81"
+                  viewBox="0 0 648 290"
+                  className="transition-all duration-1000"
+                  style={{ fill: logoColor }}
+                >
+                  <path d="M0.102701 2.2667C0.502701 4.40003 3.16937 4.6667 29.1694 5.0667L57.7027 5.33336L61.436 8.93337C66.3694 13.7334 66.636 22.1334 61.9694 27.6L58.7694 31.3334L29.5694 32L0.502701 32.6667L0.102701 53.8667C-0.163965 72.8 -0.030632 74.9334 1.96937 74.1334C3.03603 73.7334 4.36937 73.3334 4.63603 73.3334C4.9027 73.3334 5.16937 65.2 5.16937 55.3334V37.3334H30.636C51.3027 37.3334 56.9027 36.9334 60.636 35.2C73.436 29.0667 73.836 8.53336 61.3027 2.00003C58.1027 0.400029 51.836 2.86785e-05 28.5027 2.86785e-05C1.7027 2.86785e-05 -0.297299 0.133362 0.102701 2.2667Z"/>
+                  <path d="M96.1026 34.9333C96.5026 67.0667 96.6359 70 98.9026 70.4C101.036 70.8 101.169 68.5333 101.169 38.1333V5.33334H127.569C152.503 5.33334 154.103 5.46667 157.036 8.13334C163.436 14.1333 163.703 22.4 157.703 28.1333C154.636 30.9333 152.769 31.4667 140.236 32L126.236 32.6667L145.836 54C156.636 65.7333 165.703 75.6 165.969 75.8667C166.236 76.1333 166.503 74.6667 166.503 72.5333C166.503 69.4667 163.436 65.4667 152.103 53.3333L137.836 38L146.503 37.3333C151.303 36.9333 156.503 35.8667 158.236 34.9333C166.103 30.4 169.036 16.8 163.836 8.4C159.169 0.533338 156.503 4.17963e-06 124.503 4.17963e-06H95.8359L96.1026 34.9333Z"/>
+                  <path d="M216.636 1.33338C207.836 4.00005 198.236 13.4667 194.636 23.0667C193.836 25.2 193.169 30.5334 193.169 35.0667C193.169 65.7334 228.902 81.6 251.436 60.9334C259.569 53.4667 263.036 45.7334 262.902 34.6667C262.902 20.1334 255.302 8.66671 241.836 2.53338C236.102 -0.133288 223.436 -0.666622 216.636 1.33338ZM240.636 7.46671C247.169 10.6667 255.436 20.1334 257.169 26.8C259.969 36.9334 256.369 50 248.902 56.9334C231.836 72.9334 203.569 64.1334 198.636 41.3334C195.702 27.7334 202.236 14.4 215.169 7.60005C220.502 4.80005 234.769 4.66671 240.636 7.46671Z"/>
+                  <path d="M320.369 2.13344C320.769 3.33344 321.169 4.53344 321.169 4.80011C321.169 5.06677 328.636 5.33344 337.836 5.33344H354.503V22.1334C354.503 42.9334 353.036 48.1334 345.169 56.1334C333.036 68.2668 315.036 68.2668 302.903 56.1334C297.836 51.2001 294.503 44.1334 294.503 38.8001C294.503 35.6001 293.969 34.6668 291.836 34.6668C285.969 34.6668 289.969 49.4668 298.369 58.9334C310.769 73.0668 333.303 74.0001 347.436 60.9334C357.969 51.2001 359.036 47.8668 359.569 22.2668L360.103 0.000110273H339.836C321.836 0.000110273 319.703 0.266773 320.369 2.13344Z"/>
+                  <path d="M385.169 35.3332V70.6665H420.502C454.902 70.6665 455.836 70.5332 455.836 67.9998C455.836 65.4665 454.902 65.3332 423.169 65.3332H390.502V51.3332V37.3332H423.169C454.902 37.3332 455.836 37.1998 455.836 34.6665C455.836 32.1332 454.902 31.9998 423.169 31.9998H390.502V18.6665V5.33317H424.369C453.969 5.33317 458.369 5.0665 459.036 3.19983C459.436 1.99983 459.836 0.799834 459.836 0.533167C459.836 0.2665 443.036 -0.000166446 422.502 -0.000166446H385.169V35.3332Z"/>
+                  <path d="M502.502 2.80002C475.702 14.9334 474.102 51.4667 499.836 65.8667L507.169 70L532.236 70.4C557.169 70.9334 557.436 70.9334 555.969 68.2667C554.636 65.7334 553.036 65.4667 530.636 65.0667L506.769 64.6667L501.036 60.6667C491.836 54.1334 487.436 46.8 486.769 36.9334C486.369 29.8667 486.769 27.6 490.102 21.3334C492.502 16.8 496.102 12.5334 499.702 10L505.436 6.00002L528.636 5.60002C550.502 5.20002 551.836 5.06668 551.836 2.53335C551.836 0.13335 550.769 2.07279e-05 530.236 2.07279e-05C511.302 2.07279e-05 507.702 0.400017 502.502 2.80002Z"/>
+                  <path d="M577.436 2.26685C577.836 4.40018 579.836 4.66685 594.236 5.06685L610.503 5.46685V40.1335C610.503 71.3335 610.77 74.9335 612.636 74.1335C613.836 73.7335 615.036 73.3335 615.303 73.3335C615.57 73.3335 615.836 58.0002 615.836 39.3335V5.33352H631.836C646.903 5.33352 647.836 5.20018 647.836 2.66685C647.836 0.133517 646.903 0.000183303 612.37 0.000183303C579.436 0.000183303 577.036 0.133517 577.436 2.26685Z"/>
+                  <path d="M179.169 99.3333C170.636 107.733 179.969 121.467 191.169 116.8C196.769 114.4 199.036 110.4 197.969 104.533C196.236 95.9999 185.436 92.9333 179.169 99.3333Z"/>
+                  <path d="M4.76902 137.333C2.90236 138.8 1.03569 141.867 0.502356 144C-0.297644 147.6 3.96902 154.533 43.8357 215.067C68.2357 251.867 89.969 283.733 92.1024 285.733C95.4357 288.933 96.9024 289.467 100.236 288.8C102.502 288.4 105.436 287.067 106.636 285.867C107.969 284.667 123.836 261.2 142.102 233.6L175.169 183.467L175.836 233.067C176.502 282.133 176.502 282.667 179.436 285.6C183.836 290 191.302 289.6 195.302 284.8L198.502 281.2V211.2V141.2L195.169 138C191.169 133.867 182.236 133.333 179.169 136.933C178.102 138.267 159.969 165.067 138.902 196.533C117.702 228 99.969 253.733 99.3024 253.867C98.6357 253.867 81.3024 229.067 60.9024 198.667C40.5024 168.267 22.2357 141.333 20.5024 138.933C16.369 133.867 10.1024 133.2 4.76902 137.333Z"/>
+                  <path d="M231.303 137.6C225.57 142.667 225.97 150.934 232.236 154.667C236.37 157.2 239.17 157.334 323.303 157.334H410.236L425.17 191.6C433.303 210.534 445.836 239.467 452.903 255.734C463.703 280.8 466.503 285.867 469.57 287.6C473.97 289.734 480.103 288.934 482.77 285.734C483.703 284.534 494.503 259.867 506.77 230.8C519.036 201.734 529.436 178 529.836 178C530.37 178 541.303 202.267 554.37 232C577.703 285.2 578.103 286 582.77 287.734C586.77 289.334 588.236 289.334 591.303 287.734C594.77 286.134 597.57 279.734 621.436 218C636.103 180.134 647.836 148 647.836 145.6C647.836 139.6 642.903 134.667 636.503 134.667C628.236 134.667 630.77 129.467 598.37 212.934C591.436 230.667 585.436 244.8 585.036 244.267C584.503 243.734 574.103 220.267 561.836 192C547.97 160 538.236 139.467 536.236 137.6C532.236 134 525.17 133.734 522.103 137.067C520.77 138.4 509.836 163.2 497.703 192.134C485.436 221.067 475.17 245.067 474.636 245.6C474.236 246.134 463.436 222.4 450.636 192.934C437.97 163.467 426.37 138.267 424.903 136.934C422.37 134.8 415.836 134.667 328.37 134.667H234.636L231.303 137.6Z"/>
+                  <path d="M231.303 198.8L227.836 201.467V242.133C227.836 280.667 227.969 282.8 230.503 285.333C231.969 286.8 234.503 288.267 236.103 288.667C237.836 289.067 279.569 289.2 328.903 289.067L418.769 288.667L421.969 284.933C426.103 280.133 426.103 274.533 421.969 269.733L418.769 266L333.969 265.6L249.169 265.333V242V218.667H324.636H400.103L403.969 214.8C406.236 212.4 407.836 209.467 407.836 207.333C407.836 205.2 406.236 202.267 403.969 199.867L400.103 196H317.436C235.969 196 234.769 196 231.303 198.8Z"/>
+                </svg>
               </div>
               <p className="text-gray-300 mb-8 leading-relaxed">
                 La technologie au service de l'émotion. Transformons ensemble vos espaces en expériences mémorables qui captivent, engagent et convertissent.

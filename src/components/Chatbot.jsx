@@ -54,6 +54,19 @@ const Chatbot = () => {
     }
   }, [isOpen, showIntroPrompt]);
 
+  // Écoute l'événement personnalisé pour ouvrir le chatbot
+  useEffect(() => {
+    const handleOpenChatbot = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener('openChatbot', handleOpenChatbot);
+
+    return () => {
+      window.removeEventListener('openChatbot', handleOpenChatbot);
+    };
+  }, []);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
