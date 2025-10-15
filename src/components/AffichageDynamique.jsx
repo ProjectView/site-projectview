@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Menu, X, ChevronRight, Radio, Monitor, Smartphone, Sparkles, Zap, Eye, TrendingUp, ArrowRight } from 'lucide-react';
 import Chatbot from './Chatbot';
+import EspaceCommunication from '../../Images/Espace communication.jpg';
+import AffichageRue from '../../Images/affichage rue.png';
+import NFCSystem from '../../Images/nfc system.png';
 
 const AffichageDynamique = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -104,8 +107,12 @@ const AffichageDynamique = () => {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-[#CF6E3F]/10 to-[#72B0CC]/10 rounded-3xl flex items-center justify-center">
-                <Eye className="w-32 h-32 text-[#CF6E3F] opacity-20" />
+              <div className="rounded-3xl overflow-hidden shadow-lg">
+                <img
+                  src={EspaceCommunication}
+                  alt="Espace communication"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -163,8 +170,13 @@ const AffichageDynamique = () => {
                 </ul>
               </div>
               <div className="order-1 md:order-2">
-                <div className="aspect-video bg-gradient-to-br from-[#CF6E3F]/20 to-[#72B0CC]/20 rounded-3xl flex items-center justify-center">
-                  <Monitor className="w-24 h-24 text-[#CF6E3F]" />
+                <div className="rounded-3xl overflow-hidden shadow-lg h-56 sm:h-64 md:h-80 lg:h-[420px]">
+                  <img
+                    src={AffichageRue}
+                    alt="Affichage rue"
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </div>
@@ -172,8 +184,13 @@ const AffichageDynamique = () => {
             {/* Solution 2: Système NFC */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <div className="aspect-video bg-gradient-to-br from-[#72B0CC]/20 to-[#82BC6C]/20 rounded-3xl flex items-center justify-center">
-                  <Smartphone className="w-24 h-24 text-[#72B0CC]" />
+                <div className="rounded-3xl overflow-hidden shadow-lg h-56 sm:h-64 md:h-80 lg:h-[420px]">
+                  <img
+                    src={NFCSystem}
+                    alt="Syst��me NFC"
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                  />
                 </div>
               </div>
               <div>
