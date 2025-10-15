@@ -27,6 +27,9 @@ const ProjectviewWebsite = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [gameStatus, setGameStatus] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [activeBrandIndex, setActiveBrandIndex] = useState(0);
+  const [hoveredBrand, setHoveredBrand] = useState(null);
+  const canvasRef = useRef(null);
 
   const heroRef = useRef(null);
   const statsRef = useRef(null);
@@ -139,51 +142,269 @@ const ProjectviewWebsite = () => {
       name: "Leroy Merlin",
       sector: "Retail & Showroom",
       initials: "LM",
-      gradient: "from-[#72B0CC] to-[#82BC6C]"
+      gradient: "from-[#72B0CC] to-[#82BC6C]",
+      solution: "Tables tactiles & configurateurs VR pour les univers rénovation",
+      impact: "+180% de conversion des visites en projets accompagnés"
     },
     {
       name: "Accor Live Limitless",
       sector: "Hospitality",
       initials: "ALL",
-      gradient: "from-[#CF6E3F] to-[#72B0CC]"
+      gradient: "from-[#CF6E3F] to-[#72B0CC]",
+      solution: "Parcours interactifs & signage dynamique dans les lobbies premium",
+      impact: "+65% d'interactions qualifiées avec les conciergeries"
     },
     {
       name: "Décathlon",
       sector: "Sport & Expérience",
       initials: "DEC",
-      gradient: "from-[#82BC6C] to-[#CF6E3F]"
+      gradient: "from-[#82BC6C] to-[#CF6E3F]",
+      solution: "Studios collaboratifs pour co-créer des séances & équipements sur-mesure",
+      impact: "Temps de préparation divisé par 3 pour les coachs"
     },
     {
       name: "Renault",
       sector: "Automobile",
       initials: "RN",
-      gradient: "from-[#72B0CC] to-[#CF6E3F]"
+      gradient: "from-[#72B0CC] to-[#CF6E3F]",
+      solution: "Configurateurs immersifs 3D & VR pour les centres d'essai",
+      impact: "+220% d'engagement sur les finitions premium"
     },
     {
       name: "Galeries Lafayette",
       sector: "Retail Premium",
       initials: "GL",
-      gradient: "from-[#CF6E3F] to-[#82BC6C]"
+      gradient: "from-[#CF6E3F] to-[#82BC6C]",
+      solution: "Vitrines connectées pilotées en temps réel depuis le siège",
+      impact: "Mise à jour à la volée de 80 vitrines en simultané"
     },
     {
       name: "La Poste",
       sector: "Service & Réseau",
       initials: "LP",
-      gradient: "from-[#72B0CC] to-[#82BC6C]"
+      gradient: "from-[#72B0CC] to-[#82BC6C]",
+      solution: "Assistant IA qui guide agents & usagers sur les services clés",
+      impact: "-40% de temps d'attente et NPS en forte hausse"
     },
     {
       name: "Bouygues Immobilier",
       sector: "Immobilier & VR",
       initials: "BI",
-      gradient: "from-[#82BC6C] to-[#72B0CC]"
+      gradient: "from-[#82BC6C] to-[#72B0CC]",
+      solution: "Salles de vente immersives avec projection et maquettes digitales",
+      impact: "Décisions accélérées, 2 signatures sur 3 dès la première visite"
     },
     {
       name: "EDF",
       sector: "Innovation & Industrie",
       initials: "EDF",
-      gradient: "from-[#CF6E3F] to-[#72B0CC]"
+      gradient: "from-[#CF6E3F] to-[#72B0CC]",
+      solution: "War room connectée pour coordonner les équipes terrains",
+      impact: "-30% sur les délais de réponse aux incidents critiques"
     }
   ];
+
+  const activeBrand = trustBrands[activeBrandIndex] || null;
+
+  // Constellation animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let animationFrame;
+    let time = 0;
+
+    const setCanvasSize = () => {
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    };
+    setCanvasSize();
+
+    // Positions des logos en constellation (réparties de manière organique)
+    const getRadius = () => {
+      const width = canvas.offsetWidth;
+      if (width < 640) return 100; // Mobile
+      if (width < 1024) return 140; // Tablet
+      return 180; // Desktop
+    };
+
+    const brandPositions = trustBrands.map((_, index) => {
+      const angle = (index / trustBrands.length) * Math.PI * 2;
+      const baseRadius = getRadius();
+      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28); // Variation organique proportionnelle
+      return {
+        x: canvas.offsetWidth / 2 + Math.cos(angle) * radius,
+        y: canvas.offsetHeight / 2 + Math.sin(angle) * radius,
+        baseX: canvas.offsetWidth / 2 + Math.cos(angle) * radius,
+        baseY: canvas.offsetHeight / 2 + Math.sin(angle) * radius,
+        pulseOffset: Math.random() * Math.PI * 2
+      };
+    });
+
+    // Particules qui voyagent le long des connexions
+    const particles = [];
+    for (let i = 0; i < 15; i++) {
+      const from = Math.floor(Math.random() * trustBrands.length);
+      let to = Math.floor(Math.random() * trustBrands.length);
+      while (to === from) to = Math.floor(Math.random() * trustBrands.length);
+
+      particles.push({
+        from,
+        to,
+        progress: Math.random(),
+        speed: 0.002 + Math.random() * 0.003
+      });
+    }
+
+    const animate = () => {
+      time += 0.01;
+      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+      // Dessiner les connexions
+      trustBrands.forEach((_, i) => {
+        const pos1 = brandPositions[i];
+        if (!pos1) return;
+
+        // Connecter aux 2-3 logos les plus proches
+        const distances = trustBrands
+          .map((_, j) => {
+            if (i === j) return null;
+            const pos2 = brandPositions[j];
+            if (!pos2) return null;
+            const dx = pos2.x - pos1.x;
+            const dy = pos2.y - pos1.y;
+            return { index: j, dist: Math.sqrt(dx * dx + dy * dy) };
+          })
+          .filter(d => d !== null)
+          .sort((a, b) => a.dist - b.dist);
+
+        distances.slice(0, 3).forEach(({ index: j }) => {
+          const pos2 = brandPositions[j];
+          if (!pos2) return;
+
+          // Ligne avec gradient
+          const gradient = ctx.createLinearGradient(pos1.x, pos1.y, pos2.x, pos2.y);
+          const isHovered = hoveredBrand === i || hoveredBrand === j;
+          gradient.addColorStop(0, isHovered ? 'rgba(114, 176, 204, 0.4)' : 'rgba(114, 176, 204, 0.15)');
+          gradient.addColorStop(1, isHovered ? 'rgba(207, 110, 63, 0.4)' : 'rgba(207, 110, 63, 0.15)');
+
+          ctx.beginPath();
+          ctx.moveTo(pos1.x, pos1.y);
+          ctx.lineTo(pos2.x, pos2.y);
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = isHovered ? 2 : 1;
+          ctx.stroke();
+        });
+      });
+
+      // Dessiner et animer les particules
+      particles.forEach(particle => {
+        particle.progress += particle.speed;
+        if (particle.progress > 1) {
+          particle.progress = 0;
+          particle.from = Math.floor(Math.random() * trustBrands.length);
+          particle.to = Math.floor(Math.random() * trustBrands.length);
+          while (particle.to === particle.from) {
+            particle.to = Math.floor(Math.random() * trustBrands.length);
+          }
+        }
+
+        const from = brandPositions[particle.from];
+        const to = brandPositions[particle.to];
+        if (!from || !to) return;
+
+        const x = from.x + (to.x - from.x) * particle.progress;
+        const y = from.y + (to.y - from.y) * particle.progress;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(114, 176, 204, 0.6)';
+        ctx.fill();
+      });
+
+      // Dessiner les nœuds (logos) avec effet de respiration
+      brandPositions.forEach((pos, i) => {
+        if (!pos) return;
+
+        const isHovered = hoveredBrand === i;
+        const pulseScale = 1 + Math.sin(time * 2 + pos.pulseOffset) * 0.05;
+        const baseSize = canvas.offsetWidth < 640 ? 24 : 32; // Taille réduite sur mobile
+        const radius = isHovered ? baseSize + 8 : baseSize * pulseScale;
+
+        // Glow effect pour hover
+        if (isHovered) {
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, radius + 15, 0, Math.PI * 2);
+          const glowGradient = ctx.createRadialGradient(pos.x, pos.y, radius, pos.x, pos.y, radius + 15);
+          glowGradient.addColorStop(0, 'rgba(114, 176, 204, 0.3)');
+          glowGradient.addColorStop(1, 'rgba(114, 176, 204, 0)');
+          ctx.fillStyle = glowGradient;
+          ctx.fill();
+        }
+
+        // Cercle principal
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        const brand = trustBrands[i];
+        const nodeGradient = ctx.createLinearGradient(
+          pos.x - radius, pos.y - radius,
+          pos.x + radius, pos.y + radius
+        );
+
+        // Extraire les couleurs du gradient
+        const gradientColors = brand.gradient.includes('from-[#72B0CC]')
+          ? ['rgba(114, 176, 204, 0.95)', 'rgba(130, 188, 108, 0.95)']
+          : brand.gradient.includes('from-[#CF6E3F]')
+          ? ['rgba(207, 110, 63, 0.95)', 'rgba(114, 176, 204, 0.95)']
+          : ['rgba(130, 188, 108, 0.95)', 'rgba(207, 110, 63, 0.95)'];
+
+        nodeGradient.addColorStop(0, gradientColors[0]);
+        nodeGradient.addColorStop(1, gradientColors[1]);
+        ctx.fillStyle = nodeGradient;
+        ctx.fill();
+
+        // Bordure
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Initiales
+        ctx.fillStyle = 'white';
+        const fontSize = canvas.offsetWidth < 640 ? (isHovered ? '12px' : '10px') : (isHovered ? '16px' : '14px');
+        ctx.font = `bold ${fontSize} Montserrat, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(brand.initials, pos.x, pos.y);
+      });
+
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    const handleResize = () => {
+      setCanvasSize();
+      // Recalculer les positions
+      const newBaseRadius = getRadius();
+      brandPositions.forEach((pos, index) => {
+        const angle = (index / trustBrands.length) * Math.PI * 2;
+        const radius = newBaseRadius + Math.sin(angle * 3) * (newBaseRadius * 0.28);
+        pos.x = canvas.offsetWidth / 2 + Math.cos(angle) * radius;
+        pos.y = canvas.offsetHeight / 2 + Math.sin(angle) * radius;
+        pos.baseX = pos.x;
+        pos.baseY = pos.y;
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [trustBrands]);
 
   const challengePool = [
     {
@@ -684,23 +905,155 @@ const ProjectviewWebsite = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-            {trustBrands.map((brand, index) => (
-              <div
-                key={brand.name}
-                className="group relative bg-white/80 backdrop-blur-sm rounded-3xl border border-white/60 shadow-lg hover:shadow-2xl transition-all duration-500 p-6 flex flex-col items-center gap-4 overflow-hidden"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-white text-2xl font-bold bg-gradient-to-br ${brand.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  {brand.initials}
+          <div className="relative grid gap-14 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
+            <div className="relative w-full max-w-4xl mx-auto lg:mx-0">
+              <div className="absolute -top-24 -left-16 w-72 h-72 bg-[#72B0CC]/15 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-32 -right-20 w-80 h-80 bg-[#CF6E3F]/15 rounded-full blur-3xl"></div>
+
+              <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] w-full">
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-full"
+                  onMouseMove={(e) => {
+                    const canvas = canvasRef.current;
+                    if (!canvas) return;
+
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    // Calculer les positions des logos
+                    const centerX = canvas.offsetWidth / 2;
+                    const centerY = canvas.offsetHeight / 2;
+
+                    const getRadius = () => {
+                      const width = canvas.offsetWidth;
+                      if (width < 640) return 100;
+                      if (width < 1024) return 140;
+                      return 180;
+                    };
+
+                    let foundHover = null;
+                    trustBrands.forEach((_, index) => {
+                      const angle = (index / trustBrands.length) * Math.PI * 2;
+                      const baseRadius = getRadius();
+                      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28);
+                      const logoX = centerX + Math.cos(angle) * radius;
+                      const logoY = centerY + Math.sin(angle) * radius;
+                      const distance = Math.sqrt((x - logoX) ** 2 + (y - logoY) ** 2);
+                      const hitRadius = canvas.offsetWidth < 640 ? 32 : 40;
+
+                      if (distance < hitRadius) {
+                        foundHover = index;
+                      }
+                    });
+
+                    if (foundHover !== null) {
+                      setHoveredBrand(foundHover);
+                      setActiveBrandIndex(foundHover);
+                    } else if (hoveredBrand !== null) {
+                      setHoveredBrand(null);
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    const canvas = canvasRef.current;
+                    if (!canvas || e.touches.length === 0) return;
+
+                    const rect = canvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+
+                    const centerX = canvas.offsetWidth / 2;
+                    const centerY = canvas.offsetHeight / 2;
+
+                    const getRadius = () => {
+                      const width = canvas.offsetWidth;
+                      if (width < 640) return 100;
+                      if (width < 1024) return 140;
+                      return 180;
+                    };
+
+                    let foundHover = null;
+                    trustBrands.forEach((_, index) => {
+                      const angle = (index / trustBrands.length) * Math.PI * 2;
+                      const baseRadius = getRadius();
+                      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28);
+                      const logoX = centerX + Math.cos(angle) * radius;
+                      const logoY = centerY + Math.sin(angle) * radius;
+                      const distance = Math.sqrt((x - logoX) ** 2 + (y - logoY) ** 2);
+
+                      if (distance < 40) {
+                        foundHover = index;
+                      }
+                    });
+
+                    if (foundHover !== null) {
+                      setHoveredBrand(foundHover);
+                      setActiveBrandIndex(foundHover);
+                    }
+                  }}
+                  onMouseLeave={() => setHoveredBrand(null)}
+                  style={{ cursor: hoveredBrand !== null ? 'pointer' : 'default', touchAction: 'manipulation' }}
+                />
+
+                {/* Légende interactive */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-lg rounded-2xl px-4 sm:px-6 py-2 sm:py-3 shadow-lg border border-white/60 max-w-[90%]">
+                  <p className="text-xs sm:text-sm text-gray-600 text-center">
+                    <span className="font-semibold text-[#72B0CC]">
+                      <span className="hidden sm:inline">Survolez</span>
+                      <span className="sm:hidden">Touchez</span>
+                    </span> les logos pour découvrir nos collaborations
+                  </p>
                 </div>
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Montserrat, sans-serif' }}>{brand.name}</p>
-                  <p className="text-sm text-gray-500">{brand.sector}</p>
-                </div>
-                <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-[#72B0CC]/30 transition-colors"></div>
               </div>
-            ))}
+            </div>
+
+            {activeBrand && (
+              <div className="w-full lg:max-w-xl">
+                <div className="bg-white/90 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-[0_40px_80px_rgba(31,41,55,0.12)] p-10 space-y-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="inline-flex items-center gap-3 bg-[#72B0CC]/10 text-[#1f2937] px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wide">
+                      <Sparkles className="w-4 h-4 text-[#72B0CC]" />
+                      Projet signature
+                    </div>
+                    <div className="font-semibold text-sm text-gray-500 uppercase tracking-widest">
+                      {activeBrand.sector}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-widest text-[#72B0CC] mb-2">
+                      {activeBrand.name}
+                    </p>
+                    <h3 className="text-3xl font-semibold text-gray-900 leading-snug" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                      {activeBrand.solution}
+                    </h3>
+                  </div>
+                  <div className="rounded-2xl bg-gradient-to-r from-[#72B0CC]/10 via-white to-[#CF6E3F]/10 border border-[#72B0CC]/15 p-6 text-left">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">
+                      Impact mesuré
+                    </p>
+                    <p className="text-lg text-gray-700 leading-relaxed">
+                      <span className="font-semibold text-[#CF6E3F]">{activeBrand.impact}</span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs uppercase tracking-wide text-gray-500">
+                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#72B0CC]/10 text-[#1f2937]">
+                      <Sparkles className="w-4 h-4 text-[#72B0CC]" />
+                      Expérience immersive
+                    </span>
+                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#CF6E3F]/10 text-[#1f2937]">
+                      <Zap className="w-4 h-4 text-[#CF6E3F]" />
+                      Engagement boosté
+                    </span>
+                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#82BC6C]/10 text-[#1f2937]">
+                      <Users className="w-4 h-4 text-[#82BC6C]" />
+                      Adoption équipes
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-16 grid lg:grid-cols-2 gap-12 items-center">
