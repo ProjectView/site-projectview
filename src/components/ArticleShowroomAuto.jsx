@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Calendar, Clock, User, CheckCircle, TrendingUp, Users, Sparkles, Eye, Award, ChevronRight } from 'lucide-react';
 import Chatbot from './Chatbot';
+import Logo from './Logo';
 
 const ArticleShowroomAuto = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -30,10 +31,9 @@ const ArticleShowroomAuto = () => {
             </a>
           </div>
 
-          <div className="flex items-center gap-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-            <span className="text-2xl font-medium tracking-tight text-gray-900">PROJECT</span>
-            <span className="text-2xl font-light tracking-tight text-[#72B0CC]">VIEW</span>
-          </div>
+          <a href="/" className="flex items-center">
+            <Logo size="md" />
+          </a>
 
           <button
             onClick={() => window.dispatchEvent(new Event('openChatbot'))}

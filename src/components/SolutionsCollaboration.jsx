@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Menu, X, ChevronRight, Users, Video, Wifi, Share2, Clock, CheckCircle, Zap, TrendingUp, ArrowRight } from 'lucide-react';
+import { Menu, X, ChevronRight, Wifi, CheckCircle, Share2, Users, TrendingUp, ArrowRight, Clock, Zap, Video } from 'lucide-react';
 import Chatbot from './Chatbot';
+import Logo from './Logo';
 
 const SolutionsCollaboration = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,9 +12,7 @@ const SolutionsCollaboration = () => {
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/90 border-b border-gray-100">
         <nav className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] bg-clip-text text-transparent" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-              Projectview
-            </div>
+            <Logo size="md" />
 
             <div className="hidden md:flex items-center space-x-8">
               <a href="/" className="text-gray-700 hover:text-[#72B0CC] transition-colors">Accueil</a>
@@ -385,3 +384,5 @@ const SolutionsCollaboration = () => {
 };
 
 export default SolutionsCollaboration;
+
+
