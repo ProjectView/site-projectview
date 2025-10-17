@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowLeft,
+  Menu,
+  X,
   Calendar,
   Clock,
   Users,
@@ -21,6 +22,7 @@ import Logo from './Logo';
 
 const ArticleErreursReunion = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -34,27 +36,44 @@ const ArticleErreursReunion = () => {
 
   return (
     <div className="font-sans bg-white text-gray-900">
-      {/* Navbar */}
+      {/* Navigation */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-lg shadow-xl py-3' : 'bg-white py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 text-gray-600 hover:text-[#72B0CC] transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Retour</span>
+          <div className="flex items-center">
+            <Link to="/">
+              <Logo size="lg" />
             </Link>
           </div>
 
-          <Link to="/" className="flex items-center">
-            <Logo size="md" />
-          </Link>
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/#accueil" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Accueil</Link>
+            <Link to="/#offres" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Solutions</Link>
+            <Link to="/#mission" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Expertise</Link>
+            <Link to="/blog" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Blog</Link>
+            <Link to="/#contact" className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium">
+              Contact
+            </Link>
+          </div>
 
           <button
-            onClick={() => window.dispatchEvent(new Event('openChatbot'))}
-            className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium"
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            Nous contacter
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
+
+        {isMenuOpen && (
+          <div className="md:hidden bg-white/95 backdrop-blur-lg border-t shadow-xl">
+            <div className="px-6 py-6 space-y-4">
+              <Link to="/#accueil" className="block hover:text-[#72B0CC] font-medium">Accueil</Link>
+              <Link to="/#offres" className="block hover:text-[#72B0CC] font-medium">Solutions</Link>
+              <Link to="/#mission" className="block hover:text-[#72B0CC] font-medium">Expertise</Link>
+              <Link to="/blog" className="block hover:text-[#72B0CC] font-medium">Blog</Link>
+              <Link to="/#contact" className="block text-center bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-3 rounded-full">Contact</Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}

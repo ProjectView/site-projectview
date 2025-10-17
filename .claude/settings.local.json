@@ -3,7 +3,11 @@
     "allow": [
       "Bash(git pull:*)",
       "Bash(npm run dev)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(claude --version:*)",
+      "Bash(git --version:*)",
+      "Bash(git config:*)",
+      "Bash(gh:*)"
     ],
     "deny": [],
     "ask": []

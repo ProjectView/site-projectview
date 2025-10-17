@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Monitor, Sparkles, Tv, Table2, Compass } from 'lucide-react';
+import { ChevronRight, Monitor, Sparkles, Tv, Table2, Compass, Menu, X } from 'lucide-react';
+import Logo from './Logo';
 
 const BlogPage = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const articles = [
     {
       id: 'erreurs-reunion',
@@ -82,6 +93,54 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-lg shadow-xl py-3' : 'bg-transparent py-6'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+          <div className="flex items-center">
+            <Link to="/">
+              <Logo size="lg" />
+            </Link>
+          </div>
+
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/#accueil" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Accueil</Link>
+            <Link to="/#offres" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Solutions</Link>
+            <Link to="/#mission" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Expertise</Link>
+            <Link to="/blog" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Blog</Link>
+            <button
+              onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+              className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium"
+            >
+              Contact
+            </button>
+          </div>
+
+          <button
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {isMenuOpen && (
+          <div className="md:hidden bg-white/95 backdrop-blur-lg border-t shadow-xl">
+            <div className="px-6 py-6 space-y-4">
+              <Link to="/#accueil" className="block hover:text-[#72B0CC] font-medium">Accueil</Link>
+              <Link to="/#offres" className="block hover:text-[#72B0CC] font-medium">Solutions</Link>
+              <Link to="/#mission" className="block hover:text-[#72B0CC] font-medium">Expertise</Link>
+              <Link to="/blog" className="block hover:text-[#72B0CC] font-medium">Blog</Link>
+              <button
+                onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+                className="block w-full text-center bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-3 rounded-full"
+              >
+                Contact
+              </button>
+            </div>
+          </div>
+        )}
+      </nav>
+
       {/* Hero Section */}
       <section className="relative py-32 bg-gradient-to-br from-[#72B0CC] via-[#82BC6C] to-[#CF6E3F] overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -186,13 +245,13 @@ const BlogPage = () => {
           <p className="text-xl text-white/90 mb-8 leading-relaxed">
             Découvrez comment nos solutions peuvent révolutionner votre expérience client
           </p>
-          <Link
-            to="/#contact"
+          <button
+            onClick={() => window.dispatchEvent(new Event('openChatbot'))}
             className="inline-flex items-center gap-3 bg-white text-[#72B0CC] px-10 py-4 rounded-full text-lg font-medium hover:shadow-2xl transform hover:-translate-y-2 hover:scale-110 transition-all duration-300"
           >
             <span>Contactez-nous</span>
             <ChevronRight className="w-5 h-5" />
-          </Link>
+          </button>
         </div>
       </section>
     </div>

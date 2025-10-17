@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronRight, Monitor, Tv, Table2, Compass, Bot, Sparkles, Zap, Eye, Radio, Users, Presentation, Gamepad2, RefreshCcw, Trophy } from 'lucide-react';
+import { Menu, X, ChevronRight, Monitor, Tv, Table2, Compass, Bot, Sparkles, Zap, Eye, Radio, Users, Presentation, Gamepad2, RefreshCcw, Trophy, Facebook, Linkedin, Youtube, Instagram } from 'lucide-react';
 import Chatbot from './Chatbot';
 import Logo from './Logo';
 
@@ -91,18 +91,27 @@ const ProjectviewWebsite = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Counter animations
+  // Hero counter animations - trigger on page load
+  useEffect(() => {
+    // Animate hero stats immediately on mount
+    const timer = setTimeout(() => {
+      animateCounter('engagement', 340, 1500);
+      animateCounter('timesSaved', 73, 1500);
+      animateCounter('conversions', 2.5, 1500);
+    }, 500); // Small delay for smoother experience
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Mission section counter animations - trigger on scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && counters.engagement === 0) {
-            animateCounter('engagement', 340, 1500);
-            animateCounter('timesSaved', 73, 1500);
-            animateCounter('conversions', 2.5, 1500);
+          if (entry.isIntersecting && counters.projects === 0) {
             animateCounter('projects', 500, 2000);
             animateCounter('satisfaction', 98, 1500);
-            animateCounter('years', 15, 1000);
+            animateCounter('years', 8, 1000);
           }
         });
       },
@@ -140,441 +149,81 @@ const ProjectviewWebsite = () => {
 
   const trustBrands = [
     {
-      name: "Leroy Merlin",
-      sector: "Retail & Showroom",
-      initials: "LM",
+      name: "Derichebourg",
+      logo: "/logos/Derichebourg logo .png",
+      sector: "Services & Industrie",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
-      solution: "Tables tactiles & configurateurs VR pour les univers rénovation",
-      impact: "+180% de conversion des visites en projets accompagnés"
+      solution: "Solutions collaboratives pour la coordination des équipes terrain",
+      impact: "Efficacité opérationnelle accrue de 45%"
     },
     {
-      name: "Accor Live Limitless",
-      sector: "Hospitality",
-      initials: "ALL",
+      name: "SOA Architectes",
+      logo: "/logos/SOA logo.png",
+      sector: "Architecture",
       gradient: "from-[#CF6E3F] to-[#72B0CC]",
-      solution: "Parcours interactifs & signage dynamique dans les lobbies premium",
-      impact: "+65% d'interactions qualifiées avec les conciergeries"
+      solution: "Présentations immersives VR pour les projets architecturaux",
+      impact: "Validation client 2x plus rapide"
     },
     {
-      name: "Décathlon",
-      sector: "Sport & Expérience",
-      initials: "DEC",
-      gradient: "from-[#82BC6C] to-[#CF6E3F]",
-      solution: "Studios collaboratifs pour co-créer des séances & équipements sur-mesure",
-      impact: "Temps de préparation divisé par 3 pour les coachs"
-    },
-    {
-      name: "Renault",
-      sector: "Automobile",
-      initials: "RN",
+      name: "Econergie France",
+      logo: "/logos/econergie france.png",
+      sector: "Énergie & Transition",
       gradient: "from-[#72B0CC] to-[#CF6E3F]",
-      solution: "Configurateurs immersifs 3D & VR pour les centres d'essai",
-      impact: "+220% d'engagement sur les finitions premium"
+      solution: "Showroom énergie avec démonstrations interactives",
+      impact: "+85% d'engagement prospects"
     },
     {
-      name: "Galeries Lafayette",
-      sector: "Retail Premium",
-      initials: "GL",
+      name: "Gemme Concept",
+      logo: "/logos/gemme concept.jpeg",
+      sector: "Design & Innovation",
       gradient: "from-[#CF6E3F] to-[#82BC6C]",
-      solution: "Vitrines connectées pilotées en temps réel depuis le siège",
-      impact: "Mise à jour à la volée de 80 vitrines en simultané"
+      solution: "Espaces de conception collaborative",
+      impact: "Créativité et productivité boostées"
     },
     {
-      name: "La Poste",
-      sector: "Service & Réseau",
-      initials: "LP",
+      name: "GP Energies",
+      logo: "/logos/gp-energies.png",
+      sector: "Énergie",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
-      solution: "Assistant IA qui guide agents & usagers sur les services clés",
-      impact: "-40% de temps d'attente et NPS en forte hausse"
+      solution: "Outils de présentation pour solutions énergétiques",
+      impact: "Taux de conversion +60%"
     },
     {
-      name: "Bouygues Immobilier",
-      sector: "Immobilier & VR",
-      initials: "BI",
-      gradient: "from-[#82BC6C] to-[#72B0CC]",
-      solution: "Salles de vente immersives avec projection et maquettes digitales",
-      impact: "Décisions accélérées, 2 signatures sur 3 dès la première visite"
+      name: "Groupe ITP",
+      logo: "/logos/logo grouoe itp.jpeg",
+      sector: "Ingénierie",
+      gradient: "from-[#72B0CC] to-[#82BC6C]",
+      solution: "War room technique pour coordination projets",
+      impact: "Délais réduits de 30%"
     },
     {
-      name: "EDF",
-      sector: "Innovation & Industrie",
-      initials: "EDF",
-      gradient: "from-[#CF6E3F] to-[#72B0CC]",
-      solution: "War room connectée pour coordonner les équipes terrains",
-      impact: "-30% sur les délais de réponse aux incidents critiques"
+      name: "Murgier",
+      logo: "/logos/murgier logo.png",
+      sector: "BTP & Construction",
+      gradient: "from-[#72B0CC] to-[#CF6E3F]",
+      solution: "Présentations chantier en réalité virtuelle",
+      impact: "Validation projets accélérée"
+    },
+    {
+      name: "Xavier Laurent",
+      logo: "/logos/xavier laurent rond.jpg",
+      sector: "Conseil & Stratégie",
+      gradient: "from-[#CF6E3F] to-[#82BC6C]",
+      solution: "Espaces de conseil augmentés",
+      impact: "Impact conseil maximisé"
+    },
+    {
+      name: "Xerox",
+      logo: "/logos/xerox.png",
+      sector: "Technologie & Services",
+      gradient: "from-[#72B0CC] to-[#82BC6C]",
+      solution: "Solutions d'affichage dynamique multi-sites",
+      impact: "Communication unifiée à l'échelle"
     }
   ];
 
   const activeBrand = trustBrands[activeBrandIndex] || null;
 
-  // Interactive Constellation with Drag & Drop
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    let animationFrame;
-    let time = 0;
-    let draggingIndexRef = null;
-    let dragOffset = { x: 0, y: 0 };
-
-    const setCanvasSize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-    setCanvasSize();
-
-    // Positions des logos en constellation (réparties de manière organique)
-    const getRadius = () => {
-      const width = canvas.offsetWidth;
-      if (width < 640) return 100;
-      if (width < 1024) return 140;
-      return 180;
-    };
-
-    const brandPositions = trustBrands.map((_, index) => {
-      const angle = (index / trustBrands.length) * Math.PI * 2;
-      const baseRadius = getRadius();
-      const radius = baseRadius + Math.sin(angle * 3) * (baseRadius * 0.28);
-      return {
-        x: canvas.offsetWidth / 2 + Math.cos(angle) * radius,
-        y: canvas.offsetHeight / 2 + Math.sin(angle) * radius,
-        vx: (Math.random() - 0.5) * 0.5, // Vélocité pour mouvement organique
-        vy: (Math.random() - 0.5) * 0.5,
-        pulseOffset: Math.random() * Math.PI * 2
-      };
-    });
-
-    // Particules qui voyagent le long des connexions
-    const particles = [];
-    for (let i = 0; i < 20; i++) {
-      const from = Math.floor(Math.random() * trustBrands.length);
-      let to = Math.floor(Math.random() * trustBrands.length);
-      while (to === from) to = Math.floor(Math.random() * trustBrands.length);
-
-      particles.push({
-        from,
-        to,
-        progress: Math.random(),
-        speed: 0.003 + Math.random() * 0.005
-      });
-    }
-
-    // Trouver les 3 plus proches voisins
-    const findClosestNeighbors = (index) => {
-      const pos1 = brandPositions[index];
-      if (!pos1) return [];
-
-      const distances = trustBrands
-        .map((_, j) => {
-          if (index === j) return null;
-          const pos2 = brandPositions[j];
-          if (!pos2) return null;
-          const dx = pos2.x - pos1.x;
-          const dy = pos2.y - pos1.y;
-          return { index: j, dist: Math.sqrt(dx * dx + dy * dy) };
-        })
-        .filter(d => d !== null)
-        .sort((a, b) => a.dist - b.dist);
-
-      return distances.slice(0, 3);
-    };
-
-    const animate = () => {
-      time += 0.01;
-      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-
-      // Mouvement organique des bulles (sauf si en cours de drag)
-      brandPositions.forEach((pos, i) => {
-        if (draggingIndexRef === i) return;
-
-        // Mouvement fluide et organique
-        pos.x += pos.vx;
-        pos.y += pos.vy;
-
-        // Rebond sur les bords avec padding
-        const padding = 50;
-        if (pos.x < padding || pos.x > canvas.offsetWidth - padding) pos.vx *= -1;
-        if (pos.y < padding || pos.y > canvas.offsetHeight - padding) pos.vy *= -1;
-
-        // Friction douce
-        pos.vx *= 0.99;
-        pos.vy *= 0.99;
-
-        // Ajout d'une légère force aléatoire pour éviter l'immobilité
-        pos.vx += (Math.random() - 0.5) * 0.02;
-        pos.vy += (Math.random() - 0.5) * 0.02;
-
-        // Limiter la vitesse
-        const maxSpeed = 1.5;
-        const speed = Math.sqrt(pos.vx ** 2 + pos.vy ** 2);
-        if (speed > maxSpeed) {
-          pos.vx = (pos.vx / speed) * maxSpeed;
-          pos.vy = (pos.vy / speed) * maxSpeed;
-        }
-      });
-
-      // Dessiner les connexions aux 3 plus proches
-      trustBrands.forEach((_, i) => {
-        const pos1 = brandPositions[i];
-        if (!pos1) return;
-
-        const closestNeighbors = findClosestNeighbors(i);
-
-        closestNeighbors.forEach(({ index: j }) => {
-          const pos2 = brandPositions[j];
-          if (!pos2) return;
-
-          // Ligne avec gradient
-          const gradient = ctx.createLinearGradient(pos1.x, pos1.y, pos2.x, pos2.y);
-          const isHovered = hoveredBrand === i || hoveredBrand === j;
-          const isDragging = draggingIndexRef === i || draggingIndexRef === j;
-
-          if (isDragging) {
-            gradient.addColorStop(0, 'rgba(114, 176, 204, 0.6)');
-            gradient.addColorStop(1, 'rgba(207, 110, 63, 0.6)');
-          } else if (isHovered) {
-            gradient.addColorStop(0, 'rgba(114, 176, 204, 0.4)');
-            gradient.addColorStop(1, 'rgba(207, 110, 63, 0.4)');
-          } else {
-            gradient.addColorStop(0, 'rgba(114, 176, 204, 0.15)');
-            gradient.addColorStop(1, 'rgba(207, 110, 63, 0.15)');
-          }
-
-          ctx.beginPath();
-          ctx.moveTo(pos1.x, pos1.y);
-          ctx.lineTo(pos2.x, pos2.y);
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = isDragging ? 3 : (isHovered ? 2 : 1);
-          ctx.stroke();
-        });
-      });
-
-      // Dessiner et animer les particules
-      particles.forEach(particle => {
-        particle.progress += particle.speed;
-        if (particle.progress > 1) {
-          particle.progress = 0;
-          particle.from = Math.floor(Math.random() * trustBrands.length);
-          particle.to = Math.floor(Math.random() * trustBrands.length);
-          while (particle.to === particle.from) {
-            particle.to = Math.floor(Math.random() * trustBrands.length);
-          }
-        }
-
-        const from = brandPositions[particle.from];
-        const to = brandPositions[particle.to];
-        if (!from || !to) return;
-
-        const x = from.x + (to.x - from.x) * particle.progress;
-        const y = from.y + (to.y - from.y) * particle.progress;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(114, 176, 204, 0.7)';
-        ctx.fill();
-      });
-
-      // Dessiner les nœuds (logos)
-      brandPositions.forEach((pos, i) => {
-        if (!pos) return;
-
-        const isHovered = hoveredBrand === i;
-        const isDragging = draggingIndexRef === i;
-        const pulseScale = 1 + Math.sin(time * 2 + pos.pulseOffset) * 0.05;
-        const baseSize = canvas.offsetWidth < 640 ? 26 : 34;
-        const radius = isDragging ? baseSize + 12 : (isHovered ? baseSize + 8 : baseSize * pulseScale);
-
-        // Glow effect pour hover et drag
-        if (isHovered || isDragging) {
-          ctx.beginPath();
-          ctx.arc(pos.x, pos.y, radius + (isDragging ? 20 : 15), 0, Math.PI * 2);
-          const glowGradient = ctx.createRadialGradient(pos.x, pos.y, radius, pos.x, pos.y, radius + (isDragging ? 20 : 15));
-          glowGradient.addColorStop(0, isDragging ? 'rgba(114, 176, 204, 0.5)' : 'rgba(114, 176, 204, 0.3)');
-          glowGradient.addColorStop(1, 'rgba(114, 176, 204, 0)');
-          ctx.fillStyle = glowGradient;
-          ctx.fill();
-        }
-
-        // Cercle principal
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        const brand = trustBrands[i];
-        const nodeGradient = ctx.createLinearGradient(
-          pos.x - radius, pos.y - radius,
-          pos.x + radius, pos.y + radius
-        );
-
-        const gradientColors = brand.gradient.includes('from-[#72B0CC]')
-          ? ['rgba(114, 176, 204, 0.95)', 'rgba(130, 188, 108, 0.95)']
-          : brand.gradient.includes('from-[#CF6E3F]')
-          ? ['rgba(207, 110, 63, 0.95)', 'rgba(114, 176, 204, 0.95)']
-          : ['rgba(130, 188, 108, 0.95)', 'rgba(207, 110, 63, 0.95)'];
-
-        nodeGradient.addColorStop(0, gradientColors[0]);
-        nodeGradient.addColorStop(1, gradientColors[1]);
-        ctx.fillStyle = nodeGradient;
-        ctx.fill();
-
-        // Bordure
-        ctx.strokeStyle = isDragging ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.8)';
-        ctx.lineWidth = isDragging ? 3 : 2;
-        ctx.stroke();
-
-        // Initiales
-        ctx.fillStyle = 'white';
-        const fontSize = canvas.offsetWidth < 640 ? (isDragging ? '14px' : (isHovered ? '12px' : '10px')) : (isDragging ? '18px' : (isHovered ? '16px' : '14px'));
-        ctx.font = `bold ${fontSize} Montserrat, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(brand.initials, pos.x, pos.y);
-      });
-
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    // Gestion du drag & drop
-    const getMousePos = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    };
-
-    const getTouchPos = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches[0];
-      return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-      };
-    };
-
-    const findBrandAtPosition = (x, y) => {
-      const baseSize = canvas.offsetWidth < 640 ? 26 : 34;
-      for (let i = 0; i < brandPositions.length; i++) {
-        const pos = brandPositions[i];
-        const dx = x - pos.x;
-        const dy = y - pos.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < baseSize + 8) {
-          return i;
-        }
-      }
-      return null;
-    };
-
-    const handleMouseDown = (e) => {
-      const mousePos = getMousePos(e);
-      const brandIndex = findBrandAtPosition(mousePos.x, mousePos.y);
-      if (brandIndex !== null) {
-        draggingIndexRef = brandIndex;
-        dragOffset = {
-          x: mousePos.x - brandPositions[brandIndex].x,
-          y: mousePos.y - brandPositions[brandIndex].y
-        };
-        canvas.style.cursor = 'grabbing';
-      }
-    };
-
-    const handleMouseMove = (e) => {
-      const mousePos = getMousePos(e);
-
-      if (draggingIndexRef !== null) {
-        brandPositions[draggingIndexRef].x = mousePos.x - dragOffset.x;
-        brandPositions[draggingIndexRef].y = mousePos.y - dragOffset.y;
-        brandPositions[draggingIndexRef].vx = 0;
-        brandPositions[draggingIndexRef].vy = 0;
-      } else {
-        const brandIndex = findBrandAtPosition(mousePos.x, mousePos.y);
-        if (brandIndex !== null) {
-          setHoveredBrand(brandIndex);
-          setActiveBrandIndex(brandIndex);
-          canvas.style.cursor = 'grab';
-        } else if (hoveredBrand !== null) {
-          setHoveredBrand(null);
-          canvas.style.cursor = 'default';
-        }
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (draggingIndexRef !== null) {
-        // Ajouter une petite vélocité basée sur le dernier mouvement
-        draggingIndexRef = null;
-        canvas.style.cursor = 'default';
-      }
-    };
-
-    const handleTouchStart = (e) => {
-      e.preventDefault();
-      const touchPos = getTouchPos(e);
-      const brandIndex = findBrandAtPosition(touchPos.x, touchPos.y);
-      if (brandIndex !== null) {
-        draggingIndexRef = brandIndex;
-        setHoveredBrand(brandIndex);
-        setActiveBrandIndex(brandIndex);
-        dragOffset = {
-          x: touchPos.x - brandPositions[brandIndex].x,
-          y: touchPos.y - brandPositions[brandIndex].y
-        };
-      }
-    };
-
-    const handleTouchMove = (e) => {
-      e.preventDefault();
-      if (draggingIndexRef !== null) {
-        const touchPos = getTouchPos(e);
-        brandPositions[draggingIndexRef].x = touchPos.x - dragOffset.x;
-        brandPositions[draggingIndexRef].y = touchPos.y - dragOffset.y;
-        brandPositions[draggingIndexRef].vx = 0;
-        brandPositions[draggingIndexRef].vy = 0;
-      }
-    };
-
-    const handleTouchEnd = () => {
-      if (draggingIndexRef !== null) {
-        draggingIndexRef = null;
-      }
-    };
-
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('mouseleave', handleMouseUp);
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
-
-    animate();
-
-    const handleResize = () => {
-      setCanvasSize();
-      const newBaseRadius = getRadius();
-      brandPositions.forEach((pos, index) => {
-        const angle = (index / trustBrands.length) * Math.PI * 2;
-        const radius = newBaseRadius + Math.sin(angle * 3) * (newBaseRadius * 0.28);
-        pos.x = canvas.offsetWidth / 2 + Math.cos(angle) * radius;
-        pos.y = canvas.offsetHeight / 2 + Math.sin(angle) * radius;
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationFrame);
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseup', handleMouseUp);
-      canvas.removeEventListener('mouseleave', handleMouseUp);
-      canvas.removeEventListener('touchstart', handleTouchStart);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [trustBrands, hoveredBrand]);
 
   const challengePool = [
     {
@@ -689,12 +338,18 @@ const ProjectviewWebsite = () => {
   const offers = [
     {
       icon: <Radio className="w-16 h-16" />,
-      title: "Affichage Dynamique / Interactif",
-      hook: "Votre espace communique-t-il vraiment avec vos clients ?",
-      pain: "Dans un monde saturé d'écrans, votre message reste invisible. Les supports statiques ne captent plus l'attention, ils la perdent. Pendant ce temps, vos produits phares passent inaperçus.",
-      solution: "L'impact visuel qui capte et engage",
-      benefit: "Écrans publicitaires animés qui captent le regard, systèmes NFC pour mettre en avant vos produits d'un simple geste, contenus actualisables en temps réel. Transformez chaque point de contact en expérience mémorable.",
-      stats: "+340% d'engagement client",
+      title: "Affichage Dynamique & Interactif",
+      hook: "Vos affiches statiques ? Ignorées. Vos produits phares ? Inaperçus.",
+      pain: "Dans un océan de sollicitations visuelles, votre communication se noie.",
+      solution: "L'affichage qui capte et engage",
+      benefitList: [
+        "💡 Dynamique : Contenus animés, actualisés en temps réel, programmés selon votre audience",
+        "✋ Interactif : Déposez un objet, déclenchez une expérience. Touchez l'écran, accédez à l'info",
+        "🏪 Showrooms retail : Vos produits se présentent eux-mêmes",
+        "📋 Communication interne : Informations légales accessibles d'un geste"
+      ],
+      impact: "340% d'engagement en plus. Chaque point de contact devient mémorable.",
+      stats: "+340% d'engagement",
       color: "from-[#CF6E3F] to-[#72B0CC]",
       gradient: "bg-gradient-to-br from-[#CF6E3F]/10 to-[#72B0CC]/10",
       beforeVideo: "URL_VIDEO_AFFICHAGE_STATIQUE.mp4",
@@ -709,7 +364,13 @@ const ProjectviewWebsite = () => {
       hook: "Et si vos réunions devenaient enfin productives ?",
       pain: "Chaque minute perdue en connexion est une opportunité manquée. Câbles incompatibles, partages d'écran compliqués, visioconférences chaotiques. Vos équipes méritent mieux.",
       solution: "La collaboration sans friction",
-      benefit: "Écrans visio tout-en-un prêts à l'emploi, systèmes de partage d'écran sans fil ultra-simplifiés. Connectez-vous en un geste, partagez instantanément, collaborez naturellement. La technologie qui suit votre rythme.",
+      benefitList: [
+        "📹 Écrans visio tout-en-un prêts à l'emploi",
+        "📡 Systèmes de partage d'écran sans fil ultra-simplifiés",
+        "⚡ Connectez-vous en un geste, partagez instantanément",
+        "🤝 Collaborez naturellement, la technologie suit votre rythme"
+      ],
+      impact: "73% de temps gagné en réunion. Concentrez-vous sur l'essentiel.",
       stats: "73% de temps gagné en réunion",
       color: "from-[#72B0CC] to-[#82BC6C]",
       gradient: "bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10",
@@ -722,10 +383,16 @@ const ProjectviewWebsite = () => {
     {
       icon: <Presentation className="w-16 h-16" />,
       title: "Solutions de Présentation Innovante",
-      hook: "Arrêtez de présenter. Faites vivre l'expérience.",
+      hook: "Arrêtez de présenter, Donnez vie à vos projets",
       pain: "Vos clients hochent la tête pendant que vous parlez, mais ne se projettent pas. Les catalogues restent fermés, les plans 2D créent le doute, les PowerPoint endorment. Résultat : hésitations et modifications coûteuses.",
       solution: "L'immersion qui convertit et convainc",
-      benefit: "Écrans tactiles en showroom pour explorer vos produits, tables tactiles pour configurer en temps réel, VR pour visiter des espaces avant construction. Vos clients ne regardent plus, ils expérimentent. La différence entre voir et vouloir.",
+      benefitList: [
+        "📱 Écrans tactiles en showroom pour explorer vos produits",
+        "🤝 Table tactile de négociation pour co-créer avec vos clients",
+        "🥽 VR pour visiter des espaces avant construction",
+        "✨ Vos clients ne regardent plus, ils vivent leur projet"
+      ],
+      impact: "89% de mémorisation • 67% de modifications en moins. La différence entre voir et vouloir.",
       stats: "89% de mémorisation • -67% modifications",
       color: "from-[#82BC6C] to-[#CF6E3F]",
       gradient: "bg-gradient-to-br from-[#82BC6C]/10 to-[#CF6E3F]/10",
@@ -738,10 +405,16 @@ const ProjectviewWebsite = () => {
     {
       icon: <Bot className="w-16 h-16" />,
       title: "Assistant IA Personnalisé",
-      hook: "Votre expert disponible 24/7, pour chaque client",
+      hook: "Une prise en charge immédiate disponible 24/7, pour chaque utilisateur",
       pain: "Vos équipes répondent aux mêmes questions, cherchent les mêmes infos, perdent un temps précieux. Pendant ce temps, des opportunités s'évaporent et vos clients attendent.",
-      solution: "L'intelligence qui libère votre temps",
-      benefit: "Réponses instantanées, recommandations personnalisées, processus automatisés. Votre IA connaît vos produits, comprend vos clients, ne dort jamais. Libérez vos équipes pour ce qui compte vraiment : la relation humaine.",
+      solution: "L'intelligence qui libère votre temps et développe votre business",
+      benefitList: [
+        "⚡ Réponses instantanées, 24/7 sans interruption",
+        "🎯 Recommandations personnalisées selon chaque client",
+        "🔄 Processus automatisés qui libèrent vos équipes",
+        "🧠 Votre IA connaît vos produits, comprend vos clients, ne dort jamais"
+      ],
+      impact: "10h gagnées par semaine. Libérez vos équipes pour la relation humaine.",
       stats: "10h gagnées par semaine",
       color: "from-[#72B0CC] to-[#82BC6C]",
       gradient: "bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10",
@@ -767,9 +440,12 @@ const ProjectviewWebsite = () => {
             <a href="#offres" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Solutions</a>
             <a href="#mission" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Expertise</a>
             <a href="#blog" className="hover:text-[#72B0CC] transition-all duration-300 font-medium">Blog</a>
-            <a href="#contact" className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium">
+            <button
+              onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+              className="bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-2 rounded-full hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-medium"
+            >
               Contact
-            </a>
+            </button>
           </div>
 
           <button
@@ -787,132 +463,281 @@ const ProjectviewWebsite = () => {
               <a href="#offres" className="block hover:text-[#72B0CC] font-medium">Solutions</a>
               <a href="#mission" className="block hover:text-[#72B0CC] font-medium">Expertise</a>
               <a href="#blog" className="block hover:text-[#72B0CC] font-medium">Blog</a>
-              <a href="#contact" className="block text-center bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-3 rounded-full">Contact</a>
+              <button
+                onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+                className="block w-full text-center bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-3 rounded-full"
+              >
+                Contact
+              </button>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Hero Section - Ultra Modern */}
-      <section ref={heroRef} id="accueil" className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#f0f9ff' }}>
-        {/* Animated background elements with parallax */}
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl animate-float transition-transform duration-300"
-            style={{
-              backgroundColor: 'rgba(114, 176, 204, 0.3)',
-              transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`
-            }}
-          ></div>
-          <div
-            className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl animate-float-delayed transition-transform duration-500"
-            style={{
-              backgroundColor: 'rgba(207, 110, 63, 0.25)',
-              transform: `translate(${-mousePosition.x}px, ${-mousePosition.y}px)`
-            }}
-          ></div>
-          <div
-            className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-3xl animate-float-slow transition-transform duration-700"
-            style={{
-              backgroundColor: 'rgba(130, 188, 108, 0.3)',
-              transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)`
-            }}
-          ></div>
-          <div
-            className="absolute top-10 right-1/3 w-64 h-64 rounded-full blur-2xl animate-float transition-transform duration-400"
-            style={{
-              backgroundColor: 'rgba(114, 176, 204, 0.2)',
-              transform: `translate(${mousePosition.x * 1.5}px, ${mousePosition.y * 1.5}px)`
-            }}
-          ></div>
-          <div
-            className="absolute bottom-10 left-1/3 w-64 h-64 rounded-full blur-2xl animate-float-delayed transition-transform duration-600"
-            style={{
-              backgroundColor: 'rgba(207, 110, 63, 0.2)',
-              transform: `translate(${-mousePosition.x * 1.2}px, ${-mousePosition.y * 1.2}px)`
-            }}
-          ></div>
+      {/* Hero Section - Parallax Layers */}
+      <section ref={heroRef} id="accueil" className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-50 to-white">
+        {/* Subtle gradient background overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#72B0CC]/[0.25] via-transparent via-40% to-[#82BC6C]/[0.25] blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#CF6E3F]/[0.15] via-60% to-transparent blur-2xl" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="text-center md:text-left" data-animate id="hero-content">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#72B0CC]/20 to-[#82BC6C]/20 backdrop-blur px-4 py-2 rounded-full shadow-lg mb-8 border border-[#72B0CC]/30 animate-fade-in-up">
-                <Sparkles className="w-4 h-4 animate-pulse" style={{ color: '#72B0CC' }} />
-                <span className="text-sm font-medium text-gray-800">La nouvelle ère de l'expérience client</span>
-              </div>
+        {/* Parallax background layers */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Layer 1 - Slowest */}
+          <div
+            className="absolute inset-0 transition-transform duration-700 ease-out"
+            style={{
+              transform: `translate(${mousePosition.x * -2}px, ${mousePosition.y * -2}px)`
+            }}
+          >
+            <div className="absolute top-[10%] right-[15%] w-64 h-64 rounded-full bg-[#72B0CC] opacity-[0.08] blur-3xl" />
+            <div className="absolute bottom-[20%] left-[10%] w-80 h-80 rounded-full bg-[#82BC6C] opacity-[0.08] blur-3xl" />
+          </div>
 
-              <h1 className="text-5xl md:text-7xl font-medium mb-6 leading-tight animate-fade-in-up" style={{ fontFamily: 'Montserrat, sans-serif', animationDelay: '0.2s' }}>
-                La <span style={{ color: '#72B0CC' }} className="inline-block hover:scale-110 transition-transform duration-300">technologie</span><br />
-                au service de<br />
-                l'<span style={{ color: '#CF6E3F' }} className="inline-block hover:scale-110 transition-transform duration-300">émotion</span>
-              </h1>
+          {/* Layer 2 - Medium */}
+          <div
+            className="absolute inset-0 transition-transform duration-500 ease-out"
+            style={{
+              transform: `translate(${mousePosition.x * -4}px, ${mousePosition.y * -4}px)`
+            }}
+          >
+            <div className="absolute top-[30%] left-[20%] w-48 h-48 rounded-full bg-[#CF6E3F] opacity-[0.12] blur-2xl" />
+            <div className="absolute bottom-[30%] right-[25%] w-56 h-56 rounded-full bg-[#72B0CC] opacity-[0.1] blur-2xl" />
+          </div>
 
-              <p className="text-xl md:text-2xl mb-8 text-gray-600 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                Chaque interaction compte. Chaque espace raconte une histoire. Transformons ensemble vos lieux en expériences inoubliables.
-              </p>
+          {/* Layer 3 - Fastest - Geometric shapes */}
+          <div
+            className="absolute inset-0 transition-transform duration-300 ease-out"
+            style={{
+              transform: `translate(${mousePosition.x * -8}px, ${mousePosition.y * -8}px) rotate(${mousePosition.x * 2}deg)`
+            }}
+          >
+            {/* Hexagons */}
+            <div className="absolute top-[15%] right-[30%] w-24 h-24 opacity-[0.05]" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', background: '#72B0CC' }} />
+            <div className="absolute bottom-[25%] left-[35%] w-32 h-32 opacity-[0.04]" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', background: '#82BC6C' }} />
+            <div className="absolute top-[45%] right-[20%] w-20 h-20 opacity-[0.06]" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', background: '#CF6E3F' }} />
+          </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-                <a
-                  href="#offres"
-                  className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-8 py-4 rounded-full text-lg font-medium hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 animate-pulse-glow"
-                >
-                  Découvrez comment
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                </a>
-                <a
-                  href="#mission"
-                  className="inline-flex items-center justify-center gap-3 bg-white text-gray-900 px-8 py-4 rounded-full text-lg font-medium shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 border-2 border-gray-200"
-                  style={{ backgroundColor: '#ffffff', color: '#1f2937' }}
-                >
-                  Notre expertise
-                </a>
-              </div>
-            </div>
+          {/* Floating lines with parallax */}
+          <div
+            className="absolute inset-0 transition-transform duration-400 ease-out"
+            style={{
+              transform: `translate(${mousePosition.x * -6}px, ${mousePosition.y * -6}px)`
+            }}
+          >
+            <svg className="absolute top-[20%] left-[15%] w-64 h-2 opacity-10" preserveAspectRatio="none">
+              <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#72B0CC" strokeWidth="2" />
+            </svg>
+            <svg className="absolute bottom-[35%] right-[20%] w-48 h-2 opacity-10" preserveAspectRatio="none">
+              <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#CF6E3F" strokeWidth="2" />
+            </svg>
+          </div>
+        </div>
 
-            <div className="relative mx-auto md:mx-0 max-w-md" ref={statsRef}>
-              <div className="relative animate-fade-in-right" style={{ animationDelay: '0.3s' }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] rounded-3xl transform rotate-3 opacity-30 blur-xl animate-pulse"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#CF6E3F] to-[#72B0CC] rounded-3xl transform -rotate-2 opacity-20 blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                <div className="relative bg-white rounded-3xl shadow-2xl p-8 transform hover:rotate-0 transition-all duration-500 border-2 border-[#72B0CC]/20 hover:border-[#72B0CC]/40">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-[#72B0CC]/20 to-[#82BC6C]/20 rounded-xl border border-[#72B0CC]/30 hover:scale-105 transition-transform duration-300 cursor-pointer group">
-                      <div className="p-3 bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] rounded-lg group-hover:rotate-12 transition-transform duration-300">
-                        <Eye className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">+{counters.engagement}%</div>
-                        <div className="text-sm text-gray-600">Engagement client</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-[#CF6E3F]/20 to-[#72B0CC]/20 rounded-xl border border-[#CF6E3F]/30 hover:scale-105 transition-transform duration-300 cursor-pointer group">
-                      <div className="p-3 bg-gradient-to-br from-[#CF6E3F] to-[#72B0CC] rounded-lg group-hover:rotate-12 transition-transform duration-300">
-                        <Zap className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">{counters.timesSaved}%</div>
-                        <div className="text-sm text-gray-600">Temps gagné</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-[#82BC6C]/20 to-[#CF6E3F]/20 rounded-xl border border-[#82BC6C]/30 hover:scale-105 transition-transform duration-300 cursor-pointer group">
-                      <div className="p-3 bg-gradient-to-br from-[#82BC6C] to-[#CF6E3F] rounded-lg group-hover:rotate-12 transition-transform duration-300">
-                        <Sparkles className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">{counters.conversions}x</div>
-                        <div className="text-sm text-gray-600">Plus de conversions</div>
-                      </div>
-                    </div>
-                  </div>
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-32">
+          {/* Split layout with offset */}
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+            {/* Left column - Main content */}
+            <div className="lg:col-span-7">
+              {/* Badge */}
+              <div
+                className="inline-block mb-8 transition-transform duration-300"
+                style={{
+                  transform: `translateX(${mousePosition.x * 2}px)`
+                }}
+              >
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#72B0CC]/10 to-[#82BC6C]/10 border border-[#72B0CC]/20 px-4 py-2 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-[#72B0CC] animate-pulse" />
+                  <span className="text-sm font-semibold text-gray-800">Innovation · Expérience · Impact</span>
                 </div>
               </div>
+
+              {/* Main title with character reveal */}
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-[1.15]" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                <div className="overflow-hidden">
+                  <div
+                    className="transition-transform duration-500"
+                    style={{
+                      transform: `translateY(${mousePosition.y * -1}px)`
+                    }}
+                  >
+                    <span className="block text-gray-900">La technologie</span>
+                  </div>
+                </div>
+                <div className="overflow-hidden">
+                  <div
+                    className="transition-transform duration-500"
+                    style={{
+                      transform: `translateY(${mousePosition.y * -2}px)`
+                    }}
+                  >
+                    <span className="block text-gray-900">au service de</span>
+                  </div>
+                </div>
+                <div className="overflow-hidden">
+                  <div
+                    className="transition-transform duration-500"
+                    style={{
+                      transform: `translateY(${mousePosition.y * -3}px)`
+                    }}
+                  >
+                    <span className="block hero-emotion-animation">
+                      l'émotion
+                    </span>
+                  </div>
+                </div>
+              </h1>
+
+              <style jsx>{`
+                .hero-emotion-animation {
+                  background: linear-gradient(
+                    120deg,
+                    #72B0CC 0%,
+                    #72B0CC 33%,
+                    #CF6E3F 33%,
+                    #CF6E3F 66%,
+                    #82BC6C 66%,
+                    #82BC6C 100%
+                  );
+                  background-size: 300% 100%;
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                  background-clip: text;
+                  animation: emotion-gradient-shift 6s ease-in-out infinite;
+                }
+
+                @keyframes emotion-gradient-shift {
+                  0%, 100% {
+                    background-position: 0% 50%;
+                  }
+                  33% {
+                    background-position: 50% 50%;
+                  }
+                  66% {
+                    background-position: 100% 50%;
+                  }
+                }
+              `}</style>
+
+              {/* Description */}
+              <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-2xl leading-relaxed">
+                Nous transformons vos espaces physiques en environnements interactifs qui captivent, engagent et convertissent.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap gap-4">
+                <a
+                  href="#offres"
+                  className="group relative inline-flex items-center gap-3 bg-gray-900 text-white px-8 py-4 rounded-full font-semibold overflow-hidden transition-all duration-300 hover:pr-10"
+                >
+                  <span className="relative z-10">Découvrir nos solutions</span>
+                  <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-all duration-300 absolute right-6" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </a>
+                <button
+                  onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+                  className="inline-flex items-center gap-3 bg-white border-2 border-gray-900 text-gray-900 px-8 py-4 rounded-full font-semibold hover:bg-gray-900 hover:text-white transition-all duration-300"
+                >
+                  Prendre contact
+                </button>
+              </div>
+            </div>
+
+            {/* Right column - Floating stats cards with tilt effect */}
+            <div className="lg:col-span-5 relative" ref={statsRef}>
+              <div className="space-y-6">
+                {[
+                  {
+                    icon: <Eye className="w-8 h-8" />,
+                    value: counters.engagement,
+                    suffix: '%',
+                    prefix: '+',
+                    label: 'Engagement client',
+                    gradient: 'from-[#72B0CC] to-[#82BC6C]',
+                    delay: 0
+                  },
+                  {
+                    icon: <Zap className="w-8 h-8" />,
+                    value: counters.timesSaved,
+                    suffix: '%',
+                    prefix: '',
+                    label: 'Temps gagné',
+                    gradient: 'from-[#CF6E3F] to-[#72B0CC]',
+                    delay: 0.1
+                  },
+                  {
+                    icon: <Sparkles className="w-8 h-8" />,
+                    value: counters.conversions,
+                    suffix: 'x',
+                    prefix: '',
+                    label: 'Plus de conversions',
+                    gradient: 'from-[#82BC6C] to-[#CF6E3F]',
+                    delay: 0.2
+                  }
+                ].map((stat, index) => {
+                  // Calculate tilt based on mouse position
+                  const tiltX = (mousePosition.y - 0) * (index === 1 ? 3 : -3);
+                  const tiltY = (mousePosition.x - 0) * (index === 0 ? -3 : 3);
+
+                  return (
+                    <div
+                      key={index}
+                      className="group relative"
+                      style={{
+                        transform: `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(${index * 10}px)`,
+                        transition: 'transform 0.3s ease-out',
+                        transformStyle: 'preserve-3d'
+                      }}
+                    >
+                      {/* Card */}
+                      <div className="relative bg-white rounded-2xl p-6 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300">
+                        {/* Gradient accent bar */}
+                        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.gradient} rounded-t-2xl`} />
+
+                        {/* Content */}
+                        <div className="flex items-center gap-4">
+                          <div className={`flex-shrink-0 w-16 h-16 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center text-white shadow-lg`}>
+                            {stat.icon}
+                          </div>
+                          <div>
+                            <div className="text-3xl font-bold text-gray-900 mb-1">
+                              {stat.prefix}{stat.value}{stat.suffix}
+                            </div>
+                            <div className="text-sm text-gray-600 font-medium">
+                              {stat.label}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Hover glow */}
+                        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Decorative element */}
+              <div
+                className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-gradient-to-br from-[#72B0CC]/20 to-[#82BC6C]/20 blur-2xl -z-10 transition-transform duration-700"
+                style={{
+                  transform: `translate(${mousePosition.x * 10}px, ${mousePosition.y * 10}px)`
+                }}
+              />
             </div>
           </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-400 animate-bounce-subtle">
+          <span className="text-xs font-medium uppercase tracking-wider">Découvrir</span>
+          <ChevronRight className="w-5 h-5 rotate-90" />
         </div>
       </section>
 
       {/* Mission Section - Redesigned */}
-      <section id="mission" className="py-32 bg-white relative overflow-hidden" data-animate>
+      <section ref={statsRef} id="mission" className="py-32 bg-white relative overflow-hidden" data-animate>
         <div className="absolute top-0 right-0 w-1/2 h-full" style={{ background: 'linear-gradient(to left, rgba(114, 176, 204, 0.08), rgba(130, 188, 108, 0.04), transparent)' }}></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl animate-float" style={{ backgroundColor: 'rgba(207, 110, 63, 0.12)' }}></div>
         <div className="absolute top-1/2 right-1/4 w-64 h-64 rounded-full blur-2xl animate-float-delayed" style={{ backgroundColor: 'rgba(130, 188, 108, 0.12)' }}></div>
@@ -939,11 +764,11 @@ const ProjectviewWebsite = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
               <div className="text-center p-6 bg-gradient-to-br from-[#72B0CC]/10 to-[#82BC6C]/10 rounded-2xl border-2 border-[#72B0CC]/20 hover:scale-110 hover:shadow-2xl transition-all duration-500 cursor-pointer animate-fade-in-up group" style={{ animationDelay: '0.5s' }}>
                 <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] mb-2 group-hover:scale-125 transition-transform duration-300">{counters.projects}+</div>
-                <div className="text-sm text-gray-700 font-medium">Espaces transformés</div>
+                <div className="text-sm text-gray-700 font-medium">Expérience clients</div>
               </div>
               <div className="text-center p-6 bg-gradient-to-br from-[#CF6E3F]/10 to-[#72B0CC]/10 rounded-2xl border-2 border-[#CF6E3F]/20 hover:scale-110 hover:shadow-2xl transition-all duration-500 cursor-pointer animate-fade-in-up group" style={{ animationDelay: '0.6s' }}>
                 <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-[#CF6E3F] to-[#72B0CC] mb-2 group-hover:scale-125 transition-transform duration-300">{counters.satisfaction}%</div>
-                <div className="text-sm text-gray-700 font-medium">Clients satisfaits</div>
+                <div className="text-sm text-gray-700 font-medium">Satisfaction client</div>
               </div>
               <div className="text-center p-6 bg-gradient-to-br from-[#82BC6C]/10 to-[#CF6E3F]/10 rounded-2xl border-2 border-[#82BC6C]/20 hover:scale-110 hover:shadow-2xl transition-all duration-500 cursor-pointer animate-fade-in-up group" style={{ animationDelay: '0.7s' }}>
                 <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-[#82BC6C] to-[#CF6E3F] mb-2 group-hover:scale-125 transition-transform duration-300">{counters.years}+</div>
@@ -951,7 +776,7 @@ const ProjectviewWebsite = () => {
               </div>
               <div className="text-center p-6 bg-gradient-to-br from-[#72B0CC]/10 to-[#CF6E3F]/10 rounded-2xl border-2 border-[#72B0CC]/20 hover:scale-110 hover:shadow-2xl transition-all duration-500 cursor-pointer animate-fade-in-up group" style={{ animationDelay: '0.8s' }}>
                 <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-[#72B0CC] to-[#CF6E3F] mb-2 group-hover:scale-125 transition-transform duration-300">24/7</div>
-                <div className="text-sm text-gray-700 font-medium">Support dédié</div>
+                <div className="text-sm text-gray-700 font-medium">Prise en charge via IA</div>
               </div>
             </div>
           </div>
@@ -978,71 +803,89 @@ const ProjectviewWebsite = () => {
               votre expérience client
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              Des technologies qui disparaissent pour laisser place à l'essentiel : l'émotion, l'engagement, la conversion.
+              Des technologies qui disparaissent pour laisser place à l'essentiel : l'émotion, l'engagement, l'échange.
             </p>
           </div>
 
-          <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {offers.map((offer, index) => (
               <div
                 key={index}
                 className={`group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden animate-fade-in-up ${
-                  activeOffer === index ? 'ring-4 ring-[#72B0CC]/20 scale-105' : ''
+                  activeOffer === index ? 'ring-4 ring-[#72B0CC]/20' : ''
                 }`}
                 style={{ animationDelay: `${0.1 * index}s` }}
                 onMouseEnter={() => setActiveOffer(index)}
                 onMouseLeave={() => setActiveOffer(null)}
               >
-                <div className={`absolute inset-0 ${offer.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                {/* Gradient overlay on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${offer.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
 
-                <div className="relative z-10 p-8 md:p-12">
-                  <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-                    {/* Icon & Title */}
-                    <div className="flex-shrink-0 lg:w-80">
-                      <div className={`inline-flex p-6 rounded-2xl bg-gradient-to-br ${offer.color} text-white mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg group-hover:shadow-2xl`}>
-                        {offer.icon}
-                      </div>
-                      <h3 className="text-3xl font-medium mb-3 group-hover:text-[#72B0CC] transition-colors duration-300" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                        {offer.title}
-                      </h3>
-                      <div className={`inline-block px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r ${offer.color} group-hover:scale-110 transition-transform duration-300 shadow-lg animate-pulse`}>
-                        {offer.stats}
-                      </div>
+                <div className="relative z-10 p-8 flex flex-col h-full">
+                  {/* Icon & Badge */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className={`inline-flex p-5 rounded-2xl bg-gradient-to-br ${offer.color} text-white transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg`}>
+                      {offer.icon}
                     </div>
-
-                    {/* Content */}
-                    <div className="flex-1 space-y-6">
-                      <div>
-                        <h4 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-snug">
-                          {offer.hook}
-                        </h4>
-                        <p className="text-lg text-gray-600 leading-relaxed">
-                          {offer.pain}
-                        </p>
-                      </div>
-
-                      <div className="border-l-4 border-[#82BC6C] pl-6 py-4 bg-green-50/50 rounded-r-xl">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-2 h-2 rounded-full bg-[#82BC6C]"></div>
-                          <span className="text-sm font-bold uppercase tracking-wide" style={{ color: '#82BC6C' }}>
-                            {offer.solution}
-                          </span>
-                        </div>
-                        <p className="text-lg text-gray-800 font-medium leading-relaxed">
-                          {offer.benefit}
-                        </p>
-                      </div>
-
-                      <Link
-                        to={offer.link}
-                        className="group/btn inline-flex items-center gap-3 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-8 py-4 rounded-full font-medium hover:shadow-xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 relative overflow-hidden"
-                      >
-                        <span className="relative z-10">En savoir plus</span>
-                        <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform relative z-10" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#82BC6C] to-[#72B0CC] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
-                      </Link>
+                    <div className={`px-3 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${offer.color} shadow-md`}>
+                      {offer.stats}
                     </div>
                   </div>
+
+                  {/* Title */}
+                  <h3 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-[#72B0CC] transition-colors duration-300" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                    {offer.title}
+                  </h3>
+
+                  {/* Hook */}
+                  <p className="text-lg font-semibold text-gray-900 mb-4 leading-snug">
+                    {offer.hook}
+                  </p>
+
+                  {/* Pain point */}
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    {offer.pain}
+                  </p>
+
+                  {/* Solution Section */}
+                  <div className="bg-gradient-to-r from-[#72B0CC]/5 to-[#82BC6C]/5 rounded-xl p-4 mb-4 flex-grow">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4 text-[#72B0CC]" />
+                      <span className="text-sm font-bold uppercase tracking-wide text-[#72B0CC]">
+                        {offer.solution}
+                      </span>
+                    </div>
+
+                    {/* Benefits list */}
+                    <div className="space-y-2">
+                      {offer.benefitList && offer.benefitList.map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <ChevronRight className="w-4 h-4 text-[#82BC6C] mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Impact highlight */}
+                    {offer.impact && (
+                      <div className="mt-4 pt-3 border-t border-[#82BC6C]/20">
+                        <div className="flex items-center gap-2">
+                          <Trophy className="w-4 h-4 text-[#82BC6C]" />
+                          <span className="text-sm font-semibold text-gray-800">{offer.impact}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CTA Button */}
+                  <Link
+                    to={offer.link}
+                    className="group/btn inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white px-6 py-3 rounded-full font-medium hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 relative overflow-hidden w-full"
+                  >
+                    <span className="relative z-10">En savoir plus</span>
+                    <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform relative z-10" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#82BC6C] to-[#72B0CC] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -1074,39 +917,46 @@ const ProjectviewWebsite = () => {
             </p>
           </div>
 
-          <div className="relative grid gap-14 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
-            <div className="relative w-full max-w-4xl mx-auto lg:mx-0">
-              <div className="absolute -top-24 -left-16 w-72 h-72 bg-[#72B0CC]/15 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-32 -right-20 w-80 h-80 bg-[#CF6E3F]/15 rounded-full blur-3xl"></div>
-
-              <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] w-full">
-                <canvas
-                  ref={canvasRef}
-                  className="w-full h-full"
-                  style={{ touchAction: 'none' }}
-                />
-
-                {/* Légende interactive */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-lg rounded-2xl px-4 sm:px-6 py-2 sm:py-3 shadow-lg border border-white/60 max-w-[90%]">
-                  <p className="text-xs sm:text-sm text-gray-600 text-center">
-                    <span className="font-semibold text-[#72B0CC]">
-                      <span className="hidden sm:inline">Déplacez</span>
-                      <span className="sm:hidden">Bougez</span>
-                    </span> les logos pour les repositionner • Les connexions s'adaptent aux 3 plus proches
-                  </p>
-                </div>
+          {/* Layout 2/3 - 1/3 */}
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
+            {/* Grille de logos - 2/3 largeur */}
+            <div className="w-full lg:w-2/3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {trustBrands.map((brand, index) => (
+                  <div
+                    key={index}
+                    className={`group relative bg-white rounded-2xl p-4 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer ${
+                      activeBrandIndex === index ? 'ring-4 ring-[#72B0CC]/30 scale-105' : ''
+                    }`}
+                    onClick={() => setActiveBrandIndex(index)}
+                    style={{
+                      animation: `float ${4 + index * 0.2}s ease-in-out infinite`,
+                      animationDelay: `${index * 0.1}s`,
+                      animationDuration: `${4 + index * 0.2}s`
+                    }}
+                  >
+                    <div className="aspect-video flex items-center justify-center p-3">
+                      <img
+                        src={brand.logo}
+                        alt={brand.name}
+                        className="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {activeBrand && (
-              <div className="w-full lg:max-w-xl">
-                <div className="bg-white/90 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-[0_40px_80px_rgba(31,41,55,0.12)] p-10 space-y-6">
+            {/* Fiche d'information statique - 1/3 largeur */}
+            <div className="w-full lg:w-1/3 lg:sticky lg:top-24">
+              {activeBrand && (
+                <div className="bg-white/90 backdrop-blur-lg rounded-[32px] border border-white/60 shadow-[0_40px_80px_rgba(31,41,55,0.12)] p-8 space-y-6">
                   <div className="flex items-center justify-between gap-4">
                     <div className="inline-flex items-center gap-3 bg-[#72B0CC]/10 text-[#1f2937] px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wide">
                       <Sparkles className="w-4 h-4 text-[#72B0CC]" />
                       Projet signature
                     </div>
-                    <div className="font-semibold text-sm text-gray-500 uppercase tracking-widest">
+                    <div className="font-semibold text-xs text-gray-500 uppercase tracking-widest">
                       {activeBrand.sector}
                     </div>
                   </div>
@@ -1114,35 +964,35 @@ const ProjectviewWebsite = () => {
                     <p className="text-sm font-semibold uppercase tracking-widest text-[#72B0CC] mb-2">
                       {activeBrand.name}
                     </p>
-                    <h3 className="text-3xl font-semibold text-gray-900 leading-snug" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                    <h3 className="text-2xl font-semibold text-gray-900 leading-snug" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                       {activeBrand.solution}
                     </h3>
                   </div>
-                  <div className="rounded-2xl bg-gradient-to-r from-[#72B0CC]/10 via-white to-[#CF6E3F]/10 border border-[#72B0CC]/15 p-6 text-left">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">
+                  <div className="rounded-2xl bg-gradient-to-r from-[#72B0CC]/10 via-white to-[#CF6E3F]/10 border border-[#72B0CC]/15 p-5 text-left">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
                       Impact mesuré
                     </p>
-                    <p className="text-lg text-gray-700 leading-relaxed">
+                    <p className="text-base text-gray-700 leading-relaxed">
                       <span className="font-semibold text-[#CF6E3F]">{activeBrand.impact}</span>
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-3 text-xs uppercase tracking-wide text-gray-500">
+                  <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-gray-500">
                     <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#72B0CC]/10 text-[#1f2937]">
-                      <Sparkles className="w-4 h-4 text-[#72B0CC]" />
+                      <Sparkles className="w-3 h-3 text-[#72B0CC]" />
                       Expérience immersive
                     </span>
                     <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#CF6E3F]/10 text-[#1f2937]">
-                      <Zap className="w-4 h-4 text-[#CF6E3F]" />
+                      <Zap className="w-3 h-3 text-[#CF6E3F]" />
                       Engagement boosté
                     </span>
                     <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#82BC6C]/10 text-[#1f2937]">
-                      <Users className="w-4 h-4 text-[#82BC6C]" />
+                      <Users className="w-3 h-3 text-[#82BC6C]" />
                       Adoption équipes
                     </span>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -1310,23 +1160,23 @@ const ProjectviewWebsite = () => {
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-white">
           <Sparkles className="w-16 h-16 mx-auto mb-8 animate-bounce-subtle" />
 
-          <h2 className="text-4xl md:text-6xl font-medium mb-6 leading-tight animate-fade-in-up" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-            Prêt à créer des expériences<br />qui marquent les esprits ?
+          <h2 className="text-3xl md:text-5xl font-medium mb-6 leading-tight animate-fade-in-up" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+            Et si vous n'étiez qu'à une conversation<br />de l'aboutissement de votre projet ?
           </h2>
 
           <p className="text-xl md:text-2xl mb-12 opacity-95 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            Discutons de votre projet. Sans engagement, sans jargon technique. Juste une conversation sur ce que vous voulez accomplir et comment nous pouvons y arriver ensemble.
+            Notre IA est là pour vous accompagner peu importe votre secteur d'activité. Testez-la maintenant en cliquant en bas à droite.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <a
-              href="#contact"
+            <button
+              onClick={() => window.dispatchEvent(new Event('openChatbot'))}
               className="group inline-flex items-center justify-center gap-3 bg-white text-[#72B0CC] px-10 py-5 rounded-full text-lg font-bold hover:shadow-2xl transform hover:-translate-y-3 hover:scale-110 transition-all duration-300 relative overflow-hidden"
             >
-              <span className="relative z-10">Demander une démo personnalisée</span>
+              <span className="relative z-10">Parler à notre IA maintenant</span>
               <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            </a>
+            </button>
             <a
               href="tel:+33000000000"
               className="group inline-flex items-center justify-center gap-3 bg-white/10 backdrop-blur-lg border-2 border-white text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-white hover:text-[#72B0CC] hover:scale-110 transform hover:-translate-y-3 transition-all duration-300"
@@ -1336,7 +1186,7 @@ const ProjectviewWebsite = () => {
           </div>
 
           <p className="mt-8 text-sm opacity-75 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            Réponse sous 24h · Démo gratuite · Sans engagement
+            Réponse <span className="line-through opacity-50">sous 24h</span> <span className="font-bold text-[#82BC6C] opacity-100 text-base">IMMÉDIATE</span> · Démo gratuite · Sans engagement
           </p>
         </div>
       </section>
@@ -1359,6 +1209,57 @@ const ProjectviewWebsite = () => {
               <p className="text-gray-300 mb-8 leading-relaxed">
                 La technologie au service de l'émotion. Transformons ensemble vos espaces en expériences mémorables qui captivent, engagent et convertissent.
               </p>
+
+              {/* Social Links */}
+              <div className="flex items-center gap-4 mb-8">
+                <a
+                  href="https://www.facebook.com/Team.ProjectView"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#72B0CC] flex items-center justify-center transition-all duration-300 group"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/projectview/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#72B0CC] flex items-center justify-center transition-all duration-300 group"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
+                </a>
+                <a
+                  href="https://www.tiktok.com/@projectview_vr?_t=ZN-90aoz32J9R1&_r=1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#72B0CC] flex items-center justify-center transition-all duration-300 group"
+                  aria-label="TikTok"
+                >
+                  <svg className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                </a>
+                <a
+                  href="https://www.instagram.com/projectview_vr/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#72B0CC] flex items-center justify-center transition-all duration-300 group"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
+                </a>
+                <a
+                  href="https://www.youtube.com/@projectview3892"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#72B0CC] flex items-center justify-center transition-all duration-300 group"
+                  aria-label="YouTube"
+                >
+                  <Youtube className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
+                </a>
+              </div>
 
               {/* Social proof */}
               <div className="flex items-center gap-6">
@@ -1436,9 +1337,12 @@ const ProjectviewWebsite = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="#contact" className="text-gray-300 hover:text-white transition-colors duration-300 text-sm">
+                  <button
+                    onClick={() => window.dispatchEvent(new Event('openChatbot'))}
+                    className="text-gray-300 hover:text-white transition-colors duration-300 text-sm"
+                  >
                     Contact
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
