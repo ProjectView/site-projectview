@@ -1274,7 +1274,7 @@ const ProjectviewWebsite = () => {
                 </div>
                 <div className="w-px h-12" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}></div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-1">15+</div>
+                  <div className="text-2xl font-bold text-white mb-1">8+</div>
                   <div className="text-xs text-gray-400 uppercase tracking-wide">Ans</div>
                 </div>
               </div>
