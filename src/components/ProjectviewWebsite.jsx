@@ -1360,8 +1360,8 @@ const ProjectviewWebsite = () => {
 
                 <div>
                   <div className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Téléphone</div>
-                  <a href="tel:+33000000000" className="text-white hover:underline text-sm">
-                    +33 X XX XX XX XX
+                  <a href="tel:+33777300658" className="text-white hover:underline text-sm">
+                    0 777 300 658
                   </a>
                 </div>
 
