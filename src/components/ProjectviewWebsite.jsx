@@ -1367,7 +1367,10 @@ const ProjectviewWebsite = () => {
 
                 <div>
                   <div className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Localisation</div>
-                  <span className="text-white text-sm">Lyon, France</span>
+                  <div className="text-white text-sm">
+                    <div>18 rue Jules Ferry</div>
+                    <div>69360, St Symphorien d'Ozon</div>
+                  </div>
                 </div>
               </div>
             </div>
