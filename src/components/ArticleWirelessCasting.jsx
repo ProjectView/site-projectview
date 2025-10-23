@@ -154,6 +154,21 @@ const ArticleWirelessCasting = () => {
           </div>
         </section>
 
+        {/* Vidéo démo */}
+        <section className="mb-16">
+          <div className="rounded-2xl overflow-hidden shadow-xl">
+            <div className="aspect-video bg-gradient-to-br from-blue-300 to-blue-600 flex items-center justify-center">
+              <div className="text-center text-white p-8">
+                <Zap className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">📹 VIDÉO DÉMO</p>
+                <p className="text-sm opacity-80 mt-2">Partage d'écran sans fil en action - de la connexion à l'affichage en 5 secondes</p>
+                <p className="text-xs opacity-60 mt-4">(À intégrer depuis YouTube)</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 text-center mt-3">Démonstration du partage sans fil fluide et sans aucun câble</p>
+        </section>
+
         <section className="mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ fontFamily: 'Montserrat, sans-serif' }}>
             Les 3 protocoles <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#72B0CC] to-[#82BC6C]">dominants</span>
