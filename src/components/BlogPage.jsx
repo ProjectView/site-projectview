@@ -16,6 +16,66 @@ const BlogPage = () => {
   }, []);
   const articles = [
     {
+      id: 'interactivite',
+      title: 'NFC, gestes, détection : L\'interactivité sans contact',
+      description: 'Découvrez comment les écrans modernes amplifient l\'engagement avec la détection de mouvements, les tags NFC et la reconnaissance de gestes.',
+      category: 'Innovation',
+      categoryColor: '#72B0CC',
+      tags: ['Interactivité', 'NFC', 'Engagement'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
+      link: '/article/interactivite',
+      date: '2025-01-28'
+    },
+    {
+      id: '4k-hdr',
+      title: '4K vs FHD : Faut-il vraiment investir ? Un guide pratique',
+      description: 'Quand le 4K vaut l\'investissement, quand FHD suffit, et pourquoi le HDR change vraiment la donne.',
+      category: 'Comparatif Technique',
+      categoryColor: '#CF6E3F',
+      tags: ['4K', 'Résolution', 'HDR'],
+      gradient: 'from-[#CF6E3F] to-[#72B0CC]',
+      icon: <Monitor className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
+      link: '/article/4k-hdr',
+      date: '2025-01-26'
+    },
+    {
+      id: 'videoconference-integree',
+      title: 'La visioconférence intégrée : Finir avec les réunions hybrides compliquées',
+      description: 'Comment les écrans tout-en-un transforment l\'équité entre participants en salle et à distance.',
+      category: 'Réunions Hybrides',
+      categoryColor: '#82BC6C',
+      tags: ['Visioconférence', 'Hybride', 'Collaboration'],
+      gradient: 'from-[#82BC6C] to-[#CF6E3F]',
+      icon: <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
+      link: '/article/videoconference-integree',
+      date: '2025-01-24'
+    },
+    {
+      id: 'wireless-casting',
+      title: 'Partage d\'écran sans fil : Finissez avec les câbles',
+      description: 'AirPlay, Miracast, Google Cast : comment fonctionnent ces technologies et laquelle choisir pour des réunions fluides.',
+      category: 'Connectivité',
+      categoryColor: '#72B0CC',
+      tags: ['Wireless', 'Partage', 'Technologie'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
+      link: '/article/wireless-casting',
+      date: '2025-01-22'
+    },
+    {
+      id: 'ecrans-tactiles',
+      title: 'Les écrans tactiles : De la résistance à la capacité',
+      description: 'Comprendre les technologies tactiles, leur évolution et comment choisir l\'écran adapté à vos besoins professionnels.',
+      category: 'Guide Informatif',
+      categoryColor: '#CF6E3F',
+      tags: ['Tactile', 'Technologie', 'Écrans'],
+      gradient: 'from-[#CF6E3F] to-[#72B0CC]',
+      icon: <Monitor className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
+      link: '/article/ecrans-tactiles',
+      date: '2025-01-20'
+    },
+    {
       id: 'erreurs-reunion',
       title: 'Les 5 erreurs qui font perdre du temps en réunion',
       description: 'Départs chaotiques, objectifs flous, participants passifs : transformez vos réunions en leviers d\'efficacité grâce à quelques bonnes pratiques et à ProjectView.',
