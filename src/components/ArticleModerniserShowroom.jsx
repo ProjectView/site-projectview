@@ -206,7 +206,7 @@ const ArticleModerniserShowroom = () => {
       </section>
 
       {/* Hero Image */}
-      <section className="max-w-6xl mx-auto px-6 -mt-8 mb-20 relative z-20">
+      <section className="max-w-4xl mx-auto px-6 -mt-8 mb-20 relative z-20">
         <div className="rounded-3xl overflow-hidden shadow-2xl border-8 border-white aspect-video bg-gray-100">
           <img
             src="/images/article-moderniser-showroom-hero.png"
