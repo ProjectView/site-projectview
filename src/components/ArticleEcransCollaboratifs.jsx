@@ -192,13 +192,12 @@ const ArticleEcransCollaboratifs = () => {
         {/* PHOTO : Évolution */}
         <section className="mb-16">
           <div className="rounded-2xl overflow-hidden shadow-xl">
-            <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-400 flex items-center justify-center">
-              <div className="text-center text-white p-8">
-                <Eye className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">📸 PHOTO : L'évolution des salles de réunion</p>
-                <p className="text-sm opacity-80 mt-2">Du projecteur bruyant à l'écran collaboratif silencieux</p>
-              </div>
-            </div>
+            <img
+              src="/images/article-evolution-reunions.png"
+              alt="Timeline montrant l'évolution des salles de réunion de 2015 à 2025"
+              className="w-full h-auto object-cover"
+              style={{ aspectRatio: '16/9' }}
+            />
           </div>
           <p className="text-sm text-gray-500 text-center mt-3">De 2015 à 2025 : une transformation complète des infrastructures de réunion</p>
         </section>
@@ -331,13 +330,12 @@ const ArticleEcransCollaboratifs = () => {
         {/* PHOTO : Architecture */}
         <section className="mb-16">
           <div className="rounded-2xl overflow-hidden shadow-xl">
-            <div className="aspect-video bg-gradient-to-br from-pink-300 to-purple-600 flex items-center justify-center">
-              <div className="text-center text-white p-8">
-                <Wifi className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">📸 INFOGRAPHIE : Architecture d'un écran collaboratif</p>
-                <p className="text-sm opacity-80 mt-2">Tous les éléments travaillent en harmonie pour une productivité maximale</p>
-              </div>
-            </div>
+            <img
+              src="/images/article-architecture-ecran.png"
+              alt="Infographie montrant l'architecture et les composants intégrés d'un écran collaboratif"
+              className="w-full h-auto object-cover"
+              style={{ aspectRatio: '16/9' }}
+            />
           </div>
           <p className="text-sm text-gray-500 text-center mt-3">Un système pensé pour éliminer les frictions, pas les créer</p>
         </section>
@@ -446,20 +444,6 @@ const ArticleEcransCollaboratifs = () => {
               </p>
             </div>
           </div>
-        </section>
-
-        {/* PHOTO : Matrice de sélection */}
-        <section className="mb-16">
-          <div className="rounded-2xl overflow-hidden shadow-xl">
-            <div className="aspect-video bg-gradient-to-br from-yellow-200 to-orange-400 flex items-center justify-center">
-              <div className="text-center text-white p-8">
-                <TrendingUp className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">📸 TABLEAU : Matrice de sélection écrans collaboratifs</p>
-                <p className="text-sm opacity-80 mt-2">Taille de salle vs budget vs cas d'usage</p>
-              </div>
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 text-center mt-3">Un outil pour décider en 10 minutes</p>
         </section>
 
         {/* Section 6 : Conclusion et CTA */}
