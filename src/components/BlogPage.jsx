@@ -123,7 +123,8 @@ const BlogPage = () => {
       gradient: 'from-[#82BC6C] to-[#CF6E3F]',
       icon: <Table2 className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
       link: '/article/moderniser-showroom',
-      date: '2024-01-05'
+      date: '2024-01-05',
+      image: '/images/article-moderniser-showroom-hero.png'
     },
     {
       id: 'affichage-retail',
