@@ -296,6 +296,15 @@ const ProjectviewWebsite = () => {
       tags: ["Aide à la vente", "Showroom", "Expérience client"]
     },
     {
+      name: "Gemme Concept",
+      logo: "/logos/gemme concept.jpeg",
+      sector: "Design & Innovation",
+      gradient: "from-[#CF6E3F] to-[#82BC6C]",
+      solution: "Espaces de conception collaborative",
+      impact: "Créativité et productivité boostées",
+      tags: ["Collaboration", "Créativité", "Innovation"]
+    },
+    {
       name: "GP Energies",
       logo: "/logos/gp-energies.png",
       sector: "Énergie",
