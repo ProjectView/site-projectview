@@ -1,0 +1,280 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-agenda-Bernard",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-200, 0],
+      "id": "webhook-node",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "code": "// State Manager Optimisé - Détecte besoins et propositions de boutons\n// Récupère l'item du webhook (qui peut être dans un array)\nconst webhookData = Array.isArray($json) ? $json[0] : $json;\nconst bodyData = webhookData.body || {};\n\nlet prospectData = webhookData.prospect_data || {\n  nom: '',\n  prenom: '',\n  email: '',\n  telephone: '',\n  secteur: '',\n  interet: false,\n  hasAskedQuestion: false\n};\n\nlet conversationStep = webhookData.conversation_step || 'accueil';\nconst userMessage = bodyData.message || '';\nconst messageLC = userMessage.toLowerCase();\n\n// Détection intelligente\nconst isQuestion = /\\?|qu[oi]|comment|pourquoi|explique|c'est quoi|ça fait|ça coûte|tarif|prix|fonctionnalit|service|offre/.test(messageLC);\nconst isAccept = /oui|ok|ouais|carrément|pourquoi pas|top|super|bien sûr|d'accord|entendu|valide|c'est bon|ok/.test(messageLC) && !/non/.test(messageLC);\nconst isReject = /non|pas|intéressé|plus tard|jamais|occupe/.test(messageLC);\n\n// Extraction robuste des données\nconst nameMatch = userMessage.match(/(?:je\\s+(?:suis|m'appelle|appelle)|suis\\s+|nom\\s+:?|c'est\\s+)([A-ZÀ-ÿ]{2,})(?:\\s+([A-ZÀ-ÿ]{2,}))?/i);\nif (nameMatch) {\n  if (!prospectData.prenom || prospectData.prenom === '') {\n    prospectData.prenom = nameMatch[1];\n  }\n  if (nameMatch[2] && (!prospectData.nom || prospectData.nom === '')) {\n    prospectData.nom = nameMatch[2];\n  }\n}\n\nconst emailMatch = userMessage.match(/([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/i);\nif (emailMatch && !prospectData.email) {\n  prospectData.email = emailMatch[1];\n}\n\nconst phoneMatch = userMessage.match(/(0[1-9](?:[0-9]{8})|\\+33[1-9](?:[0-9]{8})|\\+?33[67](?:[0-9]{8}))/i);\nif (phoneMatch && !prospectData.telephone) {\n  prospectData.telephone = phoneMatch[1];\n}\n\nconst secteurs = ['immobilier', 'retail', 'bureau', 'architecte', 'restaurant', 'hôtel', 'médical', 'commerce', 'bâtiment', 'musée', 'galerie', 'mco', 'agence immobilière', 'showroom'];\nfor (let secteur of secteurs) {\n  if (messageLC.includes(secteur) && !prospectData.secteur) {\n    prospectData.secteur = secteur;\n    break;\n  }\n}\n\n// Suivi des questions posées\nif (isQuestion) {\n  prospectData.hasAskedQuestion = true;\n}\n\n// Logique de transition d'étapes optimisée\nif (conversationStep === 'accueil') {\n  if (prospectData.prenom) {\n    conversationStep = 'information';\n  }\n} else if (conversationStep === 'information') {\n  // Si l'utilisateur pose des questions, rester en mode info\n  // Sinon, passer à qualification\n  if (!isQuestion && prospectData.email && prospectData.secteur) {\n    conversationStep = 'proposition_rdv';\n  } else if (!isQuestion) {\n    conversationStep = 'qualification';\n  }\n} else if (conversationStep === 'qualification') {\n  if (prospectData.email && prospectData.secteur) {\n    conversationStep = 'proposition_rdv';\n  }\n} else if (conversationStep === 'proposition_rdv') {\n  if (isAccept) {\n    conversationStep = 'rdv_confirmed';\n    prospectData.interet = true;\n  } else if (isReject) {\n    conversationStep = 'rdv_declined';\n  }\n}\n\nreturn {\n  prospect_data: prospectData,\n  conversation_step: conversationStep,\n  user_message: userMessage,\n  is_question: isQuestion,\n  is_accept: isAccept,\n  is_reject: isReject,\n  session_id: bodyData.sessionId,\n  conversation_history: bodyData.conversationHistory || []\n};"
+      },
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "state-manager",
+      "name": "State Manager"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('State Manager').item.json.session_id || 'default' }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [200, 200],
+      "id": "memory-node",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= {{ $('State Manager').item.json.user_message }}",
+        "options": {
+          "systemMessage": "=Tu es ProjectBot, l'agent conversationnel de Projectview.\nDate du jour : {{ $today }}\n\n═══════════════════════════════════════════════════════════════════════════\n📊 CONTEXTE ACTUEL DU PROSPECT\n═══════════════════════════════════════════════════════════════════════════\nNom: {{ $('State Manager').item.json.prospect_data?.nom || 'Non renseigné' }}\nPrénom: {{ $('State Manager').item.json.prospect_data?.prenom || 'Non renseigné' }}\nEmail: {{ $('State Manager').item.json.prospect_data?.email || 'Non renseigné' }}\nTéléphone: {{ $('State Manager').item.json.prospect_data?.telephone || 'Non renseigné' }}\nSecteur: {{ $('State Manager').item.json.prospect_data?.secteur || 'Non renseigné' }}\nÉtape: {{ $('State Manager').item.json.conversation_step }}\n\n═══════════════════════════════════════════════════════════════════════════\n💼 À SAVOIR SUR PROJECTVIEW\n═══════════════════════════════════════════════════════════════════════════\nMission : \"Nous ne vendons pas de la technologie. Nous créons des émotions.\"\nTechnologies : Écrans tactiles interactifs, affichage dynamique, IA, expériences immersives\nZone : Lyon et région\nCibles : Immobilier, Retail, Bureaux, Architectes\n\n📍 VALEUR PAR SECTEUR :\n\n🏢 IMMOBILIER :\n• Tours virtuels 3D interactifs des propriétés\n• Présentation dynamique des projets\n• Engagement accru des visiteurs\n• Augmentation des taux de conversion (40%+)\n• Exemple : Affichage immersif des plans et finitions\n\n🛍️ RETAIL :\n• Vitrines interactives qui engagent les clients\n• Analytics temps réel du traffic\n• Augmentation du dwell time et des achats\n• Personnalisation de l'expérience client\n• Exemple : Essayage virtuel, catalogues tactiles\n\n🏗️ BUREAU / ARCHITECTE :\n• Visualisation immersive des projets\n• Présentation collaborative avec clients\n• Démonstration des futurs aménagements\n• Impact WOW lors des réunions clients\n• Exemple : Visite 3D interactive du projet avant construction\n\n🏥 SECTEUR SPÉCIALISÉ :\n• Amélioration de l'expérience patient/visiteur\n• Interactivité et engagement accru\n• Communication améliorée des services\n\n═══════════════════════════════════════════════════════════════════════════\n🎯 INSTRUCTIONS PAR ÉTAPE\n═══════════════════════════════════════════════════════════════════════════\n\n**SI ÉTAPE = 'accueil' :**\n- Salue chaleureusement, proposer devinette/question ludique\n- Objectif : extraire nom/prénom naturellement\n- Format : JSON avec clé \"message\" et optionnellement des \"quick_replies\" (boutons)\n- Exemples de devinettes :\n  • \"🤓 Petite devinette : qu'est-ce qui attire les regards, parle tout seul et booste les ventes ?\"\n  • \"👀 Crois-tu que ton showroom travaille pendant que tu dors ?\"\n  • \"💡 Tes prospects… tu les laisses naviguer à l'aveugle ou tu les bluffes avec du visuel ?\"\n\n**SI ÉTAPE = 'information' :**\n- L'utilisateur pose des questions sur ProjectView\n- Répondre de manière naturelle et adaptée à son secteur\n- Donner des exemples concrets de ce qu'on fait\n- Utiliser les données sectorielles ci-dessus\n- Format réponse : JSON simple avec \"message\" (2-3 phrases max)\n- Progressivement extraire email/secteur\n\n**SI ÉTAPE = 'qualification' :**\n- Poser 1 SEULE question pour récupérer info manquante\n- Exemple : \"C'est dans quel secteur que tu travailles ?\" ou \"Je peux avoir ton email ?\"\n- Sois naturel, pas robotique\n- Une fois email + secteur validés → passer à 'proposition_rdv'\n\n**SI ÉTAPE = 'proposition_rdv' :**\n- Proposer un RDV de 15-20min de manière NATURELLE\n- Exemple : \"Si tu veux, je te montre comment d'autres ont booké leurs premières conversions — ça t'intéresse ?\"\n- NE PAS utiliser de markdown ni [texte](url)\n- Ajouter des \"quick_replies\" pour faciliter la réponse (\"Oui, ça m'intéresse\" / \"Je réfléchis\")\n- Format JSON : {\"message\": \"...\", \"quick_replies\": [{\"text\": \"Oui, montre-moi !\", \"action\": \"accept_rdv\"}, {\"text\": \"Je réfléchis\", \"action\": \"maybe_rdv\"}]}\n\n**SI ÉTAPE = 'rdv_confirmed' :**\n- Confirmer avec enthousiasme\n- Proposer des BOUTONS d'action\n- Format JSON : {\"message\": \"Super ! 🎉\", \"buttons\": [{\"text\": \"Voir mon agenda\", \"url\": \"https://calendly.com/projectview\", \"type\": \"primary\"}, {\"text\": \"En savoir plus\", \"url\": \"https://projectview.fr\", \"type\": \"secondary\"}]}\n\n**SI ÉTAPE = 'rdv_declined' :**\n- Respecter le choix, rester bienveillant\n- Laisser une porte ouverte : \"Si tu changes d'avis, je suis là !\"\n- Pas d'insistance\n\n═══════════════════════════════════════════════════════════════════════════\n⚠️ RÈGLES ABSOLUES\n═══════════════════════════════════════════════════════════════════════════\n✅ TOUJOURS retourner du JSON valide\n✅ Réponses COURTES (max 2-3 phrases)\n✅ 1 question/action par message\n✅ Emojis simples seulement\n✅ Pas de markdown [texte](url) — utiliser les BOUTONS/QUICK_REPLIES JSON\n✅ Adapter le ton au secteur détecté\n✅ Extraire les infos progressivement\n✅ Proposer RDV relativement vite (après nom + email + secteur)\n✅ Jamais forcer le RDV\n✅ Si question sur offre/prix : donner infos générales, puis proposer RDV\n❌ Ne jamais antidater\n❌ Ne jamais mélanger texte brut et JSON\n❌ Ne jamais ignorer une question posée\n\n═══════════════════════════════════════════════════════════════════════════\n📋 TEMPLATES DE RÉPONSE JSON\n═══════════════════════════════════════════════════════════════════════════\n\nSimple message :\n{\"message\": \"Ton message ici 💡\"}\n\nAvec quick replies (pour proposition RDV) :\n{\"message\": \"Tu veux qu'on discute ?\", \"quick_replies\": [{\"text\": \"Oui\", \"action\": \"accept_rdv\"}, {\"text\": \"Non\", \"action\": \"reject_rdv\"}]}\n\nAvec boutons (après acceptation RDV) :\n{\"message\": \"Parfait !\", \"buttons\": [{\"text\": \"Voir l'agenda\", \"url\": \"https://calendly.com/projectview\", \"type\": \"primary\"}, {\"text\": \"Website\", \"url\": \"https://projectview.fr\", \"type\": \"secondary\"}]}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [400, 0],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [1056, 48],
+      "id": "c1d2bdfb-8f66-48b4-998c-f7664cb58452",
+      "name": "Réponse Bot"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body?.sessionId || $json.sessionId || 'default-session' }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [336, 272],
+      "id": "fd997862-4011-463a-8cb3-977c5d95fd35",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-agenda-Bernard",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-16, 48],
+      "id": "05b59a43-8be4-460a-9240-ceb907c1ebd7",
+      "name": "Webhook",
+      "webhookId": "3f308961-ad26-4730-8450-2a292050833b"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Vérifie la disponibilité dans l'agenda Google Calendar",
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "bernard@projectview.fr",
+          "mode": "list",
+          "cachedResultName": "bernard@projectview.fr"
+        },
+        "timeMin": "={{ $fromAI('Start_Time', ``, 'string') }}",
+        "timeMax": "={{ $fromAI('End_Time', ``, 'string') }}",
+        "options": {
+          "timezone": {
+            "__rl": true,
+            "value": "={{ $fromAI('Timezone', ``, 'string') }}",
+            "mode": "id",
+            "__regex": "([-+/_a-zA-Z0-9]*)"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [464, 272],
+      "id": "50ff7092-5d01-4d65-9d4a-9c8c6e4049ec",
+      "name": "check_availability Bernard",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "j8UfmTzsdpxuvtDp",
+          "name": "Projectview Calendar Bernard"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Crée un événement Google Calendar après accord du client",
+        "calendar": {
+          "__rl": true,
+          "value": "bernard@projectview.fr",
+          "mode": "list",
+          "cachedResultName": "bernard@projectview.fr"
+        },
+        "start": "={{ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": ["={{ $fromAI('attendees0_Attendees', ``, 'string') }}"],
+          "description": "={{ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [592, 272],
+      "id": "09823369-a129-4570-b193-5534f928fe37",
+      "name": "create_event Bernard",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "j8UfmTzsdpxuvtDp",
+          "name": "Projectview Calendar Bernard"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "ccList": "bernard@projectview.fr"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [720, 272],
+      "id": "a91745d2-7924-49df-bcd3-d02d9126e5e5",
+      "name": "send_confirmation Bernard",
+      "webhookId": "02662f42-85ac-4a32-8d1f-104b3f582965",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "P9GZD7SeuVCLb8TI",
+          "name": "Gmail account Bernard"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Enregistre les leads et RDV pris",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1LMzKfDg4suF0Sj1HERQxktnZo_6GnVHfsHQFIKv9Ygs",
+          "mode": "list",
+          "cachedResultName": "Lead from IA"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047924082,
+          "mode": "list",
+          "cachedResultName": "lead site Projectview"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date du Lead": "={{ $fromAI('Date_du_Lead', ``, 'string') }}",
+            "Nom": "={{ $fromAI('Nom', ``, 'string') }}",
+            "Prénom": "={{ $fromAI('Pr_nom', ``, 'string') }}",
+            "Email": "={{ $fromAI('Email', ``, 'string') }}",
+            "Téléphone": "={{ $fromAI('T_l_phone', ``, 'string') }}",
+            "Sujet de l'Intérêt": "={{ $fromAI('Sujet_de_l_Int_r_t', ``, 'string') }}",
+            "Source du Lead": "={{ $fromAI('Source_du_Lead', ``, 'string') }}",
+            "Statut du Lead": "={{ $fromAI('Statut_du_Lead', ``, 'string') }}",
+            "Date du RDV Pris": "={{ $fromAI('Date_du_RDV_Pris', ``, 'string') }}",
+            "Commentaires": "={{ $fromAI('Commentaires', ``, 'string') }}",
+            "Google Meet": "={{ $fromAI('Google_Meet', ``, 'string') }}"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [848, 272],
+      "id": "f7b1309f-f588-4410-aa03-78ad424c32a0",
+      "name": "RDV Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mFdtS0E4UVgqlZ72",
+          "name": "Google Sheets ProjectView"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [208, 272],
+      "id": "7878fb27-a770-4b0e-bea6-1900486dfd0e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BGjpqswMShQ1Xra6",
+          "name": "OpenAi account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [[{"node": "Réponse Bot", "type": "main", "index": 0}]]
+    },
+    "Simple Memory2": {
+      "ai_memory": [[{"node": "AI Agent", "type": "ai_memory", "index": 0}]]
+    },
+    "Webhook": {
+      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+    },
+    "check_availability Bernard": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "create_event Bernard": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "send_confirmation Bernard": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "RDV Sheet": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e250a1cd022aeff3e7b7c23cd63c7c7d759355914e9d473ddcab64f040cc0f8"
+  }
+}

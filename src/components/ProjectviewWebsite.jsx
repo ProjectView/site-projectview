@@ -35,6 +35,113 @@ const ProjectviewWebsite = () => {
   const heroRef = useRef(null);
   const statsRef = useRef(null);
 
+  // Articles data
+  const allArticles = [
+    {
+      id: 'interactivite',
+      title: 'NFC, gestes, détection : L\'interactivité sans contact',
+      description: 'Découvrez comment les écrans modernes amplifient l\'engagement avec la détection de mouvements, les tags NFC et la reconnaissance de gestes.',
+      category: 'Innovation',
+      categoryColor: '#72B0CC',
+      tags: ['Interactivité', 'NFC', 'Engagement'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Sparkles className="w-20 h-20" />,
+      link: '/article/interactivite',
+      date: '2025-01-28'
+    },
+    {
+      id: '4k-hdr',
+      title: '4K vs FHD : Faut-il vraiment investir ? Un guide pratique',
+      description: 'Quand le 4K vaut l\'investissement, quand FHD suffit, et pourquoi le HDR change vraiment la donne.',
+      category: 'Comparatif Technique',
+      categoryColor: '#CF6E3F',
+      tags: ['4K', 'Résolution', 'HDR'],
+      gradient: 'from-[#CF6E3F] to-[#72B0CC]',
+      icon: <Monitor className="w-20 h-20" />,
+      link: '/article/4k-hdr',
+      date: '2025-01-26'
+    },
+    {
+      id: 'videoconference-integree',
+      title: 'La visioconférence intégrée : Finir avec les réunions hybrides compliquées',
+      description: 'Comment les écrans tout-en-un transforment l\'équité entre participants en salle et à distance.',
+      category: 'Réunions Hybrides',
+      categoryColor: '#82BC6C',
+      tags: ['Visioconférence', 'Hybride', 'Collaboration'],
+      gradient: 'from-[#82BC6C] to-[#CF6E3F]',
+      icon: <Sparkles className="w-20 h-20" />,
+      link: '/article/videoconference-integree',
+      date: '2025-01-24'
+    },
+    {
+      id: 'wireless-casting',
+      title: 'Partage d\'écran sans fil : Finissez avec les câbles',
+      description: 'AirPlay, Miracast, Google Cast : comment fonctionnent ces technologies et laquelle choisir pour des réunions fluides.',
+      category: 'Connectivité',
+      categoryColor: '#72B0CC',
+      tags: ['Wireless', 'Partage', 'Technologie'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Sparkles className="w-20 h-20" />,
+      link: '/article/wireless-casting',
+      date: '2025-01-22'
+    },
+    {
+      id: 'ecrans-tactiles',
+      title: 'Les écrans tactiles : De la résistance à la capacité',
+      description: 'Comprendre les technologies tactiles, leur évolution et comment choisir l\'écran adapté à vos besoins professionnels.',
+      category: 'Guide Informatif',
+      categoryColor: '#CF6E3F',
+      tags: ['Tactile', 'Technologie', 'Écrans'],
+      gradient: 'from-[#CF6E3F] to-[#72B0CC]',
+      icon: <Monitor className="w-20 h-20" />,
+      link: '/article/ecrans-tactiles',
+      date: '2025-01-20'
+    },
+    {
+      id: 'erreurs-reunion',
+      title: 'Les 5 erreurs qui font perdre du temps en réunion',
+      description: 'Départs chaotiques, objectifs flous, participants passifs : transformez vos réunions en leviers d\'efficacité grâce à quelques bonnes pratiques et à ProjectView.',
+      category: 'Article Informatif',
+      categoryColor: '#72B0CC',
+      tags: ['Collaboration', 'Réunions', 'Productivité'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Sparkles className="w-20 h-20" />,
+      link: '/article/erreurs-reunion',
+      date: '2024-01-15'
+    },
+    {
+      id: 'showroom-auto',
+      title: 'Showroom Automobile : De la brochure papier à l\'expérience immersive',
+      description: 'Découvrez comment un concessionnaire automobile a transformé son showroom avec des tables tactiles et des configurateurs 3D.',
+      beforeText: 'Catalogues papier coûteux, informations rapidement obsolètes, clients qui repartent sans documentation',
+      afterText: 'Tables tactiles interactives, configurations 3D en temps réel, expérience client premium qui fidélise',
+      category: 'Installation Client',
+      categoryColor: '#72B0CC',
+      tags: ['Automotive', 'Tables Tactiles', 'ROI'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Monitor className="w-20 h-20" />,
+      link: '/article/showroom-automobile',
+      date: '2024-01-10'
+    },
+    {
+      id: 'moderniser-showroom',
+      title: '5 signes qu\'il est temps de moderniser votre showroom',
+      description: 'Découvrez les indicateurs clés qui montrent qu\'il est temps d\'investir dans des technologies immersives.',
+      category: 'Guide Pratique',
+      categoryColor: '#82BC6C',
+      tags: ['Showroom', 'Digital', 'Stratégie'],
+      gradient: 'from-[#82BC6C] to-[#CF6E3F]',
+      icon: <Table2 className="w-20 h-20" />,
+      link: '/article/moderniser-showroom',
+      date: '2024-01-05'
+    }
+  ];
+
+  // Get the 3 latest articles sorted by date
+  const latestArticles = [...allArticles]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 3);
+
   // Scroll handler for navbar
   useEffect(() => {
     const handleScroll = () => {
@@ -1018,114 +1125,43 @@ const ProjectviewWebsite = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Article - Guide Réunions */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: '#72B0CC' }}>
-                    Article Informatif
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Les 5 erreurs qui font perdre du temps en réunion
-                </h3>
-
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                  Départs chaotiques, objectifs flous, participants passifs : transformez vos réunions en leviers d’efficacité grâce à quelques bonnes pratiques et à ProjectView.
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Collaboration</span>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Réunions</span>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Productivité</span>
+            {latestArticles.map((article, index) => (
+              <article key={article.id} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: `${0.1 * (index + 1)}s` }}>
+                <div className={`h-48 bg-gradient-to-br ${article.gradient} relative overflow-hidden group-hover:scale-105 transition-transform duration-500`}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {article.icon}
+                  </div>
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: article.categoryColor }}>
+                      {article.category}
+                    </span>
+                  </div>
                 </div>
 
-                <Link to="/article/erreurs-reunion" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#72B0CC' }}>
-                  Lire l'article
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </article>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                    {article.title}
+                  </h3>
 
-            {/* Article 1 - Case Study */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Monitor className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: '#72B0CC' }}>
-                    Installation Client
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Showroom Automobile : De la brochure papier à l'expérience immersive
-                </h3>
-
-                <div className="mb-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
-                  <div className="text-xs font-bold text-red-600 uppercase mb-2">Situation avant</div>
-                  <p className="text-sm text-gray-700">
-                    Catalogues papier coûteux, informations rapidement obsolètes, clients qui repartent sans documentation
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    {article.description}
                   </p>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {article.tags.map((tag) => (
+                      <span key={tag} className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <Link to={article.link} className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: article.categoryColor }}>
+                    Lire l'article
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
-
-                <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4" style={{ borderColor: '#82BC6C' }}>
-                  <div className="text-xs font-bold uppercase mb-2" style={{ color: '#82BC6C' }}>Après Projectview</div>
-                  <p className="text-sm text-gray-700">
-                    Tables tactiles interactives, configuration en temps réel, +250% d'engagement client
-                  </p>
-                </div>
-
-                <Link to="/article/showroom-automobile" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#72B0CC' }}>
-                  Lire l'étude de cas
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </article>
-
-            {/* Article 3 - Article informatif */}
-            <article className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <div className="h-48 bg-gradient-to-br from-[#82BC6C] to-[#CF6E3F] relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold" style={{ color: '#82BC6C' }}>
-                    Article Informatif
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#82BC6C] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  5 signes qu'il est temps de moderniser votre showroom
-                </h3>
-
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                  Vos clients comparent en ligne avant de venir. Votre espace physique doit offrir une expérience qu'ils ne peuvent pas avoir sur internet. Découvrez les signaux d'alerte.
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Expérience client</span>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Digital</span>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-700">Showroom</span>
-                </div>
-
-                <Link to="/article/moderniser-showroom" className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all" style={{ color: '#82BC6C' }}>
-                  Lire l'article
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </article>
+              </article>
+            ))}
           </div>
 
           <div className="text-center mt-12">

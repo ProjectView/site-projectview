@@ -83,6 +83,8 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
+      console.log('📤 Envoi du message:', inputMessage);
+
       const response = await fetch('https://n8n.srv800894.hstgr.cloud/webhook/chat-agenda-Bernard', {
         method: 'POST',
         headers: {
@@ -98,29 +100,81 @@ const Chatbot = () => {
         })
       });
 
+      console.log('📥 Réponse reçue - Status:', response.status, 'OK:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Erreur de communication avec le serveur');
+        console.error('❌ Erreur HTTP:', response.status);
+        throw new Error(`Erreur HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log('📝 Contenu brut de la réponse:', responseText);
+
+      // Vérifie que la réponse n'est pas vide
+      if (!responseText || responseText.trim() === '') {
+        console.error('❌ Réponse vide');
+        throw new Error('Réponse vide du serveur');
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('✅ JSON parsé avec succès:', data);
+      } catch (parseError) {
+        console.error('❌ Erreur parsing JSON:', parseError, 'Contenu:', responseText);
+        throw new Error('Réponse invalide du serveur');
+      }
 
       // Gère différents formats de réponse (n8n renvoie un tableau avec output)
-      let botResponse = '';
+      let botResponseData = null;
       if (Array.isArray(data) && data.length > 0 && data[0].output) {
-        botResponse = data[0].output;
+        botResponseData = data[0].output;
       } else if (data.response) {
-        botResponse = data.response;
+        botResponseData = data.response;
       } else if (data.message) {
-        botResponse = data.message;
+        botResponseData = data.message;
       } else if (data.output) {
-        botResponse = data.output;
+        botResponseData = data.output;
       } else {
-        botResponse = 'Je suis désolé, je n\'ai pas pu traiter votre demande.';
+        botResponseData = 'Je suis désolé, je n\'ai pas pu traiter votre demande.';
+      }
+
+      // Essaye de parser en JSON pour détecter les boutons et quick replies
+      let botResponse = '';
+      let buttons = [];
+      let quickReplies = [];
+      let parsedContent = null;
+
+      if (typeof botResponseData === 'string') {
+        try {
+          parsedContent = JSON.parse(botResponseData);
+          if (parsedContent && typeof parsedContent === 'object') {
+            botResponse = parsedContent.message || '';
+            buttons = Array.isArray(parsedContent.buttons) ? parsedContent.buttons : [];
+            quickReplies = Array.isArray(parsedContent.quick_replies) ? parsedContent.quick_replies : [];
+          }
+        } catch (e) {
+          // Pas du JSON valide, traite comme du texte simple
+          botResponse = botResponseData;
+        }
+      } else if (typeof botResponseData === 'object' && botResponseData !== null) {
+        botResponse = botResponseData.message || '';
+        buttons = Array.isArray(botResponseData.buttons) ? botResponseData.buttons : [];
+        quickReplies = Array.isArray(botResponseData.quick_replies) ? botResponseData.quick_replies : [];
+      } else {
+        botResponse = String(botResponseData);
+      }
+
+      // Si pas de message, utiliser la réponse brute
+      if (!botResponse) {
+        botResponse = String(data);
       }
 
       const assistantMessage = {
         role: 'assistant',
         content: botResponse,
+        buttons: buttons.length > 0 ? buttons : undefined,
+        quickReplies: quickReplies.length > 0 ? quickReplies : undefined,
         timestamp: new Date()
       };
 
@@ -136,6 +190,18 @@ const Chatbot = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleQuickReply = (replyText) => {
+    setInputMessage(replyText);
+    // Déclencher l'envoi du message
+    setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) {
+        const event = new Event('submit', { bubbles: true });
+        form.dispatchEvent(event);
+      }
+    }, 0);
   };
 
   const formatTime = (date) => {
@@ -212,21 +278,59 @@ const Chatbot = () => {
                 key={index}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white rounded-br-none'
-                      : 'bg-white text-gray-800 shadow-md rounded-bl-none border border-gray-200'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      message.role === 'user' ? 'text-white/70' : 'text-gray-500'
+                <div className={`max-w-[85%] ${message.role === 'user' ? '' : 'w-full'}`}>
+                  <div
+                    className={`rounded-2xl px-4 py-3 ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white rounded-br-none'
+                        : 'bg-white text-gray-800 shadow-md rounded-bl-none border border-gray-200'
                     }`}
                   >
-                    {formatTime(message.timestamp)}
-                  </p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <p
+                      className={`text-xs mt-1 ${
+                        message.role === 'user' ? 'text-white/70' : 'text-gray-500'
+                      }`}
+                    >
+                      {formatTime(message.timestamp)}
+                    </p>
+                  </div>
+
+                  {/* Quick Replies du message assistant */}
+                  {message.role === 'assistant' && message.quickReplies && message.quickReplies.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {message.quickReplies.map((reply, replyIndex) => (
+                        <button
+                          key={replyIndex}
+                          onClick={() => handleQuickReply(reply.text)}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full text-sm font-medium transition-all duration-200 hover:shadow-md border border-gray-300"
+                        >
+                          {reply.text}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Boutons du message assistant */}
+                  {message.role === 'assistant' && message.buttons && message.buttons.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-3">
+                      {message.buttons.map((button, btnIndex) => (
+                        <a
+                          key={btnIndex}
+                          href={button.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-lg ${
+                            button.type === 'primary'
+                              ? 'bg-gradient-to-r from-[#72B0CC] to-[#82BC6C] text-white hover:scale-105'
+                              : 'bg-gray-200 text-gray-800 hover:bg-gray-300 hover:scale-105'
+                          }`}
+                        >
+                          {button.text}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

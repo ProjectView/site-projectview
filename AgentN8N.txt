@@ -1,0 +1,500 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-agenda-Bernard",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -200,
+        0
+      ],
+      "id": "webhook-node",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "code": "// Initialiser ou récupérer les données du prospect\nlet prospectData = $json.prospect_data || {\n  nom: '',\n  prenom: '',\n  email: '',\n  telephone: '',\n  secteur: '',\n  interet: false\n};\n\nlet conversationStep = $json.conversation_step || 'accueil';\n\n// Parser le message entrant\nconst userMessage = $json.body?.message || '';\n\n// Déterminer l'étape suivante et extraire les données\nif (conversationStep === 'accueil') {\n  // Chercher nom/prénom\n  const nameMatch = userMessage.match(/(?:je|suis|appel[eé]|nom:?\\s*)([A-ZÀ-ÿ]+)(?:\\s+([A-ZÀ-ÿ]+))?/i);\n  if (nameMatch) {\n    prospectData.prenom = nameMatch[1];\n    if (nameMatch[2]) prospectData.nom = nameMatch[2];\n    conversationStep = 'qualification';\n  }\n} else if (conversationStep === 'qualification') {\n  // Chercher email\n  const emailMatch = userMessage.match(/([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/i);\n  if (emailMatch) {\n    prospectData.email = emailMatch[1];\n  }\n  \n  // Chercher téléphone\n  const phoneMatch = userMessage.match(/(0[1-9](?:[0-9]{8})|\\+33[1-9](?:[0-9]{8}))/i);\n  if (phoneMatch) {\n    prospectData.telephone = phoneMatch[1];\n  }\n  \n  // Chercher secteur\n  const secteurs = ['immobilier', 'retail', 'bureau', 'architecte', 'restaurant', 'hôtel', 'médical', 'commerce'];\n  for (let secteur of secteurs) {\n    if (userMessage.toLowerCase().includes(secteur)) {\n      prospectData.secteur = secteur;\n      break;\n    }\n  }\n  \n  // Passer à l'étape suivante si on a assez d'infos\n  if (prospectData.email && prospectData.secteur) {\n    conversationStep = 'proposition_rdv';\n  }\n} else if (conversationStep === 'proposition_rdv') {\n  // Détecter si l'utilisateur accepte le RDV\n  const acceptKeywords = ['oui', 'ok', 'ouais', 'carrément', 'pourquoi pas', 'top', 'super', 'bien sûr', 'avec plaisir', 'd\\'accord', 'entendu'];\n  const hasAccepted = acceptKeywords.some(kw => userMessage.toLowerCase().includes(kw));\n  \n  if (hasAccepted) {\n    conversationStep = 'rdv_confirmed';\n    prospectData.interet = true;\n  }\n}\n\nreturn {\n  prospect_data: prospectData,\n  conversation_step: conversationStep,\n  user_message: userMessage,\n  session_id: $json.body?.sessionId,\n  conversation_history: $json.body?.conversationHistory || []\n};"
+      },
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "state-manager",
+      "name": "State Manager"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('State Manager').item.json.session_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        200,
+        200
+      ],
+      "id": "memory-node",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= {{ $('State Manager').item.json.user_message }}",
+        "options": {
+          "systemMessage": "=Tu es ProjectBot, l'agent conversationnel de Projectview.\nDate du jour : {{ $today }}\n\n═══════════════════════════════════════════════════════════════════════════\n📊 CONTEXTE ACTUEL DU PROSPECT\n═══════════════════════════════════════════════════════════════════════════\nNom: {{ $('State Manager').item.json.prospect_data?.nom || 'Non renseigné' }}\nPrénom: {{ $('State Manager').item.json.prospect_data?.prenom || 'Non renseigné' }}\nEmail: {{ $('State Manager').item.json.prospect_data?.email || 'Non renseigné' }}\nTéléphone: {{ $('State Manager').item.json.prospect_data?.telephone || 'Non renseigné' }}\nSecteur: {{ $('State Manager').item.json.prospect_data?.secteur || 'Non renseigné' }}\nÉtape: {{ $('State Manager').item.json.conversation_step }}\n\n═══════════════════════════════════════════════════════════════════════════\n🎯 INSTRUCTIONS PAR ÉTAPE\n═══════════════════════════════════════════════════════════════════════════\n\n**SI ÉTAPE = 'accueil' (première interaction) :**\n- Salue chaleureusement et lance une devinette ludique\n- Cherche à extraire son nom/prénom naturellement\n- Retour JSON : {\"message\": \"...\", \"action\": \"continue\"}\n\nExemples de devinettes :\n• \"🤓 Petite devinette : qu'est-ce qui attire les regards, parle tout seul et booste les ventes sans jamais dormir ? (indice : ce n'est pas un vendeur 😏)\"\n• \"🎯 Dis-moi, tes réunions… elles sont productives ou soporifiques ces temps-ci ? 😄\"\n• \"👀 Tu crois que ton showroom travaille pendant que tu dors ?\"\n• \"💡 Sait-on jamais, peut-être qu'on peut créer de la magie ensemble — c'est quoi tes défis en ce moment ?\"\n\n**SI ÉTAPE = 'qualification' (2e-3e message) :**\n- Réagis à sa réponse précédente avec intérêt\n- Pose UNE seule question pour qualifier (email, téléphone, secteur)\n- Sois naturel et pas robotique\n- Retour JSON : {\"message\": \"...\", \"action\": \"continue\"}\n\nExemples :\n• \"Sympa ! Et du coup, ça se passe dans quel secteur chez vous ?\"\n• \"Intéressant ! 💡 Je peux récupérer ton email pour qu'on se reparle ?\"\n• \"Cool ! Et ton numéro, c'est quoi au fait ?\"\n\n**SI ÉTAPE = 'proposition_rdv' (une fois infos ok) :**\n- Résume pourquoi c'est pertinent pour lui\n- Propose NATURELLEMENT un RDV 15-30 min\n- N'utilise PAS de markdown, utilise des emojis simples\n- Exemple : \"Si tu veux, je te montre 2-3 trucs en live, ça prend 15 min max — ça t'intéresse ?\"\n- Retour JSON : {\"message\": \"...\", \"action\": \"wait_rdv_confirmation\"}\n\n**SI ÉTAPE = 'rdv_confirmed' (prospect accepte) :**\n- Confirme l'intérêt\n- Propose les prochaines étapes avec BOUTONS\n- Retour JSON avec action \"rdv_ready\" :\n{\n  \"message\": \"Parfait ! 🎉 Je prépare ton rdv.\",\n  \"action\": \"rdv_ready\",\n  \"buttons\": [\n    {\"text\": \"Voir mon agenda\", \"url\": \"https://projectview.fr/agenda\", \"type\": \"primary\"},\n    {\"text\": \"En savoir plus\", \"url\": \"https://projectview.fr\", \"type\": \"secondary\"}\n  ]\n}\n\n═══════════════════════════════════════════════════════════════════════════\n⚠️ RÈGLES ABSOLUES\n═══════════════════════════════════════════════════════════════════════════\n✅ TOUJOURS retourner du JSON valide (jamais du texte brut)\n✅ Réponses COURTES (max 2-3 phrases)\n✅ 1 question par message\n✅ Emojis Apple seulement (pas de markdown)\n✅ Pas de liens en markdown [texte](url) - utiliser les BOUTONS JSON\n✅ Extraire progressivement, pas tout d'un coup\n✅ Ne jamais forcer le RDV\n❌ Ne jamais antidater\n❌ Ne jamais mélanger texte brut et JSON\n\n═══════════════════════════════════════════════════════════════════════════\n💼 À SAVOIR SUR PROJECTVIEW\n═══════════════════════════════════════════════════════════════════════════\n- Expériences interactives (écrans tactiles, affichage dynamique, IA)\n- Mission : \"Nous ne vendons pas de la technologie. Nous créons des émotions.\"\n- Cibles : immobilier, retail, bureaux, architectes\n- Zone : Lyon et alentours"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        400,
+        0
+      ],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1056,
+        48
+      ],
+      "id": "c1d2bdfb-8f66-48b4-998c-f7664cb58452",
+      "name": "Réponse Bot"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body?.sessionId || $json.sessionId || 'default-session' }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        272
+      ],
+      "id": "fd997862-4011-463a-8cb3-977c5d95fd35",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-agenda-Bernard",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        48
+      ],
+      "id": "05b59a43-8be4-460a-9240-ceb907c1ebd7",
+      "name": "Webhook",
+      "webhookId": "3f308961-ad26-4730-8450-2a292050833b"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Vérifie la disponibilité dans l'agenda Google Calendar sur une période donnée.\n\nUtilisation : Appelle cet outil AVANT de proposer des créneaux au client.\n\nPayload attendu :\n{\n  \"timeMin\": \"YYYY-MM-DDTHH:MM:SS+01:00\",\n  \"timeMax\": \"YYYY-MM-DDTHH:MM:SS+01:00\", \n  \"timeZone\": \"Europe/Paris\",\n  \"items\": [{\"id\": \"primary\"}]\n}\n\nRetour : objet avec périodes \"busy\" par calendrier.\n\nRègles importantes :\n- Chercher sur 7-14 jours par défaut\n- Construire les créneaux libres en excluant les \"busy\"\n- Appliquer horaires 09:00-18:00 + buffer 30min\n- Si aucun créneau trouvé, élargir la recherche\n\nInvite également le client dans ce point",
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "bernard@projectview.fr",
+          "mode": "list",
+          "cachedResultName": "bernard@projectview.fr"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', ``, 'string') }}",
+        "options": {
+          "timezone": {
+            "__rl": true,
+            "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Timezone', ``, 'string') }}",
+            "mode": "id",
+            "__regex": "([-+/_a-zA-Z0-9]*)"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        272
+      ],
+      "id": "50ff7092-5d01-4d65-9d4a-9c8c6e4049ec",
+      "name": "check_availability Bernard",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "j8UfmTzsdpxuvtDp",
+          "name": "Projectview Calendar Bernard"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Crée un événement Google Calendar après validation explicite du client.\n\n⚠️ IMPORTANT : Ne jamais créer d'événement sans accord explicite du client.\n\nPayload attendu :\n{\n  \"calendarId\": \"primary\",\n  \"summary\": \"Découverte Projectview avec {{CLIENT_NAME}}\",\n  \"description\": \"Rendez-vous de découverte Projectview\\nParticipant: {{CLIENT_NAME}}\\nEmail: {{CLIENT_EMAIL}}\\n\\nCréé par l'assistant Charlie.\nNotes de RDV : \n{{NOTES}}\",\n  \"start\": {\"dateTime\": \"{{START_ISO}}\", \"timeZone\": \"Europe/Paris\"},\n  \"end\": {\"dateTime\": \"{{END_ISO}}\", \"timeZone\": \"Europe/Paris\"},\n  \"attendees\": [{\"email\": \"{{CLIENT_EMAIL}}\", \"displayName\": \"{{CLIENT_NAME}}\"}],\n  \"location\": \"Google Meet\",\n  \"conferenceData\": {\"createRequest\": {\"requestId\": \"auto-meet-{{TIMESTAMP}}\"}},\n  \"reminders\": {\"overrides\": [{\"method\": \"popup\", \"minutes\": 60}, {\"method\": \"popup\", \"minutes\": 15}]}\n}\n\nContraintes techniques :\n- start/end en ISO RFC3339 avec offset Europe/Paris (+01:00/+02:00)\n- Durée fixe : 30 minutes\n- Toujours générer un lien Google Meet\n- Email client obligatoire dans attendees\n\nRetour : objet avec id, htmlLink, hangoutLink",
+        "calendar": {
+          "__rl": true,
+          "value": "bernard@projectview.fr",
+          "mode": "list",
+          "cachedResultName": "bernard@projectview.fr"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+          ],
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        272
+      ],
+      "id": "09823369-a129-4570-b193-5534f928fe37",
+      "name": "create_event Bernard",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "j8UfmTzsdpxuvtDp",
+          "name": "Projectview Calendar Bernard"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "ccList": "bernard@projectview.fr"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        272
+      ],
+      "id": "a91745d2-7924-49df-bcd3-d02d9126e5e5",
+      "name": "send_confirmation Bernard",
+      "webhookId": "02662f42-85ac-4a32-8d1f-104b3f582965",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "P9GZD7SeuVCLb8TI",
+          "name": "Gmail account Bernard"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "a chaque rdv pris, renseigne ce document avec les informations recueilli.",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1LMzKfDg4suF0Sj1HERQxktnZo_6GnVHfsHQFIKv9Ygs",
+          "mode": "list",
+          "cachedResultName": "Lead from IA",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LMzKfDg4suF0Sj1HERQxktnZo_6GnVHfsHQFIKv9Ygs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2047924082,
+          "mode": "list",
+          "cachedResultName": "lead site Projectview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LMzKfDg4suF0Sj1HERQxktnZo_6GnVHfsHQFIKv9Ygs/edit#gid=2047924082"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date du Lead": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date_du_Lead', ``, 'string') }}",
+            "Nom": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Nom', ``, 'string') }}",
+            "Prénom": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Pr_nom', ``, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', ``, 'string') }}",
+            "Téléphone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('T_l_phone', ``, 'string') }}",
+            "Sujet de l'Intérêt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sujet_de_l_Int_r_t', ``, 'string') }}",
+            "Source du Lead": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Source_du_Lead', ``, 'string') }}",
+            "Statut du Lead": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Statut_du_Lead', ``, 'string') }}",
+            "Date du RDV Pris": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date_du_RDV_Pris', ``, 'string') }}",
+            "Commentaires": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Commentaires', ``, 'string') }}",
+            "Google Meet": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Google_Meet', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date du Lead",
+              "displayName": "Date du Lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nom",
+              "displayName": "Nom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Prénom",
+              "displayName": "Prénom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Téléphone",
+              "displayName": "Téléphone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sujet de l'Intérêt",
+              "displayName": "Sujet de l'Intérêt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Source du Lead",
+              "displayName": "Source du Lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Statut du Lead",
+              "displayName": "Statut du Lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date du RDV Pris",
+              "displayName": "Date du RDV Pris",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Commentaires",
+              "displayName": "Commentaires",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Google Meet",
+              "displayName": "Google Meet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        848,
+        272
+      ],
+      "id": "f7b1309f-f588-4410-aa03-78ad424c32a0",
+      "name": "RDV Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mFdtS0E4UVgqlZ72",
+          "name": "Google Sheets ProjectView"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        272
+      ],
+      "id": "7878fb27-a770-4b0e-bea6-1900486dfd0e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BGjpqswMShQ1Xra6",
+          "name": "OpenAi account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Réponse Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_availability Bernard": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_event Bernard": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send_confirmation Bernard": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RDV Sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e250a1cd022aeff3e7b7c23cd63c7c7d759355914e9d473ddcab64f040cc0f8"
+  }
+}

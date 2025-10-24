@@ -7,7 +7,13 @@
       "Bash(claude --version:*)",
       "Bash(git --version:*)",
       "Bash(git config:*)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//Users/adelinhugot/Desktop/Projets SAAS/**)",
+      "Read(//Users/adelinhugot/Desktop/**)",
+      "Bash(git branch:*)",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []
