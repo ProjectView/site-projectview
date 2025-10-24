@@ -125,14 +125,12 @@ const ArticleEcransCollaboratifs = () => {
 
       {/* Image hero */}
       <section className="max-w-6xl mx-auto px-6 -mt-8 mb-20 relative z-20">
-        <div className="rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
-          <div className="aspect-video bg-gradient-to-br from-[#72B0CC] to-[#82BC6C] flex items-center justify-center">
-            <div className="text-center text-white p-8">
-              <Users className="w-20 h-20 mx-auto mb-4 opacity-50" />
-              <p className="text-xl font-medium">📸 PHOTO HERO</p>
-              <p className="text-sm opacity-80 mt-2">Écran collaboratif 75" en salle de réunion moderne</p>
-            </div>
-          </div>
+        <div className="rounded-3xl overflow-hidden shadow-2xl border-8 border-white aspect-video bg-gray-100">
+          <img
+            src="/images/article-ecrans-collaboratifs-hero.png"
+            alt="Écran collaboratif en salle de réunion moderne avec équipe engagée"
+            className="w-full h-full object-cover"
+          />
         </div>
       </section>
 

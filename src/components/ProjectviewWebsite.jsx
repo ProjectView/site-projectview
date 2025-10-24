@@ -134,6 +134,19 @@ const ProjectviewWebsite = () => {
       icon: <Table2 className="w-20 h-20" />,
       link: '/article/moderniser-showroom',
       date: '2024-01-05'
+    },
+    {
+      id: 'ecrans-collaboratifs',
+      title: 'Les écrans collaboratifs : De la réunion chaotique à la productivité fluide',
+      description: 'Comprendre comment les écrans collaboratifs transforment les réunions, améliorent l\'engagement et multiplient la productivité des équipes',
+      category: 'Guide Informatif',
+      categoryColor: '#72B0CC',
+      tags: ['Collaboration', 'Productivité', 'Réunions'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Users className="w-20 h-20" />,
+      link: '/article/ecrans-collaboratifs',
+      date: '2025-10-24',
+      image: '/images/article-ecrans-collaboratifs-hero.png'
     }
   ];
 
@@ -1127,10 +1140,18 @@ const ProjectviewWebsite = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {latestArticles.map((article, index) => (
               <article key={article.id} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer animate-fade-in-up" style={{ animationDelay: `${0.1 * (index + 1)}s` }}>
-                <div className={`h-48 bg-gradient-to-br ${article.gradient} relative overflow-hidden group-hover:scale-105 transition-transform duration-500`}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    {article.icon}
-                  </div>
+                <div className={`relative overflow-hidden group-hover:scale-105 transition-transform duration-500 bg-gradient-to-br ${article.gradient}`} style={{ aspectRatio: '16/9' }}>
+                  {article.image ? (
+                    <img
+                      src={article.image}
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {article.icon}
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4">
                     <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: article.categoryColor }}>
                       {article.category}

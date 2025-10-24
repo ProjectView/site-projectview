@@ -159,7 +159,8 @@ const BlogPage = () => {
       gradient: 'from-[#72B0CC] to-[#82BC6C]',
       icon: <Users className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
       link: '/article/ecrans-collaboratifs',
-      date: '2025-10-24'
+      date: '2025-10-24',
+      image: '/images/article-ecrans-collaboratifs-hero.png'
     }
   ];
 
@@ -246,10 +247,18 @@ const BlogPage = () => {
                 key={article.id}
                 className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer"
               >
-                <div className={`h-48 bg-gradient-to-br ${article.gradient} relative overflow-hidden group-hover:scale-105 transition-transform duration-500`}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    {article.icon}
-                  </div>
+                <div className={`relative overflow-hidden group-hover:scale-105 transition-transform duration-500 bg-gradient-to-br ${article.gradient}`} style={{ aspectRatio: '16/9' }}>
+                  {article.image ? (
+                    <img
+                      src={article.image}
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {article.icon}
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4">
                     <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: article.categoryColor }}>
                       {article.category}
