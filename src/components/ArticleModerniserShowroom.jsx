@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Sparkles, TrendingDown, Clock, Users, Eye, Smartphone, Calendar } from 'lucide-react';
+import { Menu, X, Sparkles, TrendingDown, Clock, Users, Eye, Smartphone, Calendar, ArrowLeft } from 'lucide-react';
 import Chatbot from './Chatbot';
 import Logo from './Logo';
 
