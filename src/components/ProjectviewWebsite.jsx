@@ -275,7 +275,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#72B0CC] to-[#82BC6C]",
       solution: "Solutions collaboratives et salle de direction CODIR",
       impact: "Efficacité opérationnelle accrue de 45%",
-      tags: ["Collaboration", "Direction", "Productivité"]
+      tags: ["Collaboration", "Direction", "Productivité"],
+      badgeLabel: "War room stratégique"
     },
     {
       name: "SOA Agencement",
@@ -284,7 +285,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#CF6E3F] to-[#72B0CC]",
       solution: "Showroom et solution de présentation VR",
       impact: "Validation client 2x plus rapide",
-      tags: ["Aide à la vente", "VR", "Immersive"]
+      tags: ["Aide à la vente", "VR", "Immersive"],
+      badgeLabel: "Showroom immersif"
     },
     {
       name: "Econergie France",
@@ -293,7 +295,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#72B0CC] to-[#CF6E3F]",
       solution: "Showroom phygital avec présentation interactif",
       impact: "+85% de closing",
-      tags: ["Aide à la vente", "Showroom", "Expérience client"]
+      tags: ["Aide à la vente", "Showroom", "Expérience client"],
+      badgeLabel: "Expérience phygital"
     },
     {
       name: "Gemme Concept",
@@ -302,7 +305,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#CF6E3F] to-[#82BC6C]",
       solution: "Espaces de conception collaborative",
       impact: "Créativité et productivité boostées",
-      tags: ["Collaboration", "Créativité", "Innovation"]
+      tags: ["Collaboration", "Créativité", "Innovation"],
+      badgeLabel: "Studio de création"
     },
     {
       name: "GP Energies",
@@ -311,7 +315,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#72B0CC] to-[#82BC6C]",
       solution: "Salle de réunion et pilotage de chantier",
       impact: "+60% d'engagement collaborateur",
-      tags: ["Collaboration", "Pilotage", "Productivité"]
+      tags: ["Collaboration", "Pilotage", "Productivité"],
+      badgeLabel: "Pilotage de chantier"
     },
     {
       name: "Groupe ITP",
@@ -320,7 +325,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#72B0CC] to-[#82BC6C]",
       solution: "Salle de réunion et pilotage de projet client",
       impact: "Efficacité de prise de décision +30%",
-      tags: ["Collaboration", "Pilotage", "Efficacité"]
+      tags: ["Collaboration", "Pilotage", "Efficacité"],
+      badgeLabel: "War room projet"
     },
     {
       name: "Murgier",
@@ -329,7 +335,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#72B0CC] to-[#CF6E3F]",
       solution: "Salles de réunion et CODIR",
       impact: "-30% sur la durée des réunions",
-      tags: ["Collaboration", "Productivité", "Direction"]
+      tags: ["Collaboration", "Productivité", "Direction"],
+      badgeLabel: "CODIR + réunions"
     },
     {
       name: "Xavier Laurent",
@@ -338,7 +345,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#CF6E3F] to-[#82BC6C]",
       solution: "Espace de présentation innovante",
       impact: "+80% de Wouaw en plus",
-      tags: ["Aide à la vente", "Expérience client", "Innovation"]
+      tags: ["Aide à la vente", "Expérience client", "Innovation"],
+      badgeLabel: "Salle de conseil"
     },
     {
       name: "Xerox",
@@ -347,7 +355,8 @@ const ProjectviewWebsite = () => {
       gradient: "from-[#72B0CC] to-[#82BC6C]",
       solution: "Showroom de présentation multi-sites",
       impact: "+30% de signature",
-      tags: ["Expérience innovante", "Adoption équipe", "Aide à la vente"]
+      tags: ["Expérience innovante", "Adoption équipe", "Aide à la vente"],
+      badgeLabel: "Écosystème multi-sites"
     }
   ];
 
@@ -1083,7 +1092,7 @@ const ProjectviewWebsite = () => {
                   <div className="flex items-center justify-between gap-4">
                     <div className="inline-flex items-center gap-3 bg-[#72B0CC]/10 text-[#1f2937] px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wide">
                       <Sparkles className="w-4 h-4 text-[#72B0CC]" />
-                      Projet signature
+                      {activeBrand.badgeLabel || "Projet signature"}
                     </div>
                     <div className="font-semibold text-xs text-gray-500 uppercase tracking-widest">
                       {activeBrand.sector}
