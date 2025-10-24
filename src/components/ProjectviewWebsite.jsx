@@ -273,8 +273,9 @@ const ProjectviewWebsite = () => {
       logo: "/logos/Derichebourg logo .png",
       sector: "Services & Industrie",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
-      solution: "Solutions collaboratives pour la coordination des équipes terrain",
-      impact: "Efficacité opérationnelle accrue de 45%"
+      solution: "Solutions collaboratives et salle de direction CODIR",
+      impact: "Efficacité opérationnelle accrue de 45%",
+      tags: ["Collaboration", "Direction", "Productivité"]
     },
     {
       name: "SOA Architectes",
@@ -282,7 +283,8 @@ const ProjectviewWebsite = () => {
       sector: "Architecture",
       gradient: "from-[#CF6E3F] to-[#72B0CC]",
       solution: "Présentations immersives VR pour les projets architecturaux",
-      impact: "Validation client 2x plus rapide"
+      impact: "Validation client 2x plus rapide",
+      tags: ["Aide à la vente", "VR", "Immersive"]
     },
     {
       name: "Econergie France",
@@ -290,15 +292,8 @@ const ProjectviewWebsite = () => {
       sector: "Énergie & Transition",
       gradient: "from-[#72B0CC] to-[#CF6E3F]",
       solution: "Showroom énergie avec démonstrations interactives",
-      impact: "+85% d'engagement prospects"
-    },
-    {
-      name: "Gemme Concept",
-      logo: "/logos/gemme concept.jpeg",
-      sector: "Design & Innovation",
-      gradient: "from-[#CF6E3F] to-[#82BC6C]",
-      solution: "Espaces de conception collaborative",
-      impact: "Créativité et productivité boostées"
+      impact: "+85% de closing",
+      tags: ["Aide à la vente", "Showroom", "Expérience client"]
     },
     {
       name: "GP Energies",
@@ -306,39 +301,44 @@ const ProjectviewWebsite = () => {
       sector: "Énergie",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
       solution: "Outils de présentation pour solutions énergétiques",
-      impact: "Taux de conversion +60%"
+      impact: "+60% de taux de conversion",
+      tags: ["Aide à la vente", "Présentation", "Conversion"]
     },
     {
       name: "Groupe ITP",
       logo: "/logos/logo grouoe itp.jpeg",
       sector: "Ingénierie",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
-      solution: "War room technique pour coordination projets",
-      impact: "Délais réduits de 30%"
+      solution: "Salle de réunion et pilotage de projet client",
+      impact: "Efficacité de prise de décision +30%",
+      tags: ["Collaboration", "Pilotage", "Efficacité"]
     },
     {
       name: "Murgier",
       logo: "/logos/murgier logo.png",
       sector: "BTP & Construction",
       gradient: "from-[#72B0CC] to-[#CF6E3F]",
-      solution: "Présentations chantier en réalité virtuelle",
-      impact: "Validation projets accélérée"
+      solution: "Salles de réunion et CODIR",
+      impact: "-30% sur la durée des réunions",
+      tags: ["Collaboration", "Productivité", "Direction"]
     },
     {
       name: "Xavier Laurent",
       logo: "/logos/xavier laurent rond.jpg",
       sector: "Conseil & Stratégie",
       gradient: "from-[#CF6E3F] to-[#82BC6C]",
-      solution: "Espaces de conseil augmentés",
-      impact: "Impact conseil maximisé"
+      solution: "Espace de présentation innovante",
+      impact: "+80% de Wouaw en plus",
+      tags: ["Aide à la vente", "Expérience client", "Innovation"]
     },
     {
       name: "Xerox",
       logo: "/logos/xerox.png",
       sector: "Technologie & Services",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
-      solution: "Solutions d'affichage dynamique multi-sites",
-      impact: "Communication unifiée à l'échelle"
+      solution: "Showroom de présentation multi-sites",
+      impact: "+30% de signature",
+      tags: ["Expérience innovante", "Adoption équipe", "Aide à la vente"]
     }
   ];
 
@@ -1097,18 +1097,21 @@ const ProjectviewWebsite = () => {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-gray-500">
-                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#72B0CC]/10 text-[#1f2937]">
-                      <Sparkles className="w-3 h-3 text-[#72B0CC]" />
-                      Expérience immersive
-                    </span>
-                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#CF6E3F]/10 text-[#1f2937]">
-                      <Zap className="w-3 h-3 text-[#CF6E3F]" />
-                      Engagement boosté
-                    </span>
-                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-[#82BC6C]/10 text-[#1f2937]">
-                      <Users className="w-3 h-3 text-[#82BC6C]" />
-                      Adoption équipes
-                    </span>
+                    {activeBrand.tags && activeBrand.tags.map((tag, index) => {
+                      const tagColors = ['[#72B0CC]', '[#CF6E3F]', '[#82BC6C]'];
+                      const bgColor = tagColors[index % 3];
+                      const colors = ['#72B0CC', '#CF6E3F', '#82BC6C'];
+                      const color = colors[index % 3];
+                      const icons = [Sparkles, Zap, Users];
+                      const Icon = icons[index % 3];
+
+                      return (
+                        <span key={index} className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-[#1f2937]" style={{ backgroundColor: `${color}15` }}>
+                          <Icon className="w-3 h-3" style={{ color }} />
+                          {tag}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
