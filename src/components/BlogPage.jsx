@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Monitor, Sparkles, Tv, Table2, Compass, Menu, X } from 'lucide-react';
+import { ChevronRight, Monitor, Sparkles, Tv, Table2, Compass, Menu, X, Users } from 'lucide-react';
 import Logo from './Logo';
 
 const BlogPage = () => {
@@ -148,6 +148,18 @@ const BlogPage = () => {
       icon: <Sparkles className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
       link: '#',
       date: '2024-01-01'
+    },
+    {
+      id: 'ecrans-collaboratifs',
+      title: 'Les écrans collaboratifs : De la réunion chaotique à la productivité fluide',
+      description: 'Comprendre comment les écrans collaboratifs transforment les réunions, améliorent l\'engagement et multiplient la productivité des équipes',
+      category: 'Guide Informatif',
+      categoryColor: '#72B0CC',
+      tags: ['Collaboration', 'Productivité', 'Réunions'],
+      gradient: 'from-[#72B0CC] to-[#82BC6C]',
+      icon: <Users className="w-20 h-20 text-white opacity-30 group-hover:opacity-50 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500" />,
+      link: '/article/ecrans-collaboratifs',
+      date: '2025-10-24'
     }
   ];
 
@@ -246,9 +258,11 @@ const BlogPage = () => {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                    {article.title}
-                  </h3>
+                  <Link to={article.link} className="block hover:no-underline">
+                    <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors cursor-pointer" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                      {article.title}
+                    </h3>
+                  </Link>
 
                   {article.beforeText && article.afterText ? (
                     <>

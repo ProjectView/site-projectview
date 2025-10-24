@@ -11,6 +11,7 @@ import ArticleWirelessCasting from './components/ArticleWirelessCasting'
 import ArticleVideoconferenceIntegree from './components/ArticleVideoconferenceIntegree'
 import Article4KHDR from './components/Article4KHDR'
 import ArticleInteractivite from './components/ArticleInteractivite'
+import ArticleEcransCollaboratifs from './components/ArticleEcransCollaboratifs'
 import BureauEtudeVR from './components/BureauEtudeVR'
 import TablesTactiles from './components/TablesTactiles'
 import EcransCollaboratifs from './components/EcransCollaboratifs'
@@ -34,6 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/article/videoconference-integree" element={<ArticleVideoconferenceIntegree />} />
         <Route path="/article/4k-hdr" element={<Article4KHDR />} />
         <Route path="/article/interactivite" element={<ArticleInteractivite />} />
+        <Route path="/article/ecrans-collaboratifs" element={<ArticleEcransCollaboratifs />} />
         <Route path="/solutions/bureau-etude-vr" element={<BureauEtudeVR />} />
         <Route path="/solutions/tables-tactiles" element={<TablesTactiles />} />
         <Route path="/solutions/ecrans-collaboratifs" element={<EcransCollaboratifs />} />

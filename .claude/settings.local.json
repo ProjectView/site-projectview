@@ -13,7 +13,11 @@
       "Read(//Users/adelinhugot/Desktop/Projets SAAS/**)",
       "Read(//Users/adelinhugot/Desktop/**)",
       "Bash(git branch:*)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(node -e:*)",
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

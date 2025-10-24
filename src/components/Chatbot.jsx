@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Loader2, Bot } from 'lucide-react';
+import { getRandomCharad } from '../data/charadPool';
 
 const Chatbot = () => {
   // Génère ou récupère un sessionId unique persistant dans le localStorage
@@ -13,11 +14,19 @@ const Chatbot = () => {
   });
 
   const [isOpen, setIsOpen] = useState(false);
+  const [currentCharad] = useState(() => getRandomCharad());
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "🧩 Charade du jour :\nMon premier est tactile 👆,\nMon deuxième attire les passants 👀,\nMon tout fait vivre ton expérience client.\nJe suis… ? 😄",
-      timestamp: new Date()
+      content: currentCharad.content,
+      timestamp: new Date(),
+      charad: {
+        id: currentCharad.id,
+        type: currentCharad.type,
+        content: currentCharad.content,
+        category: currentCharad.category,
+        difficulty: currentCharad.difficulty
+      }
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -93,9 +102,17 @@ const Chatbot = () => {
         body: JSON.stringify({
           message: inputMessage,
           sessionId: sessionId,
+          charad: {
+            id: currentCharad.id,
+            type: currentCharad.type,
+            content: currentCharad.content,
+            category: currentCharad.category,
+            difficulty: currentCharad.difficulty
+          },
           conversationHistory: messages.map(msg => ({
             role: msg.role,
-            content: msg.content
+            content: msg.content,
+            charad: msg.charad
           }))
         })
       });
@@ -217,7 +234,7 @@ const Chatbot = () => {
         <div className="fixed bottom-24 right-6 z-40 animate-fade-in-up">
           <div className="bg-white shadow-2xl border border-[#72B0CC]/30 rounded-2xl px-4 py-3 max-w-xs relative">
             <p className="text-sm text-gray-700 leading-relaxed pr-6 whitespace-pre-line">
-              {"🧩 Charade du jour :\nMon premier est tactile 👆,\nMon deuxième attire les passants 👀,\nMon tout fait vivre ton expérience client.\nJe suis… ? 😄"}
+              {currentCharad.content}
             </p>
             <button
               onClick={() => setShowIntroPrompt(false)}

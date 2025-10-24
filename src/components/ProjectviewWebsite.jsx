@@ -1139,9 +1139,11 @@ const ProjectviewWebsite = () => {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                    {article.title}
-                  </h3>
+                  <Link to={article.link} className="block hover:no-underline">
+                    <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[#72B0CC] transition-colors cursor-pointer" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                      {article.title}
+                    </h3>
+                  </Link>
 
                   <p className="text-sm text-gray-600 mb-4 leading-relaxed">
                     {article.description}
