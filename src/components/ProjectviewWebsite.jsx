@@ -278,11 +278,11 @@ const ProjectviewWebsite = () => {
       tags: ["Collaboration", "Direction", "Productivité"]
     },
     {
-      name: "SOA Architectes",
+      name: "SOA Agencement",
       logo: "/logos/SOA logo.png",
-      sector: "Architecture",
+      sector: "Agencement",
       gradient: "from-[#CF6E3F] to-[#72B0CC]",
-      solution: "Présentations immersives VR pour les projets architecturaux",
+      solution: "Showroom et solution de présentation VR",
       impact: "Validation client 2x plus rapide",
       tags: ["Aide à la vente", "VR", "Immersive"]
     },
@@ -291,7 +291,7 @@ const ProjectviewWebsite = () => {
       logo: "/logos/econergie france.png",
       sector: "Énergie & Transition",
       gradient: "from-[#72B0CC] to-[#CF6E3F]",
-      solution: "Showroom énergie avec démonstrations interactives",
+      solution: "Showroom phygital avec présentation interactif",
       impact: "+85% de closing",
       tags: ["Aide à la vente", "Showroom", "Expérience client"]
     },
@@ -309,9 +309,9 @@ const ProjectviewWebsite = () => {
       logo: "/logos/gp-energies.png",
       sector: "Énergie",
       gradient: "from-[#72B0CC] to-[#82BC6C]",
-      solution: "Outils de présentation pour solutions énergétiques",
-      impact: "+60% de taux de conversion",
-      tags: ["Aide à la vente", "Présentation", "Conversion"]
+      solution: "Salle de réunion et pilotage de chantier",
+      impact: "+60% d'engagement collaborateur",
+      tags: ["Collaboration", "Pilotage", "Productivité"]
     },
     {
       name: "Groupe ITP",
