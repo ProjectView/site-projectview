@@ -19,6 +19,7 @@ import AffichageDynamique from './components/AffichageDynamique'
 import SolutionsCollaboration from './components/SolutionsCollaboration'
 import PresentationInnovante from './components/PresentationInnovante'
 import AssistantIA from './components/AssistantIA'
+import TestArticle20251026 from './components/TestArticle20251026'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -36,6 +37,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/article/4k-hdr" element={<Article4KHDR />} />
         <Route path="/article/interactivite" element={<ArticleInteractivite />} />
         <Route path="/article/ecrans-collaboratifs" element={<ArticleEcransCollaboratifs />} />
+        <Route path="/article/test-article-2025-10-26" element={<TestArticle20251026 />} />
         <Route path="/solutions/bureau-etude-vr" element={<BureauEtudeVR />} />
         <Route path="/solutions/tables-tactiles" element={<TablesTactiles />} />
         <Route path="/solutions/ecrans-collaboratifs" element={<EcransCollaboratifs />} />
