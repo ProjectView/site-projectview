@@ -382,7 +382,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Create article markdown file
+    // Create article markdown file (SEULE ÉTAPE NÉCESSAIRE)
+    // La route générique /article/:id dans main.jsx gère l'affichage dynamique
     try {
       await createFileOnGitHub(
         `src/content/articles/${frontmatter.id}.md`,
@@ -398,50 +399,6 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           status: 'error',
           message: 'Impossible de sauvegarder le markdown',
-          details: error.message
-        })
-      };
-    }
-
-    // Create component file
-    try {
-      const componentCode = generateArticleComponent(frontmatter);
-      const componentName = frontmatter.id
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join('');
-
-      await createFileOnGitHub(
-        `src/components/${componentName}.jsx`,
-        componentCode,
-        `✨ Create component: ${componentName}`
-      );
-      console.log(`✅ Component created: ${componentName}.jsx`);
-    } catch (error) {
-      console.error('Error creating component:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({
-          status: 'error',
-          message: 'Impossible de créer le composant React',
-          details: error.message
-        })
-      };
-    }
-
-    // Update main.jsx
-    try {
-      await updateMainJsx(frontmatter);
-      console.log(`✅ Routes updated in main.jsx`);
-    } catch (error) {
-      console.error('Error updating main.jsx:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({
-          status: 'error',
-          message: 'Impossible de mettre à jour main.jsx',
           details: error.message
         })
       };

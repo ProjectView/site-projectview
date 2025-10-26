@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom'
 import ProjectviewWebsite from './components/ProjectviewWebsite'
 import BlogPage from './components/BlogPage'
 import ArticleShowroomAuto from './components/ArticleShowroomAuto'
@@ -20,8 +20,14 @@ import SolutionsCollaboration from './components/SolutionsCollaboration'
 import PresentationInnovante from './components/PresentationInnovante'
 import AssistantIA from './components/AssistantIA'
 import TestArticle20251026 from './components/TestArticle20251026'
-import TestFinal2025 from './components/TestFinal2025'
+import ArticleRenderer from './components/ArticleRenderer'
 import './index.css'
+
+// Composant wrapper pour les articles dynamiques
+function DynamicArticle() {
+  const { id } = useParams()
+  return <ArticleRenderer articleId={id} />
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -39,7 +45,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/article/interactivite" element={<ArticleInteractivite />} />
         <Route path="/article/ecrans-collaboratifs" element={<ArticleEcransCollaboratifs />} />
         <Route path="/article/test-article-2025-10-26" element={<TestArticle20251026 />} />
-        <Route path="/article/test-final-2025" element={<TestFinal2025 />} />
         <Route path="/solutions/bureau-etude-vr" element={<BureauEtudeVR />} />
         <Route path="/solutions/tables-tactiles" element={<TablesTactiles />} />
         <Route path="/solutions/ecrans-collaboratifs" element={<EcransCollaboratifs />} />
@@ -47,6 +52,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/solutions/collaboration" element={<SolutionsCollaboration />} />
         <Route path="/solutions/presentation-innovante" element={<PresentationInnovante />} />
         <Route path="/solutions/assistant-ia" element={<AssistantIA />} />
+        {/* Route générique pour tous les articles dynamiques (créés par N8N) */}
+        <Route path="/article/:id" element={<DynamicArticle />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
