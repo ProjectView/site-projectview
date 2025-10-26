@@ -1,10 +1,5 @@
-# Servir les fichiers markdown d'articles comme ressources statiques
-[[redirects]]
-  from = "/articles/:id.md"
-  to = "/src/content/articles/:id.md"
-  status = 200
-
-# SPA fallback - rediriger vers index.html
+# SPA fallback - rediriger vers index.html (SAUF pour *.md et assets)
+# Note: Les fichiers .md seront servis directement par Netlify depuis dist/
 [[redirects]]
   from = "/*"
   to = "/index.html"

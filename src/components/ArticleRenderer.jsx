@@ -48,7 +48,7 @@ const ArticleRenderer = ({ markdownContent, articleId }) => {
       const loadArticle = async () => {
         try {
           // Essayer de charger le fichier markdown
-          const response = await fetch(`/articles/${articleId}.md`);
+          const response = await fetch(`/content/articles/${articleId}.md`);
           if (!response.ok) {
             throw new Error(`Article not found: ${articleId}`);
           }

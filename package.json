@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run copy-articles",
+    "copy-articles": "mkdir -p dist/content/articles && cp -r src/content/articles/*.md dist/content/articles/ 2>/dev/null || true",
     "preview": "vite preview",
     "deploy": "npm run build && npx vercel --prod"
   },
