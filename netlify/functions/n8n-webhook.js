@@ -54,6 +54,40 @@ async function createFileOnGitHub(path, content, message) {
     // Encoder le contenu en base64
     const encodedContent = Buffer.from(content).toString('base64');
 
+    // Récupérer le SHA du fichier s'il existe déjà
+    let sha = null;
+    try {
+      const getResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+        {
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      if (getResponse.ok) {
+        const fileData = await getResponse.json();
+        sha = fileData.sha;
+      }
+    } catch (e) {
+      // Le fichier n'existe pas encore, c'est normal pour les nouveaux fichiers
+      console.log(`File ${path} doesn't exist yet, creating new file`);
+    }
+
+    // Construire le corps de la requête
+    const body = {
+      message: message,
+      content: encodedContent,
+      branch: 'main'
+    };
+
+    // Ajouter le SHA si le fichier existe
+    if (sha) {
+      body.sha = sha;
+    }
+
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
       {
@@ -63,11 +97,7 @@ async function createFileOnGitHub(path, content, message) {
           'Content-Type': 'application/json',
           'Accept': 'application/vnd.github.v3+json'
         },
-        body: JSON.stringify({
-          message: message,
-          content: encodedContent,
-          branch: 'main'
-        })
+        body: JSON.stringify(body)
       }
     );
 
