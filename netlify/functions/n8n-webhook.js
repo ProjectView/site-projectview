@@ -18,6 +18,30 @@
  */
 
 /**
+ * Valider que le Markdown contient du YAML valide
+ */
+function validateMarkdownYAML(markdown) {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+  const match = markdown.match(frontmatterRegex);
+
+  if (!match) {
+    throw new Error('Markdown must start with valid YAML frontmatter (---...---)');
+  }
+
+  try {
+    // Essayer de parser le YAML avec un parseur simple
+    const yamlContent = match[1];
+    // Vérifier les erreurs communes
+    if (yamlContent.includes('["') && yamlContent.includes('"],')) {
+      throw new Error('Invalid YAML: JSON arrays should not have trailing commas (e.g., ["test"], should be tags: [\\n  - test\\n])');
+    }
+    return true;
+  } catch (error) {
+    throw new Error(`Invalid YAML in frontmatter: ${error.message}`);
+  }
+}
+
+/**
  * Générer le composant React pour l'article
  */
 function generateArticleComponent(frontmatter) {
@@ -323,6 +347,21 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           status: 'error',
           message: 'ID d\'article invalide. Utilise kebab-case uniquement (ex: "article-slug")'
+        })
+      };
+    }
+
+    // Validate YAML structure before processing
+    try {
+      validateMarkdownYAML(articleMarkdown);
+    } catch (error) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          status: 'error',
+          message: 'YAML validation failed',
+          details: error.message
         })
       };
     }

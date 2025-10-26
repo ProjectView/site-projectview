@@ -3,7 +3,8 @@ id: "test-article-2025-10-26"
 title: "Test Article 2025"
 category: "Guide Informatif"
 date: "2025-10-26"
-tags: ["test"],
+tags:
+  - test
 author: "ProjectBot"
 ---
 
