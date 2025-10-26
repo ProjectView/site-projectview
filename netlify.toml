@@ -2,3 +2,19 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Netlify Functions configuration
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+# Environment variables for N8N webhook
+[context.production.environment]
+  GITHUB_TOKEN = ""
+  GITHUB_REPO_OWNER = "adelinhugot"
+  GITHUB_REPO_NAME = "site-projectview"
+  GOOGLE_SHEETS_API_KEY = ""
+  GOOGLE_SHEETS_SPREADSHEET_ID = "13V4v7C3pECzAUaeSN7o3YxSBoY_JD2z23M_--xPP1fw"
+  TELEGRAM_BOT_TOKEN = ""
+  TELEGRAM_CHAT_ID = ""
