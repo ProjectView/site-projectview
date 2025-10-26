@@ -17,12 +17,11 @@ This document provides an overview of the complete N8N ProjectBot integration sy
                                │ HTTP POST
                                ↓
 ┌──────────────────────────────────────────────────────────────────┐
-│              VERCEL WEBHOOK: /api/n8n-webhook                    │
+│       NETLIFY FUNCTION: /.netlify/functions/n8n-webhook          │
 │  ✅ Validates article data                                       │
-│  ✅ Saves Markdown file                                          │
-│  ✅ Generates React wrapper component                            │
-│  ✅ Updates routes in main.jsx                                   │
-│  ✅ Commits to GitHub                                            │
+│  ✅ Creates Markdown file via GitHub API                         │
+│  ✅ Generates React wrapper component via GitHub API             │
+│  ✅ Updates routes in main.jsx via GitHub API                    │
 │  ✅ Updates Google Sheet registry                                │
 │  ✅ Sends Telegram confirmation                                  │
 └──────────────────────────────┬──────────────────────────────────┘
@@ -30,7 +29,7 @@ This document provides an overview of the complete N8N ProjectBot integration sy
                 ┌──────────────┼──────────────┐
                 ↓              ↓              ↓
         ┌───────────────┐ ┌──────────┐ ┌─────────────┐
-        │  GitHub Repo  │ │ Vercel   │ │ Google      │
+        │  GitHub Repo  │ │ Netlify  │ │ Google      │
         │  (committed)  │ │ (deploys)│ │ Sheets      │
         └───────────────┘ └──────────┘ │ (registry)  │
                                │       └─────────────┘
@@ -38,6 +37,7 @@ This document provides an overview of the complete N8N ProjectBot integration sy
                                ↓
                         ┌──────────────────┐
                         │ Live Website     │
+                        │ projectview.fr   │
                         │ /article/slug    │
                         └──────────────────┘
 ```
@@ -65,32 +65,21 @@ This document provides an overview of the complete N8N ProjectBot integration sy
   - `template-article.md`: Template for creating new articles
 
 #### Backend Infrastructure
-- **`api/n8n-webhook.js`** (375 lines)
-  - Main webhook handler (Vercel Function)
+- **`netlify/functions/n8n-webhook.js`** (450+ lines)
+  - Main webhook handler (Netlify Function)
   - Validates article data
-  - Saves markdown files
-  - Generates React components
-  - Updates main.jsx routes
-  - GitHub integration
+  - Creates markdown files via GitHub API (PUT with base64 encoding)
+  - Generates React components via GitHub API
+  - Updates main.jsx routes via GitHub API (with SHA handling for updates)
   - Google Sheets integration
   - Telegram notifications
+  - **Key feature**: Uses GitHub API instead of filesystem (serverless-safe)
 
-- **`api/lib/github.js`** (utility functions)
-  - GitHub API utilities for commits
-  - File staging, committing, and pushing
-
-- **`api/lib/sheets.js`** (utility functions)
-  - Google Sheets API utilities
-  - Append articles to registry
-  - Read existing articles
-
-- **`api/WEBHOOK_README.md`** (comprehensive documentation)
-  - Webhook endpoint documentation
-  - Request/response formats
-  - Environment variables
-  - Setup instructions
-  - Testing guide
-  - Troubleshooting
+- **`.env.example`** (updated)
+  - All required environment variables
+  - GitHub token, repo owner, repo name
+  - Google Sheets API key and spreadsheet ID
+  - Telegram bot token and chat ID (optional)
 
 #### Configuration & Documentation
 - **`BACKEND_SETUP_GUIDE.md`** (step-by-step setup)
@@ -225,8 +214,10 @@ export default ArticleSlug;
 
 ### Webhook URL
 ```
-POST https://projectview-site.vercel.app/api/n8n-webhook
+POST https://projectview.fr/.netlify/functions/n8n-webhook
 ```
+
+**Note**: Webhook is live and tested ✅ - Returns 201 with "success" status when article is approved
 
 ### Request Format
 ```json
@@ -259,38 +250,47 @@ POST https://projectview-site.vercel.app/api/n8n-webhook
 ```json
 {
   "status": "success",
-  "message": "Article published successfully",
+  "message": "Article publié avec succès",
   "article": {
-    "id": "article-slug",
-    "title": "Article Title",
-    "url": "https://projectview-site.vercel.app/article/article-slug"
+    "id": "test-article-2025-10-26",
+    "title": "Test Article 2025",
+    "url": "https://projectview.fr/article/test-article-2025-10-26"
   },
   "integrations": {
     "github": "success",
-    "sheets": "success",
+    "sheets": "skipped",
     "telegram": "skipped"
   }
 }
 ```
 
+**Real test result (2025-10-26)**:
+- Article markdown file created: ✅ `src/content/articles/test-article-2025-10-26.md`
+- React component generated: ✅ `src/components/TestArticle20251026.jsx`
+- Route added to main.jsx: ✅ `/article/test-article-2025-10-26`
+- Netlify auto-deployed: ✅ Article live after 45 seconds
+- HTTP 200 response: ✅ Article fully accessible
+
 ## Environment Variables Required
 
-Set these in Vercel dashboard:
+Set these in Netlify dashboard (Site settings → Build & deploy → Environment):
 
 ```bash
-# GitHub (required for auto-commits)
+# GitHub (REQUIRED - for GitHub API file creation)
 GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-GITHUB_REPO_OWNER=adelinhugot
+GITHUB_REPO_OWNER=ProjectView
 GITHUB_REPO_NAME=site-projectview
 
-# Google Sheets (required for article registry)
-GOOGLE_SHEETS_API_KEY=AIza_xxxxxxxxxxxxx (full JSON)
-GOOGLE_SHEETS_SPREADSHEET_ID=13V4v7C3pECzAUaeSN7o3YxSBoY_JD2z23M_--xPP1fw
+# Google Sheets (optional - for article registry update)
+GOOGLE_SHEETS_API_KEY=AIza_xxxxxxxxxxxxx
+GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id_here
 
-# Telegram (optional, for notifications)
+# Telegram (optional - for notifications)
 TELEGRAM_BOT_TOKEN=xxxxxxxxxxxxx
 TELEGRAM_CHAT_ID=xxxxxxxxxxxxx
 ```
+
+**Currently configured**: ✅ GITHUB_TOKEN is set and working
 
 ## Article Categories
 
@@ -350,22 +350,41 @@ Supported categories (with default colors):
 
 ## Testing
 
-### Test the Webhook Locally
+### Test the Webhook (Production)
 
+**Draft article** (pending approval):
 ```bash
-curl -X POST http://localhost:3000/api/n8n-webhook \
+curl -X POST https://projectview.fr/.netlify/functions/n8n-webhook \
   -H "Content-Type: application/json" \
   -d '{
-    "articleMarkdown": "---\nid: \"test\"\ntitle: \"Test\"\n---\n\n# Test",
-    "frontmatter": {"id": "test", "title": "Test", "category": "Guide Informatif", "date": "2025-10-26"},
+    "articleMarkdown": "---\nid: \"test-draft\"\ntitle: \"Test Draft\"\ncategory: \"Guide Informatif\"\ndate: \"2025-10-26\"\ntags: [\"test\"]\nauthor: \"ProjectBot\"\n---\n\n# Test Draft\n\nContent here.",
+    "frontmatter": {"id": "test-draft", "title": "Test Draft", "category": "Guide Informatif", "date": "2025-10-26", "tags": ["test"], "author": "ProjectBot"},
+    "approved": false
+  }'
+```
+
+**Expected response**: `"status": "pending_approval"`
+
+---
+
+**Published article** (live):
+```bash
+curl -X POST https://projectview.fr/.netlify/functions/n8n-webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "articleMarkdown": "---\nid: \"test-published\"\ntitle: \"Test Published\"\ncategory: \"Guide Informatif\"\ndate: \"2025-10-26\"\ntags: [\"test\"]\nauthor: \"ProjectBot\"\n---\n\n# Test Published\n\nContent here.",
+    "frontmatter": {"id": "test-published", "title": "Test Published", "category": "Guide Informatif", "date": "2025-10-26", "tags": ["test"], "author": "ProjectBot"},
     "approved": true
   }'
 ```
 
-### View Example Article
+**Expected response**: `"status": "success"` + live URL
 
+### View Test Article
+
+Article published with webhook test is live at:
 ```
-http://localhost:3001/article/exemple-test
+https://projectview.fr/article/test-article-2025-10-26
 ```
 
 ## Next Steps
@@ -454,18 +473,23 @@ project-root/
 
 ## Deployment Checklist
 
-Before going live with N8N automation:
+✅ **Already Completed**:
 
-- [ ] All environment variables set in Vercel
-- [ ] GitHub token has correct permissions
-- [ ] Google Sheet is shared with service account
-- [ ] Telegram bot token configured (if using notifications)
-- [ ] Webhook tested with curl
-- [ ] Example article displays correctly
-- [ ] N8N workflow configured with HTTP node
-- [ ] Test article published and verified on live site
-- [ ] Google Sheet updated with published article
-- [ ] GitHub commit created for test article
+- ✅ Netlify Function deployed and live
+- ✅ GitHub integration working (GitHub API file creation)
+- ✅ Environment variables set in Netlify
+- ✅ Webhook tested with curl (success - returns 201)
+- ✅ Draft articles working (pending_approval status)
+- ✅ Published articles working (creates files + deploys automatically)
+- ✅ Articles live on projectview.fr (HTTP 200)
+
+**Remaining Tasks**:
+
+- [ ] Configure N8N HTTP Request node with webhook URL
+- [ ] Set up N8N workflow to send approved articles to webhook
+- [ ] Test full N8N → Webhook → Live publication flow
+- [ ] (Optional) Configure Google Sheets integration for article registry
+- [ ] (Optional) Configure Telegram notifications
 
 ## Contact & Troubleshooting
 
