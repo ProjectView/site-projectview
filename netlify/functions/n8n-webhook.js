@@ -2,10 +2,10 @@
  * Netlify Function: N8N Webhook Handler
  *
  * Reçoit les données d'articles de N8N ProjectBot et:
- * 1. Sauvegarde le markdown de l'article dans /src/content/articles/{slug}.md
- * 2. Génère le composant React wrapper
- * 3. Met à jour main.jsx avec la nouvelle route
- * 4. Commit les changements sur GitHub
+ * 1. Utilise l'API GitHub pour créer les fichiers
+ * 2. Sauvegarde le markdown de l'article
+ * 3. Génère et sauvegarde le composant React wrapper
+ * 4. Met à jour main.jsx avec la nouvelle route
  * 5. Met à jour le registre Google Sheets
  *
  * Expected POST body:
@@ -15,18 +15,7 @@
  *   "nanobananaPrompts": [ { name, prompt, ... }, ... ],
  *   "approved": true/false
  * }
- *
- * Variables d'environnement requises:
- * - GITHUB_TOKEN: Token API GitHub pour les commits
- * - GOOGLE_SHEETS_API_KEY: Clé API Google Sheets
- * - GOOGLE_SHEETS_SPREADSHEET_ID: ID du Google Sheet
- * - GITHUB_REPO_OWNER: Propriétaire du repo GitHub
- * - GITHUB_REPO_NAME: Nom du repo GitHub
  */
-
-const { writeFileSync, readFileSync } = require('fs');
-const { join } = require('path');
-const { execSync } = require('child_process');
 
 /**
  * Générer le composant React pour l'article
@@ -50,98 +39,113 @@ export default ${componentName};
 }
 
 /**
- * Sauvegarder le fichier markdown de l'article
+ * Créer un fichier via l'API GitHub
  */
-function saveArticle(articleMarkdown, frontmatter) {
-  const articlePath = join(process.cwd(), 'src', 'content', 'articles', `${frontmatter.id}.md`);
-  writeFileSync(articlePath, articleMarkdown, 'utf-8');
-}
+async function createFileOnGitHub(path, content, message) {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME;
 
-/**
- * Sauvegarder le composant React wrapper
- */
-function saveComponent(frontmatter) {
-  const componentName = frontmatter.id
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
-
-  const componentPath = join(process.cwd(), 'src', 'components', `${componentName}.jsx`);
-  const componentCode = generateArticleComponent(frontmatter);
-  writeFileSync(componentPath, componentCode, 'utf-8');
-}
-
-/**
- * Mettre à jour main.jsx avec la nouvelle route
- */
-function updateMainJsx(frontmatter) {
-  const componentName = frontmatter.id
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
-
-  const mainPath = join(process.cwd(), 'src', 'main.jsx');
-  let mainContent = readFileSync(mainPath, 'utf-8');
-
-  // Ajouter l'import s'il n'existe pas
-  if (!mainContent.includes(`import ${componentName}`)) {
-    const importLine = `import ${componentName} from './components/${componentName}'`;
-    const lastImportMatch = mainContent.match(/import .* from '\.\/components\/\w+'\n/g);
-    if (lastImportMatch) {
-      const lastImport = lastImportMatch[lastImportMatch.length - 1];
-      mainContent = mainContent.replace(lastImport, lastImport + importLine + '\n');
-    }
+  if (!token || !owner || !repo) {
+    throw new Error('GitHub configuration missing (GITHUB_TOKEN, GITHUB_REPO_OWNER, GITHUB_REPO_NAME)');
   }
 
-  // Ajouter la route s'il n'existe pas
-  const routePath = `/article/${frontmatter.id}`;
-  const routeLine = `        <Route path="${routePath}" element={<${componentName} />} />`;
-  if (!mainContent.includes(`path="${routePath}"`)) {
-    const lastArticleRoute = mainContent.match(/        <Route path="\/article\/[\w-]+" element={<\w+ \/\>} \/>\n/g);
-    if (lastArticleRoute) {
-      const route = lastArticleRoute[lastArticleRoute.length - 1];
-      mainContent = mainContent.replace(route, route + routeLine + '\n');
-    }
-  }
-
-  writeFileSync(mainPath, mainContent, 'utf-8');
-}
-
-/**
- * Commit les changements sur GitHub
- */
-function commitToGitHub(frontmatter) {
   try {
-    const articlePath = `src/content/articles/${frontmatter.id}.md`;
-    const componentName = frontmatter.id
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('');
-    const componentPath = `src/components/${componentName}.jsx`;
+    // Encoder le contenu en base64
+    const encodedContent = Buffer.from(content).toString('base64');
 
-    // Ajouter les fichiers
-    execSync(`git add "${articlePath}" "${componentPath}" src/main.jsx`, {
-      cwd: process.cwd(),
-      stdio: 'pipe'
-    });
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify({
+          message: message,
+          content: encodedContent,
+          branch: 'main'
+        })
+      }
+    );
 
-    // Créer le commit
-    const commitMessage = `📝 Add article: ${frontmatter.title}`;
-    execSync(`git commit -m "${commitMessage}"`, {
-      cwd: process.cwd(),
-      stdio: 'pipe'
-    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`GitHub API error: ${error.message}`);
+    }
 
-    // Pousser vers GitHub
-    execSync('git push origin main', {
-      cwd: process.cwd(),
-      stdio: 'pipe'
-    });
+    return await response.json();
+  } catch (error) {
+    console.error('GitHub API error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Récupérer et mettre à jour main.jsx
+ */
+async function updateMainJsx(frontmatter) {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME;
+
+  const componentName = frontmatter.id
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+
+  try {
+    // Récupérer main.jsx
+    const getResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/src/main.jsx`,
+      {
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3.raw'
+        }
+      }
+    );
+
+    if (!getResponse.ok) {
+      throw new Error('Could not fetch main.jsx');
+    }
+
+    let mainContent = await getResponse.text();
+
+    // Ajouter l'import
+    const importLine = `import ${componentName} from './components/${componentName}'`;
+    if (!mainContent.includes(importLine)) {
+      const lastImportMatch = mainContent.match(/import .* from '\.\/components\/\w+'\n/g);
+      if (lastImportMatch) {
+        const lastImport = lastImportMatch[lastImportMatch.length - 1];
+        mainContent = mainContent.replace(lastImport, lastImport + importLine + '\n');
+      }
+    }
+
+    // Ajouter la route
+    const routePath = `/article/${frontmatter.id}`;
+    const routeLine = `        <Route path="${routePath}" element={<${componentName} />} />`;
+    if (!mainContent.includes(`path="${routePath}"`)) {
+      const lastArticleRoute = mainContent.match(/        <Route path="\/article\/[\w-]+" element={<\w+ \/\>} \/>\n/g);
+      if (lastArticleRoute) {
+        const route = lastArticleRoute[lastArticleRoute.length - 1];
+        mainContent = mainContent.replace(route, route + routeLine + '\n');
+      }
+    }
+
+    // Pousser la mise à jour
+    await createFileOnGitHub(
+      'src/main.jsx',
+      mainContent,
+      `🔄 Update routes for article: ${frontmatter.title}`
+    );
 
     return true;
   } catch (error) {
-    console.error('Erreur git commit:', error.message);
-    return false;
+    console.error('Error updating main.jsx:', error);
+    throw error;
   }
 }
 
@@ -150,14 +154,13 @@ function commitToGitHub(frontmatter) {
  */
 async function updateGoogleSheet(frontmatter) {
   if (!process.env.GOOGLE_SHEETS_API_KEY || !process.env.GOOGLE_SHEETS_SPREADSHEET_ID) {
-    console.warn('⚠️ Google Sheets non configuré, mise à jour du registre ignorée');
+    console.warn('⚠️ Google Sheets not configured, skipping registry update');
     return false;
   }
 
   try {
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
-    // Format: [ID, Titre, Date, Catégorie, Tags, Topics, Mots-clés, Statut, URL, Notes]
     const row = [
       frontmatter.id,
       frontmatter.title,
@@ -167,8 +170,8 @@ async function updateGoogleSheet(frontmatter) {
       frontmatter.category,
       (frontmatter.seoKeywords || []).join('|'),
       'published',
-      `https://netlify-site-url.netlify.app/article/${frontmatter.id}`,
-      `Généré par ProjectBot le ${new Date().toISOString()}`
+      `https://projectview.fr/article/${frontmatter.id}`,
+      `Generated by ProjectBot on ${new Date().toISOString()}`
     ];
 
     const response = await fetch(
@@ -187,15 +190,14 @@ async function updateGoogleSheet(frontmatter) {
     );
 
     if (!response.ok) {
-      console.error('Erreur Google Sheets API:', response.statusText);
+      console.error('Google Sheets API error:', response.statusText);
       return false;
     }
 
-    const result = await response.json();
-    console.log(`✅ Google Sheet mis à jour (${result.updates?.updatedCells} cellules)`);
+    console.log('✅ Google Sheet updated');
     return true;
   } catch (error) {
-    console.error('Erreur Google Sheets:', error.message);
+    console.error('Google Sheets error:', error.message);
     return false;
   }
 }
@@ -214,7 +216,7 @@ async function sendTelegramNotification(frontmatter) {
 
 📝 **${frontmatter.title}**
 📂 Catégorie: ${frontmatter.category}
-🔗 URL: https://netlify-site-url.netlify.app/article/${frontmatter.id}
+🔗 URL: https://projectview.fr/article/${frontmatter.id}
 📅 Date: ${frontmatter.date}
 
 Tags: ${(frontmatter.tags || []).join(', ')}
@@ -235,7 +237,7 @@ Tags: ${(frontmatter.tags || []).join(', ')}
 
     return response.ok;
   } catch (error) {
-    console.error('Erreur notification Telegram:', error.message);
+    console.error('Telegram error:', error.message);
     return false;
   }
 }
@@ -244,23 +246,26 @@ Tags: ${(frontmatter.tags || []).join(', ')}
  * Handler principal pour Netlify Function
  */
 exports.handler = async (event, context) => {
-  // Accepter les OPTIONS pour CORS
+  // CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  // Handle OPTIONS
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
+      headers
     };
   }
 
-  // Accepter seulement les POST
+  // Only accept POST
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers,
       body: JSON.stringify({ error: 'Méthode non autorisée' })
     };
   }
@@ -268,11 +273,11 @@ exports.handler = async (event, context) => {
   try {
     const { articleMarkdown, frontmatter, nanobananaPrompts, approved } = JSON.parse(event.body);
 
-    // Valider les champs requis
+    // Validate required fields
     if (!articleMarkdown || !frontmatter || !frontmatter.id || !frontmatter.title) {
       return {
         statusCode: 400,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({
           status: 'error',
           message: 'Champs manquants: articleMarkdown, frontmatter (avec id et title)'
@@ -280,11 +285,11 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Valider le format de l'ID (kebab-case)
+    // Validate article ID format
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(frontmatter.id)) {
       return {
         statusCode: 400,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({
           status: 'error',
           message: 'ID d\'article invalide. Utilise kebab-case uniquement (ex: "article-slug")'
@@ -292,12 +297,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Vérifier si l'article est approuvé
+    // Check if approved
     if (!approved) {
-      console.log(`📋 Brouillon d'article sauvegardé: ${frontmatter.title}`);
+      console.log(`📋 Article draft saved: ${frontmatter.title}`);
       return {
         statusCode: 200,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({
           status: 'pending_approval',
           message: 'Article sauvegardé en brouillon. En attente d\'approbation d\'Adelin avant publication.',
@@ -309,15 +314,19 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Sauvegarder le fichier markdown
+    // Create article markdown file
     try {
-      saveArticle(articleMarkdown, frontmatter);
-      console.log(`✅ Article sauvegardé: ${frontmatter.id}.md`);
+      await createFileOnGitHub(
+        `src/content/articles/${frontmatter.id}.md`,
+        articleMarkdown,
+        `📝 Add article: ${frontmatter.title}`
+      );
+      console.log(`✅ Article markdown created: ${frontmatter.id}.md`);
     } catch (error) {
-      console.error('Erreur sauvegarde article:', error);
+      console.error('Error creating article:', error);
       return {
         statusCode: 500,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({
           status: 'error',
           message: 'Impossible de sauvegarder le markdown',
@@ -326,15 +335,25 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Générer et sauvegarder le composant React
+    // Create component file
     try {
-      saveComponent(frontmatter);
-      console.log(`✅ Composant créé: ${frontmatter.id}.jsx`);
+      const componentCode = generateArticleComponent(frontmatter);
+      const componentName = frontmatter.id
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+      await createFileOnGitHub(
+        `src/components/${componentName}.jsx`,
+        componentCode,
+        `✨ Create component: ${componentName}`
+      );
+      console.log(`✅ Component created: ${componentName}.jsx`);
     } catch (error) {
-      console.error('Erreur création composant:', error);
+      console.error('Error creating component:', error);
       return {
         statusCode: 500,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({
           status: 'error',
           message: 'Impossible de créer le composant React',
@@ -343,15 +362,15 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Mettre à jour main.jsx
+    // Update main.jsx
     try {
-      updateMainJsx(frontmatter);
-      console.log(`✅ Route ajoutée à main.jsx`);
+      await updateMainJsx(frontmatter);
+      console.log(`✅ Routes updated in main.jsx`);
     } catch (error) {
-      console.error('Erreur mise à jour main.jsx:', error);
+      console.error('Error updating main.jsx:', error);
       return {
         statusCode: 500,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({
           status: 'error',
           message: 'Impossible de mettre à jour main.jsx',
@@ -360,48 +379,37 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Commit sur GitHub (si configuré)
-    let gitCommitted = false;
-    if (process.env.GITHUB_TOKEN && process.env.GITHUB_REPO_OWNER && process.env.GITHUB_REPO_NAME) {
-      gitCommitted = commitToGitHub(frontmatter);
-      if (gitCommitted) {
-        console.log(`✅ Commit sur GitHub`);
-      } else {
-        console.warn('⚠️ Commit git échoué, mais l\'article est sauvegardé localement');
-      }
-    } else {
-      console.warn('⚠️ GitHub non configuré, auto-commit ignoré');
-    }
-
-    // Mettre à jour Google Sheets (si configuré)
+    // Update Google Sheets
     const sheetUpdated = await updateGoogleSheet(frontmatter);
 
-    // Envoyer notification Telegram (si configuré)
+    // Send Telegram notification
     const notificationSent = await sendTelegramNotification(frontmatter);
 
     return {
       statusCode: 201,
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers,
       body: JSON.stringify({
         status: 'success',
         message: 'Article publié avec succès',
         article: {
           id: frontmatter.id,
           title: frontmatter.title,
-          url: `https://netlify-site-url.netlify.app/article/${frontmatter.id}`
+          url: `https://projectview.fr/article/${frontmatter.id}`
         },
         integrations: {
-          github: gitCommitted ? 'success' : 'skipped',
+          github: 'success',
           sheets: sheetUpdated ? 'success' : 'skipped',
           telegram: notificationSent ? 'success' : 'skipped'
         }
       })
     };
   } catch (error) {
-    console.error('Erreur webhook:', error);
+    console.error('Webhook error:', error);
     return {
       statusCode: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({
         status: 'error',
         message: 'Erreur serveur interne',
