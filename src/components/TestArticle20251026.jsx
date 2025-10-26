@@ -1,9 +1,8 @@
 import React from 'react';
 import ArticleRenderer from './ArticleRenderer';
-import articleContent from '@/content/articles/test-article-2025-10-26.md?raw';
 
 const TestArticle20251026 = () => {
-  return <ArticleRenderer markdownContent={articleContent} />;
+  return <ArticleRenderer articleId="test-article-2025-10-26" />;
 };
 
 export default TestArticle20251026;

@@ -52,10 +52,9 @@ function generateArticleComponent(frontmatter) {
 
   return `import React from 'react';
 import ArticleRenderer from './ArticleRenderer';
-import articleContent from '@/content/articles/${frontmatter.id}.md?raw';
 
 const ${componentName} = () => {
-  return <ArticleRenderer markdownContent={articleContent} />;
+  return <ArticleRenderer articleId="${frontmatter.id}" />;
 };
 
 export default ${componentName};

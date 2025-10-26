@@ -6,34 +6,75 @@ import Logo from './Logo';
 import ReactMarkdown from 'react-markdown';
 import YAML from 'yaml';
 
-const ArticleRenderer = ({ markdownContent }) => {
+const ArticleRenderer = ({ markdownContent, articleId }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [frontmatter, setFrontmatter] = useState(null);
   const [markdown, setMarkdown] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
-    // Parse frontmatter et contenu
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-    const match = markdownContent.match(frontmatterRegex);
+    setLoading(true);
+    setError(null);
 
-    if (match) {
+    // Si markdownContent est fourni (import statique)
+    if (markdownContent) {
       try {
-        const fm = YAML.parse(match[1]);
-        setFrontmatter(fm);
-        setMarkdown(match[2]);
+        const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+        const match = markdownContent.match(frontmatterRegex);
+
+        if (match) {
+          const fm = YAML.parse(match[1]);
+          setFrontmatter(fm);
+          setMarkdown(match[2]);
+        } else {
+          setMarkdown(markdownContent);
+          setFrontmatter({ id: articleId || 'unknown', title: 'Article' });
+        }
+        setLoading(false);
       } catch (error) {
         console.error('Erreur parsing YAML:', error);
-        setMarkdown(markdownContent);
+        setError('Erreur de parsing du YAML: ' + error.message);
+        setLoading(false);
       }
-    } else {
-      setMarkdown(markdownContent);
     }
-  }, [markdownContent]);
+    // Sinon, charger dynamiquement via fetch
+    else if (articleId) {
+      const loadArticle = async () => {
+        try {
+          // Essayer de charger le fichier markdown
+          const response = await fetch(`/articles/${articleId}.md`);
+          if (!response.ok) {
+            throw new Error(`Article not found: ${articleId}`);
+          }
+          const content = await response.text();
+
+          const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+          const match = content.match(frontmatterRegex);
+
+          if (match) {
+            const fm = YAML.parse(match[1]);
+            setFrontmatter(fm);
+            setMarkdown(match[2]);
+          } else {
+            setMarkdown(content);
+            setFrontmatter({ id: articleId, title: 'Article' });
+          }
+          setLoading(false);
+        } catch (error) {
+          console.error('Erreur loading article:', error);
+          setError('Impossible de charger l\'article: ' + error.message);
+          setLoading(false);
+        }
+      };
+      loadArticle();
+    }
+  }, [markdownContent, articleId]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,8 +84,16 @@ const ArticleRenderer = ({ markdownContent }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!frontmatter) {
+  if (loading) {
     return <div className="text-center py-20">Chargement de l'article...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-20 text-red-600"><p>Erreur: {error}</p></div>;
+  }
+
+  if (!frontmatter) {
+    return <div className="text-center py-20 text-red-600"><p>Impossible d'afficher l'article</p></div>;
   }
 
   const categoryColorMap = {

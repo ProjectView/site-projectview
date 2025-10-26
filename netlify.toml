@@ -1,3 +1,10 @@
+# Servir les fichiers markdown d'articles comme ressources statiques
+[[redirects]]
+  from = "/articles/:id.md"
+  to = "/src/content/articles/:id.md"
+  status = 200
+
+# SPA fallback - rediriger vers index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -8,6 +15,8 @@
   command = "npm run build"
   functions = "netlify/functions"
   publish = "dist"
+  # Inclure les fichiers markdown dans la publication
+  include = ["src/content/**/*.md"]
 
 # Environment variables for N8N webhook
 [context.production.environment]
