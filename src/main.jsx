@@ -20,6 +20,7 @@ import SolutionsCollaboration from './components/SolutionsCollaboration'
 import PresentationInnovante from './components/PresentationInnovante'
 import AssistantIA from './components/AssistantIA'
 import TestArticle20251026 from './components/TestArticle20251026'
+import TestFinal2025 from './components/TestFinal2025'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -38,6 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/article/interactivite" element={<ArticleInteractivite />} />
         <Route path="/article/ecrans-collaboratifs" element={<ArticleEcransCollaboratifs />} />
         <Route path="/article/test-article-2025-10-26" element={<TestArticle20251026 />} />
+        <Route path="/article/test-final-2025" element={<TestFinal2025 />} />
         <Route path="/solutions/bureau-etude-vr" element={<BureauEtudeVR />} />
         <Route path="/solutions/tables-tactiles" element={<TablesTactiles />} />
         <Route path="/solutions/ecrans-collaboratifs" element={<EcransCollaboratifs />} />
