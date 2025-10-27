@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Calendar, Clock, User, ChevronRight, Sparkles } from 'lucide-react';
+import { Menu, X, Calendar, Clock, User, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import Chatbot from './Chatbot';
 import Logo from './Logo';
 import ReactMarkdown from 'react-markdown';
@@ -25,7 +25,7 @@ const ArticleRenderer = ({ markdownContent, articleId }) => {
     // Si markdownContent est fourni (import statique)
     if (markdownContent) {
       try {
-        const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+        const frontmatterRegex = /^-{3,}\s*[\r\n]+([\s\S]*?)[\r\n]+-{3,}\s*[\r\n]+([\s\S]*)$/;
         const match = markdownContent.match(frontmatterRegex);
 
         if (match) {
@@ -54,7 +54,7 @@ const ArticleRenderer = ({ markdownContent, articleId }) => {
           }
           const content = await response.text();
 
-          const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+          const frontmatterRegex = /^-{3,}\s*[\r\n]+([\s\S]*?)[\r\n]+-{3,}\s*[\r\n]+([\s\S]*)$/;
           const match = content.match(frontmatterRegex);
 
           if (match) {
@@ -184,6 +184,15 @@ const ArticleRenderer = ({ markdownContent, articleId }) => {
         </div>
 
         <div className="max-w-4xl mx-auto px-6 relative z-10">
+          {/* Retour au blog */}
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#72B0CC] transition-colors duration-300 mb-6 font-medium"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Retour au blog</span>
+          </Link>
+
           {/* Catégorie */}
           <div className="flex items-center gap-4 mb-6">
             <span

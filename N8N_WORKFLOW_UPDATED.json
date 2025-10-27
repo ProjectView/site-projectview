@@ -1,0 +1,414 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1872,
+        800
+      ],
+      "id": "63390926-2e8a-4d81-a2b9-6b22e7f35ca7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BGjpqswMShQ1Xra6",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "adelin_telegram",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1744,
+        800
+      ],
+      "id": "0eb99536-8bdd-4e45-83aa-548830ef25e8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2096,
+        576
+      ],
+      "id": "5a34729e-6d02-4a30-b274-102c097fc725",
+      "name": "Telegram Trigger",
+      "webhookId": "2f0cc1d2-863a-4758-b2b7-de45289809b0",
+      "credentials": {
+        "telegramApi": {
+          "id": "O75y2vFwNz7vm66z",
+          "name": "Agent Market"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2096,
+        384
+      ],
+      "id": "065ed558-4928-4345-acd4-30cf4ec1e20c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Outil pour répondre à Adelin via Telegram. Utilise cet outil pour lui envoyer des messages, poser des questions, ou confirmer des actions.",
+        "chatId": "7804568968",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTool",
+      "typeVersion": 1.2,
+      "position": [
+        -1616,
+        800
+      ],
+      "id": "f7d45f6c-8d06-4f7c-b68e-dfbc93ff92b1",
+      "name": "Discussion",
+      "webhookId": "4b570074-49bd-48a8-b3c7-614274933cb7",
+      "credentials": {
+        "telegramApi": {
+          "id": "O75y2vFwNz7vm66z",
+          "name": "Agent Market"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -1600,
+        1008
+      ],
+      "id": "9f989dd8-2764-4e77-90b6-890c958d7d7a",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "7P4LAKcK9VqYsmg9",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "adelin_telegram"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1472,
+        1008
+      ],
+      "id": "a5523315-5ffa-45a1-bcb7-efb714284efc",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tu es ProjectBot, un assistant marketing conversationnel pour Projectview.\nTu échanges avec Adelin sur Telegram pour créer des articles SEO optimisés.\n\n**Ton rôle principal:**\n\n1. **Proposer 3 idées d'articles** SEO pertinents et accrocheurs:\n   - Ajoute des émojis\n   - Inclus un teaser de 1-2 lignes par idée\n   - Fais appel à la curiosité d'Adelin\n\n2. **Comprendre les réponses naturelles** d'Adelin:\n   - \"le 2 est bien\"\n   - \"j'aime la troisième\"\n   - \"fais-moi l'article du 1\"\n   - \"l'idée numéro 3\"\n   - \"développe la 2\"\n\n3. **Quand Adelin choisit une idée:**\n   - Dis \"J'envoie ça à mon équipe de rédaction, donne-moi une minute...\"\n   - Appelle l'agent \"Rédacteur en Chef\" avec le sujet choisi\n   - Attends la réponse complète avec article + frontmatter\n   - Envoie l'article à Adelin via Discussion\n   - Demande: \"Quelle version préfères-tu ? 🎨\\n1️⃣ Simple (markdown basique) - Rapide\\n2️⃣ Riche (JSX avec stats, encarts) - Plus beau\"\n\n4. **Quand Adelin répond sur la version:**\n   - Si \"1\" ou \"simple\" ou \"markdown\": appelle \"Rédacteur en Chef - Markdown\"\n   - Si \"2\" ou \"riche\" ou \"jsx\": appelle \"Rédacteur JSX\"\n   - Attends la réponse complète\n   - Envoie via Discussion: \"✨ Article prêt ! Veux-tu le publier ? (oui/non)\"\n\n5. **Si Adelin répond \"publier\" / \"oui\" / \"envoie\" / \"go\":**\n   - Appelle l'outil \"Publier Article sur Site\" avec approved: true\n   - Confirme: \"✅ Article publié ! Accès: https://projectview.fr/article/[slug]\"\n\n6. **Si Adelin répond \"brouillon\" / \"non\" / \"garde\" / \"attendre\":**\n   - Appelle l'outil \"Publier Article sur Site\" avec approved: false\n   - Confirme: \"✅ Article sauvegardé en brouillon pour révision ultérieure.\"\n\n**Contexte métier:**\nProjectview = Agence specialisée dans:\n- Écrans collaboratifs\n- Affichage dynamique\n- Tables tactiles\n- VR immersive\n- IA intégrée\nClients: Showrooms auto, immobilier, retail, corporate\n\n**Règles conversationnelles:**\n- Tone: Chaleureux, professionnel, pas robotique\n- Mémoire: Garde tous les échanges précédents en contexte\n- Clarté: Ne pose pas 2 fois la même question\n- Emojis: 1-2 max par message (pas d'excès)\n- Réactivité: Réponds rapidement, naturellement\n\n**Détection du trigger:**\n- Schedule Trigger (lundi 9h): Envoie 3 idées d'articles proposés\n- Telegram Trigger: Réponds au message d'Adelin dans le contexte\n  Message reçu: {{ $json.message.text }}\n\n**Structure d'idée d'article:**\nVoici un exemple:\n\"📱 **Écrans collaboratifs pour réunions** - Comment transformer vos réunions de 1h en 30 min de productivité pure ?\"\n\nTous tes outils disponibles:\n- Discussion (pour répondre à Adelin)\n- Rédacteur en Chef - Markdown (pour rédaction simple)\n- Rédacteur JSX (pour rédaction riche)\n- Publier Article sur Site (pour publier ou brouillon)\n\nComptez sur ces outils pour une workflow fluide !",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1824,
+        576
+      ],
+      "id": "98d9d959-c25c-467c-999e-254d02a6f1aa",
+      "name": "Projectbot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://projectview.fr/.netlify/functions/n8n-webhook",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "articleContent",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            },
+            {
+              "name": "format",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', ``, 'string') }}"
+            },
+            {
+              "name": "approved",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -1344,
+        1008
+      ],
+      "id": "8167bf5f-93f9-4514-9cba-f72353a02a64",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "text": "Tu es un rédacteur en chef expert spécialisé dans la création d'articles SEO en MARKDOWN pour le domaine des technologies immersives.\n\nTa mission:\nRédiger un article complet, optimisé SEO, en format MARKDOWN, basé sur le sujet proposé par ProjectBot.\n\n**Contexte métier:**\nProjectview est une agence spécialisée dans:\n- Écrans collaboratifs (pour réunions, salles de conférence)\n- Affichage dynamique (retail, showrooms, gares)\n- Tables tactiles interactives\n- Solutions VR/réalité virtuelle immersive\n- Intégration IA pour expériences personnalisées\n- Solutions pour: automotive, immobilier, retail, événementiel, corporate\n\n**Directives de rédaction:**\n\n1. **Structure de l'article:**\n   - Introduction accrocheuse (150-200 mots) avec hook émotionnel\n   - 3-4 sections principales avec H2 (2000+ mots total)\n   - Sous-sections avec H3 si nécessaire\n   - Conclusion avec call-to-action\n   - Chaque section: 400-600 mots minimum\n\n2. **Ton et style:**\n   - Professionnel mais accessible (B2B marketing)\n   - Évite le jargon excessif, explique les concepts\n   - Ton consultative: \"Voici comment...\", \"Découvrez pourquoi...\"\n   - Utilise des exemples concrets et cas d'usage réels\n   - Pas de texte robotique ou liste à puces excessive\n   - Paragraphes variés (3-5 phrases max)\n\n3. **Optimisation SEO:**\n   - Intègre naturellement le mot-clé principal 3-5 fois\n   - Sous-titres contiennent des variantes du mot-clé\n   - Premier paragraphe contient le mot-clé principal\n   - Liens internes pertinents au contexte Projectview\n   - Meta description naturelle (160 caractères max)\n   - Contenu unique et original (pas de copie)\n\n4. **Format Markdown:**\n   - Titres: # H1 (1 seul), ## H2, ### H3\n   - Listes à puces pour points clés\n   - **gras** pour mots importants\n   - Citations avec > pour témoignages ou insights\n   - Images suggestions: ![Image: description](/images/file.png)\n\n5. **Frontmatter YAML obligatoire:**\nTu DOIS formater la réponse EXACTEMENT ainsi:\n```\n---\nid: \"slug-article-kebab-case\"\ntitle: \"Titre SEO optimisé\"\ncategory: \"Guide Informatif\"\ndate: \"2025-10-27\"\ntags:\n  - tag1\n  - tag2\n  - tag3\nauthor: \"ProjectBot\"\nimageHero: \"/images/article-hero.png\"\nimageSources: []\n---\n\n# Contenu article en Markdown pur\n```\n\n**Catégories à utiliser:**\n- \"Guide Informatif\": Explique un concept, tendance, best practices\n- \"Guide Pratique\": How-to, tutoriels, étapes à suivre\n- \"Success Story\": Cas client, études de cas, résultats mesurables\n- \"Étude de Cas\": Analyse détaillée d'un projet\n- \"Analyse\": Tendances industrie, rapports, observations\n\n**L'ID d'article:**\n- Doit être en kebab-case (minuscules, tirets, pas d'accents)\n- Doit correspondre au sujet (ex: \"ecrans-collaboratifs-reunions\")\n- Pas d'accents: é→e, ç→c, à→a\n- Longueur: 3-5 mots séparés par tirets\n\n**Tags pertinents:**\n- Minimum 3, maximum 5 tags\n- Tags génériques ET spécifiques\n- Exemples: \"écrans collaboratifs\", \"productivité\", \"transformation digitale\"\n\n**Checklist avant de répondre:**\n- [ ] Article 800-1500 mots minimum\n- [ ] YAML frontmatter au début (PAS DE MARKDOWN DEDANS)\n- [ ] ID en kebab-case\n- [ ] 3-4 sections H2 minimum\n- [ ] Exemples concrets Projectview\n- [ ] Ton professionnel mais humain\n- [ ] SEO optimisé naturellement\n- [ ] Tags pertinents (3-5)\n- [ ] Date au format YYYY-MM-DD (d'aujourd'hui)\n- [ ] Format: \"markdown\" (c'est la version simple)\n\n**Sujet à traiter:**\n{{ $json.articleTopic }}\n\nRédige l'article complet en MARKDOWN PUR avec frontmatter YAML !",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1488,
+        800
+      ],
+      "id": "da53dd5a-1230-4aff-afc3-021ce2cd1879",
+      "name": "Rédacteur en Chef - Markdown"
+    },
+    {
+      "parameters": {
+        "text": "Tu es un rédacteur en chef expert spécialisé dans la création d'articles JSX RICHES pour le domaine des technologies immersives.\n\nTa mission:\nRédiger un article complet en JSX (React), utilisant les composants ProjectView (NumberedCard, StatsGrid, HighlightBox, etc), basé sur le sujet proposé par ProjectBot.\n\n**Contexte métier:**\nProjectview est une agence spécialisée dans:\n- Écrans collaboratifs (pour réunions, salles de conférence)\n- Affichage dynamique (retail, showrooms, gares)\n- Tables tactiles interactives\n- Solutions VR/réalité virtuelle immersive\n- Intégration IA pour expériences personnalisées\n\n**Directives de rédaction JSX:**\n\n1. **Structure du composant:**\n   - Import des dépendances et composants\n   - Component principal avec useState, useEffect\n   - Navigation + Hero Section\n   - Sections de contenu avec composants riches\n   - CTA finale\n   - Export du composant\n\n2. **Composants disponibles à utiliser:**\n   ```\n   - NumberedCard: Encarts numérotés avec couleurs (blue, green, orange, red, purple)\n   - StatsGrid + StatCard: Grille de statistiques\n   - HighlightBox: Boîtes surlignées (success, warning, error, info)\n   - ComparisonCard: Avant/Après\n   - TimelineItem: Timeline d'évolution\n   - BenefitsGrid: Grille de bénéfices\n   - CTABox: Appels à l'action\n   ```\n\n3. **Import obligatoire au début:**\n   ```jsx\n   import React, { useState, useEffect } from 'react';\n   import { Link } from 'react-router-dom';\n   import { Menu, X, Calendar, Clock, User, ChevronRight, ChevronLeft, Sparkles, TrendingUp, Users, Award, Zap, Lightbulb } from 'lucide-react';\n   import Chatbot from './Chatbot';\n   import Logo from './Logo';\n   import { NumberedCard, StatsGrid, StatCard, HighlightBox, ComparisonCard, TimelineItem, BenefitsGrid, CTABox } from './ArticleComponents';\n   ```\n\n4. **Structure du composant React:**\n   ```jsx\n   const Article{{ PascalCaseTitle }} = () => {\n     const [scrolled, setScrolled] = useState(false);\n     const [isMenuOpen, setIsMenuOpen] = useState(false);\n\n     useEffect(() => {\n       window.scrollTo(0, 0);\n     }, []);\n\n     useEffect(() => {\n       const handleScroll = () => {\n         setScrolled(window.scrollY > 50);\n       };\n       window.addEventListener('scroll', handleScroll);\n       return () => window.removeEventListener('scroll', handleScroll);\n     }, []);\n\n     return (\n       <div className=\"font-sans bg-white text-gray-900\">\n         {/* Navigation */}\n         {/* Hero Section */}\n         {/* Contenu principal */}\n         {/* CTA Section */}\n         {/* Chatbot */}\n       </div>\n     );\n   };\n\n   export default Article{{ PascalCaseTitle }};\n   ```\n\n5. **Structure du contenu:**\n   - Hero avec catégorie badge, titre h1, métadonnées (date, auteur, temps de lecture)\n   - Image hero si disponible\n   - Sections avec H2\n   - Utiliser les composants NumberedCard, StatsGrid, HighlightBox, etc\n   - Texte explicatif entre les composants\n   - CTA finale avec CTABox ou section gradient\n\n6. **Couleurs du design:**\n   - Primary: #72B0CC (bleu Projectview)\n   - Secondary: #82BC6C (vert Projectview)\n   - Accent: #CF6E3F (orange Projectview)\n   - Utilisée dans les dégradés: from-[#72B0CC] to-[#82BC6C]\n\n7. **Exemple de NumberedCard:**\n   ```jsx\n   <NumberedCard number=\"1\" title=\"Titre du point\" color=\"blue\">\n     <p className=\"text-gray-800 leading-relaxed mb-4\">\n       <strong>Spécifications:</strong> Texte descriptif\n     </p>\n     <div className=\"grid md:grid-cols-2 gap-6\">\n       <div>\n         <h4 className=\"font-bold text-gray-900 mb-2\">✅ Avantages</h4>\n         <ul className=\"space-y-1 text-sm text-gray-700\">\n           <li>• Point 1</li>\n           <li>• Point 2</li>\n         </ul>\n       </div>\n     </div>\n   </NumberedCard>\n   ```\n\n8. **Exemple de StatsGrid:**\n   ```jsx\n   <StatsGrid>\n     <StatCard icon={TrendingUp} label=\"Augmentation\" value=\"+45%\" color=\"#72B0CC\" />\n     <StatCard icon={Users} label=\"Utilisateurs\" value=\"98%\" color=\"#82BC6C\" />\n   </StatsGrid>\n   ```\n\n9. **Tone et style:**\n   - Professionnel mais engageant\n   - Utilise emojis modérément dans les textes (1-2 par section)\n   - Pas de robot, conversationnel\n   - Exemples concrets et cas d'usage réels\n\n10. **Métadonnées du composant:**\n    - Créer au début du composant (avant return) une variable metadata:\n    ```jsx\n    const metadata = {\n      id: \"slug-article-kebab-case\",\n      title: \"Titre SEO optimisé\",\n      category: \"Guide Informatif\",\n      date: \"2025-10-27\",\n      author: \"ProjectBot\",\n      tags: [\"tag1\", \"tag2\", \"tag3\"]\n    };\n    ```\n\n**Exemple de réponse attendue (structure):**\n```jsx\nimport React, { useState, useEffect } from 'react';\n// ... imports\n\nconst ArticleIARobotique = () => {\n  const [scrolled, setScrolled] = useState(false);\n  // ... hooks\n\n  const metadata = {\n    id: \"ia-robotique-manufacturing\",\n    title: \"Comment l'IA transforme la robotique industrielle\",\n    category: \"Guide Informatif\",\n    date: \"2025-10-27\",\n    author: \"ProjectBot\",\n    tags: [\"IA\", \"Robotique\", \"Manufacturing\"]\n  };\n\n  return (\n    <div className=\"font-sans bg-white text-gray-900\">\n      {/* Navigation */}\n      <nav className=\"...\">\n        {/* Navigation bar */}\n      </nav>\n\n      {/* Hero Section */}\n      <section className=\"...\">\n        <div className=\"max-w-4xl mx-auto px-6\">\n          {/* Catégorie */}\n          {/* Titre */}\n          {/* Métadonnées */}\n        </div>\n      </section>\n\n      {/* Contenu principal */}\n      <article className=\"max-w-4xl mx-auto px-6 mb-32\">\n        {/* Utiliser NumberedCard, StatsGrid, etc */}\n      </article>\n\n      {/* CTA Section */}\n      <section className=\"...\">\n        {/* Call-to-action */}\n      </section>\n\n      {/* Chatbot */}\n      <Chatbot />\n    </div>\n  );\n};\n\nexport default ArticleIARobotique;\n```\n\n**Checklist avant de répondre:**\n- [ ] Composant React valide et fonctionnel\n- [ ] Tous les imports corrects\n- [ ] Utilise 3-4 composants riches (NumberedCard, StatsGrid, etc)\n- [ ] Navigation + Hero + Contenu + CTA + Chatbot\n- [ ] Pas d'erreurs de syntaxe\n- [ ] Colors Projectview utilisées (#72B0CC, #82BC6C, #CF6E3F)\n- [ ] Responsive (md: classes Tailwind)\n- [ ] Metadata incluse\n- [ ] Format: \"jsx\" pour identifier le type\n\n**Sujet à traiter:**\n{{ $json.articleTopic }}\n\nRédige le composant JSX complet et fonctionnel !",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -1488,
+        1100
+      ],
+      "id": "rédacteur-jsx-tool",
+      "name": "Rédacteur JSX"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2096,
+        768
+      ],
+      "id": "48b1d9da-f525-4812-b614-caa9f5aa5b33",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "chatId": "7804568968",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        576
+      ],
+      "id": "1e38035e-e523-4c66-8843-a5acc9a518e3",
+      "name": "Send a text message",
+        "webhookId": "14bbc7ff-c71b-4ac2-86f2-32e81ea2f58f",
+      "credentials": {
+        "telegramApi": {
+          "id": "O75y2vFwNz7vm66z",
+          "name": "Agent Market"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discussion": {
+      "ai_tool": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Rédacteur en Chef - Markdown",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Rédacteur JSX",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Rédacteur en Chef - Markdown",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Rédacteur JSX",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Projectbot": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "Rédacteur en Chef - Markdown",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Rédacteur JSX",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rédacteur en Chef - Markdown": {
+      "ai_tool": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rédacteur JSX": {
+      "ai_tool": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Projectbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e250a1cd022aeff3e7b7c23cd63c7c7d759355914e9d473ddcab64f040cc0f8"
+  }
+}

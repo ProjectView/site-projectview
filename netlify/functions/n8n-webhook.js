@@ -1,64 +1,113 @@
 /**
- * Netlify Function: N8N Webhook Handler
+ * Netlify Function: N8N Webhook Handler (AMÉLIORÉ)
  *
  * Reçoit les données d'articles de N8N ProjectBot et:
- * 1. Utilise l'API GitHub pour créer les fichiers
- * 2. Sauvegarde le markdown de l'article
- * 3. Génère et sauvegarde le composant React wrapper
- * 4. Met à jour main.jsx avec la nouvelle route
- * 5. Met à jour le registre Google Sheets
+ * 1. Gère MARKDOWN et JSX
+ * 2. Crée les fichiers via l'API GitHub
+ * 3. Met à jour main.jsx si c'est du JSX
+ * 4. Met à jour le registre Google Sheets
+ * 5. Envoie une notification Telegram
  *
- * Expected POST body:
+ * Expected POST body (NEW FORMAT):
  * {
- *   "articleMarkdown": "---\nid: ...\n---\n...",
+ *   "articleContent": "..." (markdown ou jsx),
+ *   "format": "markdown" | "jsx",
+ *   "approved": true/false
+ * }
+ *
+ * ANCIEN FORMAT (ENCORE SUPPORTÉ):
+ * {
+ *   "articleMarkdown": "...",
  *   "frontmatter": { id, title, category, date, tags, ... },
- *   "nanobananaPrompts": [ { name, prompt, ... }, ... ],
  *   "approved": true/false
  * }
  */
 
 /**
- * Valider que le Markdown contient du YAML valide
+ * Extraire le frontmatter du contenu markdown
  */
-function validateMarkdownYAML(markdown) {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-  const match = markdown.match(frontmatterRegex);
+function extractFrontmatter(content) {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+  const match = content.match(frontmatterRegex);
 
   if (!match) {
     throw new Error('Markdown must start with valid YAML frontmatter (---...---)');
   }
 
   try {
-    // Essayer de parser le YAML avec un parseur simple
     const yamlContent = match[1];
-    // Vérifier les erreurs communes
-    if (yamlContent.includes('["') && yamlContent.includes('"],')) {
-      throw new Error('Invalid YAML: JSON arrays should not have trailing commas (e.g., ["test"], should be tags: [\\n  - test\\n])');
-    }
-    return true;
+    // Parser simple du YAML
+    const frontmatter = {};
+    const lines = yamlContent.split('\n');
+
+    lines.forEach(line => {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex === -1) return;
+
+      const key = line.substring(0, colonIndex).trim();
+      const value = line.substring(colonIndex + 1).trim();
+
+      // Parser les valeurs
+      if (value === 'true') frontmatter[key] = true;
+      else if (value === 'false') frontmatter[key] = false;
+      else if (value.startsWith('[') && value.endsWith(']')) {
+        frontmatter[key] = JSON.parse(value);
+      }
+      else if (value.startsWith('"') && value.endsWith('"')) {
+        frontmatter[key] = value.slice(1, -1);
+      }
+      else {
+        frontmatter[key] = value;
+      }
+    });
+
+    return frontmatter;
   } catch (error) {
     throw new Error(`Invalid YAML in frontmatter: ${error.message}`);
   }
 }
 
 /**
- * Générer le composant React pour l'article
+ * Extraire l'ID et le titre du contenu JSX
  */
-function generateArticleComponent(frontmatter) {
-  const componentName = frontmatter.id
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
+function extractMetadataFromJSX(jsxContent) {
+  // Chercher const metadata = { ... }
+  const metadataRegex = /const metadata = \{([^}]+)\}/;
+  const match = jsxContent.match(metadataRegex);
 
-  return `import React from 'react';
-import ArticleRenderer from './ArticleRenderer';
+  if (!match) {
+    throw new Error('JSX must contain a metadata object: const metadata = { id, title, ... }');
+  }
 
-const ${componentName} = () => {
-  return <ArticleRenderer articleId="${frontmatter.id}" />;
-};
+  const metadataStr = `{${match[1]}}`;
+  try {
+    // Parser simple
+    const metadata = {};
+    const content = match[1];
 
-export default ${componentName};
-`;
+    const entries = content.split(',');
+    entries.forEach(entry => {
+      const [key, value] = entry.split(':').map(s => s.trim());
+      if (!key) return;
+
+      let parsedValue = value;
+      if (value.startsWith('"') && value.endsWith('"')) {
+        parsedValue = value.slice(1, -1);
+      } else if (value === 'true') {
+        parsedValue = true;
+      } else if (value === 'false') {
+        parsedValue = false;
+      } else if (value.startsWith('[') && value.endsWith(']')) {
+        parsedValue = JSON.parse(value);
+      }
+
+      metadata[key] = parsedValue;
+    });
+
+    return metadata;
+  } catch (error) {
+    throw new Error(`Could not parse metadata from JSX: ${error.message}`);
+  }
 }
 
 /**
@@ -95,7 +144,6 @@ async function createFileOnGitHub(path, content, message) {
         sha = fileData.sha;
       }
     } catch (e) {
-      // Le fichier n'existe pas encore, c'est normal pour les nouveaux fichiers
       console.log(`File ${path} doesn't exist yet, creating new file`);
     }
 
@@ -137,14 +185,14 @@ async function createFileOnGitHub(path, content, message) {
 }
 
 /**
- * Récupérer et mettre à jour main.jsx
+ * Récupérer et mettre à jour main.jsx pour JSX
  */
-async function updateMainJsx(frontmatter) {
+async function updateMainJsxForArticle(articleId, metadata) {
   const token = process.env.GITHUB_TOKEN;
   const owner = process.env.GITHUB_REPO_OWNER;
   const repo = process.env.GITHUB_REPO_NAME;
 
-  const componentName = frontmatter.id
+  const componentName = articleId
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
@@ -178,7 +226,7 @@ async function updateMainJsx(frontmatter) {
     }
 
     // Ajouter la route
-    const routePath = `/article/${frontmatter.id}`;
+    const routePath = `/article/${articleId}`;
     const routeLine = `        <Route path="${routePath}" element={<${componentName} />} />`;
     if (!mainContent.includes(`path="${routePath}"`)) {
       const lastArticleRoute = mainContent.match(/        <Route path="\/article\/[\w-]+" element={<\w+ \/\>} \/>\n/g);
@@ -192,7 +240,7 @@ async function updateMainJsx(frontmatter) {
     await createFileOnGitHub(
       'src/main.jsx',
       mainContent,
-      `🔄 Update routes for article: ${frontmatter.title}`
+      `🔄 Update routes for article: ${metadata.title}`
     );
 
     return true;
@@ -205,7 +253,7 @@ async function updateMainJsx(frontmatter) {
 /**
  * Mettre à jour le registre Google Sheets
  */
-async function updateGoogleSheet(frontmatter) {
+async function updateGoogleSheet(metadata) {
   if (!process.env.GOOGLE_SHEETS_API_KEY || !process.env.GOOGLE_SHEETS_SPREADSHEET_ID) {
     console.warn('⚠️ Google Sheets not configured, skipping registry update');
     return false;
@@ -215,15 +263,15 @@ async function updateGoogleSheet(frontmatter) {
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
     const row = [
-      frontmatter.id,
-      frontmatter.title,
-      frontmatter.date,
-      frontmatter.category,
-      (frontmatter.tags || []).join('|'),
-      frontmatter.category,
-      (frontmatter.seoKeywords || []).join('|'),
+      metadata.id,
+      metadata.title,
+      metadata.date,
+      metadata.category,
+      (metadata.tags || []).join('|'),
+      metadata.category,
+      (metadata.seoKeywords || []).join('|'),
       'published',
-      `https://projectview.fr/article/${frontmatter.id}`,
+      `https://projectview.fr/article/${metadata.id}`,
       `Generated by ProjectBot on ${new Date().toISOString()}`
     ];
 
@@ -258,7 +306,7 @@ async function updateGoogleSheet(frontmatter) {
 /**
  * Envoyer une notification Telegram
  */
-async function sendTelegramNotification(frontmatter) {
+async function sendTelegramNotification(metadata) {
   if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
     return false;
   }
@@ -267,12 +315,12 @@ async function sendTelegramNotification(frontmatter) {
     const message = `
 ✅ **Article Publié!**
 
-📝 **${frontmatter.title}**
-📂 Catégorie: ${frontmatter.category}
-🔗 URL: https://projectview.fr/article/${frontmatter.id}
-📅 Date: ${frontmatter.date}
+📝 **${metadata.title}**
+📂 Catégorie: ${metadata.category}
+🔗 URL: https://projectview.fr/article/${metadata.id}
+📅 Date: ${metadata.date}
 
-Tags: ${(frontmatter.tags || []).join(', ')}
+Tags: ${(metadata.tags || []).join(', ')}
 `;
 
     const response = await fetch(
@@ -324,22 +372,50 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { articleMarkdown, frontmatter, nanobananaPrompts, approved } = JSON.parse(event.body);
+    const requestBody = JSON.parse(event.body);
 
-    // Validate required fields
-    if (!articleMarkdown || !frontmatter || !frontmatter.id || !frontmatter.title) {
+    // Supporter les deux formats
+    let format = 'markdown';
+    let articleContent = null;
+    let metadata = null;
+    let approved = requestBody.approved;
+
+    // Format nouveau (N8N amélioré)
+    if (requestBody.articleContent && requestBody.format) {
+      articleContent = requestBody.articleContent;
+      format = requestBody.format;
+
+      if (format === 'markdown') {
+        metadata = extractFrontmatter(articleContent);
+      } else if (format === 'jsx') {
+        metadata = extractMetadataFromJSX(articleContent);
+      } else {
+        throw new Error(`Invalid format: ${format}. Use "markdown" or "jsx"`);
+      }
+    }
+    // Format ancien (compatibilité)
+    else if (requestBody.articleMarkdown && requestBody.frontmatter) {
+      articleContent = requestBody.articleMarkdown;
+      metadata = requestBody.frontmatter;
+      format = 'markdown';
+    } else {
+      throw new Error('Missing required fields: articleContent + format, or articleMarkdown + frontmatter');
+    }
+
+    // Validate required metadata
+    if (!metadata.id || !metadata.title) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({
           status: 'error',
-          message: 'Champs manquants: articleMarkdown, frontmatter (avec id et title)'
+          message: 'Champs manquants: id et title dans metadata'
         })
       };
     }
 
     // Validate article ID format
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(frontmatter.id)) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.id)) {
       return {
         statusCode: 400,
         headers,
@@ -350,24 +426,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Validate YAML structure before processing
-    try {
-      validateMarkdownYAML(articleMarkdown);
-    } catch (error) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          status: 'error',
-          message: 'YAML validation failed',
-          details: error.message
-        })
-      };
-    }
-
     // Check if approved
     if (!approved) {
-      console.log(`📋 Article draft saved: ${frontmatter.title}`);
+      console.log(`📋 Article draft saved: ${metadata.title} (${format})`);
       return {
         statusCode: 200,
         headers,
@@ -375,40 +436,71 @@ exports.handler = async (event, context) => {
           status: 'pending_approval',
           message: 'Article sauvegardé en brouillon. En attente d\'approbation d\'Adelin avant publication.',
           article: {
-            id: frontmatter.id,
-            title: frontmatter.title
+            id: metadata.id,
+            title: metadata.title,
+            format: format
           }
         })
       };
     }
 
-    // Create article markdown file (SEULE ÉTAPE NÉCESSAIRE)
-    // La route générique /article/:id dans main.jsx gère l'affichage dynamique
-    try {
-      await createFileOnGitHub(
-        `src/content/articles/${frontmatter.id}.md`,
-        articleMarkdown,
-        `📝 Add article: ${frontmatter.title}`
-      );
-      console.log(`✅ Article markdown created: ${frontmatter.id}.md`);
-    } catch (error) {
-      console.error('Error creating article:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({
-          status: 'error',
-          message: 'Impossible de sauvegarder le markdown',
-          details: error.message
-        })
-      };
+    // Create article file based on format
+    let filePath, commitMessage;
+
+    if (format === 'markdown') {
+      filePath = `src/content/articles/${metadata.id}.md`;
+      commitMessage = `📝 Add article: ${metadata.title}`;
+
+      try {
+        await createFileOnGitHub(filePath, articleContent, commitMessage);
+        console.log(`✅ Article markdown created: ${metadata.id}.md`);
+      } catch (error) {
+        console.error('Error creating markdown article:', error);
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({
+            status: 'error',
+            message: 'Impossible de sauvegarder le markdown',
+            details: error.message
+          })
+        };
+      }
+    } else if (format === 'jsx') {
+      const componentName = metadata.id
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+      filePath = `src/components/${componentName}.jsx`;
+      commitMessage = `✨ Create component: ${metadata.title}`;
+
+      try {
+        await createFileOnGitHub(filePath, articleContent, commitMessage);
+        console.log(`✅ Article JSX created: ${componentName}.jsx`);
+
+        // Update main.jsx for JSX articles
+        await updateMainJsxForArticle(metadata.id, metadata);
+        console.log(`✅ main.jsx updated with route for ${metadata.id}`);
+      } catch (error) {
+        console.error('Error creating JSX article:', error);
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({
+            status: 'error',
+            message: 'Impossible de sauvegarder le composant JSX',
+            details: error.message
+          })
+        };
+      }
     }
 
     // Update Google Sheets
-    const sheetUpdated = await updateGoogleSheet(frontmatter);
+    const sheetUpdated = await updateGoogleSheet(metadata);
 
     // Send Telegram notification
-    const notificationSent = await sendTelegramNotification(frontmatter);
+    const notificationSent = await sendTelegramNotification(metadata);
 
     return {
       statusCode: 201,
@@ -417,9 +509,10 @@ exports.handler = async (event, context) => {
         status: 'success',
         message: 'Article publié avec succès',
         article: {
-          id: frontmatter.id,
-          title: frontmatter.title,
-          url: `https://projectview.fr/article/${frontmatter.id}`
+          id: metadata.id,
+          title: metadata.title,
+          format: format,
+          url: `https://projectview.fr/article/${metadata.id}`
         },
         integrations: {
           github: 'success',

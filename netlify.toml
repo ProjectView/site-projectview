@@ -1,24 +1,55 @@
-# SPA fallback - rediriger vers index.html (SAUF pour *.md et assets)
-# Note: Les fichiers .md seront servis directement par Netlify depuis dist/
+# Netlify Configuration for ProjectView + ProjectBot
+
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
+
+# Netlify Functions configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+  [functions."n8n-webhook"]
+    memory = 512
+    timeout = 30
+
+# Headers for API responses
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# API redirects
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback - rediriger vers index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Netlify Functions configuration
-[build]
-  command = "npm run build"
-  functions = "netlify/functions"
-  publish = "dist"
-  # Inclure les fichiers markdown dans la publication
-  include = ["src/content/**/*.md"]
-
-# Environment variables for N8N webhook
+# Environment variables (à définir via: netlify env:set VAR value)
+# Ces valeurs vides seront remplacées par les vraies via Netlify UI ou CLI
 [context.production.environment]
+  # GITHUB configuration (OBLIGATOIRE)
   GITHUB_TOKEN = ""
-  GITHUB_REPO_OWNER = "adelinhugot"
+  GITHUB_REPO_OWNER = "ProjectView"
   GITHUB_REPO_NAME = "site-projectview"
+
+  # GOOGLE SHEETS configuration (OPTIONNEL)
   GOOGLE_SHEETS_API_KEY = ""
   GOOGLE_SHEETS_SPREADSHEET_ID = "13V4v7C3pECzAUaeSN7o3YxSBoY_JD2z23M_--xPP1fw"
+
+  # TELEGRAM configuration (OPTIONNEL)
   TELEGRAM_BOT_TOKEN = ""
   TELEGRAM_CHAT_ID = ""
