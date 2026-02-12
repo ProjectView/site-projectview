@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "solutions",
+  "info": {
+    "singularName": "solution",
+    "pluralName": "solutions",
+    "displayName": "Solution",
+    "description": "Projectview solutions"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "accent_color": {
+      "type": "enumeration",
+      "enum": ["teal", "orange", "green", "gold"],
+      "required": true
+    },
+    "short_description": {
+      "type": "text",
+      "required": true
+    },
+    "full_description": {
+      "type": "richtext"
+    },
+    "key_features": {
+      "type": "json"
+    },
+    "stats": {
+      "type": "json"
+    },
+    "badge_text": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

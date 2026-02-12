@@ -1,0 +1,591 @@
+{
+  "name": "Projectview — Telegram Blog Publisher (Git + Netlify)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [220, 340],
+      "webhookId": "projectview-blog-telegram",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      },
+      "notes": "Listens to all incoming messages. Create a bot via @BotFather and paste the token in n8n Telegram credentials."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": { "type": "string", "operation": "startsWith" }
+            },
+            {
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/help",
+              "operator": { "type": "string", "operation": "startsWith" }
+            }
+          ]
+        }
+      },
+      "id": "is-command",
+      "name": "Is /start or /help?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 340]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=👋 *Assistant Blog Projectview*\n\nJe suis votre assistant pour créer et publier des articles sur projectview.fr.\n\n*Comment ça marche :*\n1️⃣ Envoyez-moi un sujet ou une idée d'article\n2️⃣ Je rédige un brouillon complet\n3️⃣ Vous relisez et demandez des modifications\n4️⃣ Vous validez et l'article est publié\n\n*Commandes :*\n• Envoyez un sujet → je rédige\n• *Modifier* + vos instructions → je corrige\n• *OK* / *Publier* / *Oui* → je publie\n• *Annuler* → j'abandonne le brouillon\n\n*Catégories :*\n• Affichage Dynamique\n• Collaboration\n• Présentation Innovante\n• Assistant IA\n• Tendances\n\nEnvoyez-moi votre idée ! 🚀",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "send-help",
+      "name": "Send Help",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [660, 200],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.message.text.toLowerCase().trim() }}",
+              "rightValue": "ok",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.message.text.toLowerCase().trim() }}",
+              "rightValue": "publier",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.message.text.toLowerCase().trim() }}",
+              "rightValue": "oui",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.message.text.toLowerCase().trim() }}",
+              "rightValue": "go",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "is-approval",
+      "name": "Is Approval?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 440]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.message.text.toLowerCase() }}",
+              "rightValue": "modifier",
+              "operator": { "type": "string", "operation": "startsWith" }
+            }
+          ]
+        }
+      },
+      "id": "is-modification",
+      "name": "Is Modification?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 560]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.message.text.toLowerCase().trim() }}",
+              "rightValue": "annuler",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "is-cancel",
+      "name": "Is Cancel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 680]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "🗑 *Brouillon supprimé.*\n\nEnvoyez-moi un nouveau sujet quand vous voulez.",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "confirm-cancel",
+      "name": "Confirm Cancel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1320, 600],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst chatId = $('Telegram Trigger').item.json.message.chat.id;\ndelete staticData['draft_' + chatId];\nreturn [{ json: { cleared: true } }];"
+      },
+      "id": "clear-draft",
+      "name": "Clear Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 740]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Tu es un rédacteur expert pour le blog de Projectview.fr, une entreprise française qui transforme les espaces physiques en expériences interactives (écrans tactiles, affichage dynamique, VR, collaboration, IA).\n\nTa mission : rédiger des articles de blog professionnels, engageants et orientés B2B.\n\n**Règles de rédaction :**\n- Langue : Français impeccable, ton professionnel mais accessible\n- Structure : Titre accrocheur, introduction percutante, 3-4 sections avec titres ## , conclusion avec appel à l'action\n- Longueur : 600-1000 mots\n- Style : Informatif, pas commercial. Apporter de la valeur au lecteur.\n- Public cible : Directeurs marketing, responsables innovation, architectes, promoteurs immobiliers, retailers\n- SEO : Intégrer naturellement les mots-clés pertinents\n\n**Format de réponse OBLIGATOIRE — retourne UNIQUEMENT un bloc JSON valide, rien d'autre :**\n```json\n{\n  \"title\": \"Titre de l'article\",\n  \"slug\": \"titre-de-larticle-en-minuscules\",\n  \"excerpt\": \"Résumé de 1-2 phrases pour la carte d'aperçu\",\n  \"content\": \"Contenu complet avec des ## pour les titres de section. Sépare les paragraphes par \\n\\n\",\n  \"category\": \"Nom de la catégorie\",\n  \"categorySlug\": \"slug-de-la-categorie\",\n  \"author\": \"Nom de l'auteur\",\n  \"authorBio\": \"Bio courte\",\n  \"readTime\": \"X min\"\n}\n```\n\nCatégories valides :\n- Affichage Dynamique → affichage-dynamique\n- Collaboration → collaboration\n- Présentation Innovante → presentation-innovante\n- Assistant IA → assistant-ia\n- Tendances → tendances\n\nAuteurs disponibles :\n- Sophie Martin — Experte en solutions d'affichage dynamique chez Projectview\n- Thomas Bernard — Directeur technique et passionné de réalité virtuelle\n- Claire Rousseau — Spécialiste IA et automatisation chez Projectview\n- Pierre Lefèvre — Consultant en transformation digitale des espaces de travail\n\nChoisis l'auteur le plus pertinent pour le sujet."
+            },
+            {
+              "role": "user",
+              "content": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 3000
+        }
+      },
+      "id": "ai-generate",
+      "name": "AI Generate Article",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.6,
+      "position": [1320, 440],
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI"
+        }
+      },
+      "notes": "Generates a full article as JSON. Replace with HTTP Request to Anthropic API if you prefer Claude."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI response and extract JSON article\nconst aiResponse = $input.first().json.message?.content || $input.first().json.text || '';\nlet jsonStr = aiResponse;\n\n// Strip markdown code fences if present\nconst fenceMatch = aiResponse.match(/```(?:json)?\\s*([\\s\\S]*?)```/);\nif (fenceMatch) jsonStr = fenceMatch[1].trim();\n\nlet article;\ntry {\n  article = JSON.parse(jsonStr);\n} catch (e) {\n  const objectMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\n  if (objectMatch) {\n    article = JSON.parse(objectMatch[0]);\n  } else {\n    throw new Error('Impossible de parser le JSON. Réponse IA : ' + aiResponse.substring(0, 300));\n  }\n}\n\n// Validate required fields\nconst required = ['title', 'slug', 'excerpt', 'content', 'category', 'categorySlug', 'author', 'readTime'];\nfor (const f of required) {\n  if (!article[f]) throw new Error('Champ manquant : ' + f);\n}\n\n// Clean slug\narticle.slug = article.slug\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9-]/g, '-')\n  .replace(/-+/g, '-')\n  .replace(/^-|-$/g, '');\n\n// Set date in French format\nconst now = new Date();\nconst months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];\narticle.date = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;\n\n// Default author bio\nif (!article.authorBio) {\n  const bios = {\n    'Sophie Martin': \"Experte en solutions d'affichage dynamique chez Projectview\",\n    'Thomas Bernard': 'Directeur technique et passionné de réalité virtuelle',\n    'Claire Rousseau': 'Spécialiste IA et automatisation chez Projectview',\n    'Pierre Lefèvre': 'Consultant en transformation digitale des espaces de travail'\n  };\n  article.authorBio = bios[article.author] || 'Expert chez Projectview';\n}\n\n// Store draft in workflow static data (no Redis needed)\nconst chatId = $('Telegram Trigger').item.json.message.chat.id;\nconst staticData = $getWorkflowStaticData('global');\nstaticData['draft_' + chatId] = JSON.stringify(article);\n\narticle._chatId = chatId;\nreturn [{ json: article }];"
+      },
+      "id": "parse-article",
+      "name": "Parse & Store Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 440],
+      "notes": "Parses AI JSON, validates, cleans slug, adds French date, stores draft in n8n static data (zero infra)."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json._chatId }}",
+        "text": "=📝 *Voici le brouillon :*\n\n*Titre :* {{ $json.title }}\n*Catégorie :* {{ $json.category }}\n*Auteur :* {{ $json.author }}\n*Lecture :* {{ $json.readTime }}\n\n---\n\n*Résumé :*\n{{ $json.excerpt }}\n\n---\n\n{{ $json.content }}\n\n---\n\n✅ *OK* / *Publier* / *Oui* → publier l'article\n✏️ *Modifier* + instructions → corriger le brouillon\n❌ *Annuler* → abandonner",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "send-preview",
+      "name": "Send Preview",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1760, 440],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Retrieve stored draft\nconst chatId = $('Telegram Trigger').item.json.message.chat.id;\nconst staticData = $getWorkflowStaticData('global');\nconst draftStr = staticData['draft_' + chatId];\n\nif (!draftStr) {\n  throw new Error('NO_DRAFT');\n}\n\nconst article = JSON.parse(draftStr);\ndelete article._chatId;\nreturn [{ json: article }];"
+      },
+      "id": "get-draft-approve",
+      "name": "Get Draft for Publish",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 340],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEquals" }
+            }
+          ]
+        }
+      },
+      "id": "has-draft",
+      "name": "Draft Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 340]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ *Aucun brouillon trouvé.*\n\nEnvoyez-moi un sujet d'article pour commencer.",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "no-draft-error",
+      "name": "No Draft Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1320, 260],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "⏳ *Publication en cours...*\n\nJe pousse l'article sur GitHub et je lance le déploiement Netlify.",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "publishing-status",
+      "name": "Send Publishing Status",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1320, 120],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "owner": "YOUR_GITHUB_USERNAME",
+        "repository": "projectview-site",
+        "operation": "get",
+        "filePath": "lib/fallback-data.ts"
+      },
+      "id": "get-file",
+      "name": "Get fallback-data.ts",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [1540, 120],
+      "credentials": {
+        "githubApi": {
+          "id": "GITHUB_CREDENTIALS_ID",
+          "name": "GitHub"
+        }
+      },
+      "notes": "Fetches the current file from repo (main branch). Needed for content + SHA to make the commit."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inject new article at the top of the articles[] array in fallback-data.ts\n\nconst fileContent = Buffer.from(\n  $('Get fallback-data.ts').item.json.content,\n  'base64'\n).toString('utf-8');\n\nconst article = $('Get Draft for Publish').item.json;\nconst sha = $('Get fallback-data.ts').item.json.sha;\n\n// Build TypeScript object literal\nconst newArticle = `  {\n    title: ${JSON.stringify(article.title)},\n    slug: ${JSON.stringify(article.slug)},\n    excerpt: ${JSON.stringify(article.excerpt)},\n    content: ${JSON.stringify(article.content)},\n    category: ${JSON.stringify(article.category)},\n    categorySlug: ${JSON.stringify(article.categorySlug)},\n    date: ${JSON.stringify(article.date)},\n    author: ${JSON.stringify(article.author)},\n    authorBio: ${JSON.stringify(article.authorBio)},\n    readTime: ${JSON.stringify(article.readTime)},\n  }`;\n\n// Find the articles array marker and insert after the opening bracket\nconst marker = 'export const articles: Article[] = [';\nconst insertIdx = fileContent.indexOf(marker);\nif (insertIdx === -1) {\n  throw new Error('Could not find articles array in fallback-data.ts');\n}\n\nconst bracketIdx = fileContent.indexOf('[', insertIdx);\nconst before = fileContent.slice(0, bracketIdx + 1);\nconst after = fileContent.slice(bracketIdx + 1);\nconst updatedContent = before + '\\n' + newArticle + ',' + after;\n\nreturn [{\n  json: {\n    content: Buffer.from(updatedContent).toString('base64'),\n    sha: sha,\n    slug: article.slug,\n    title: article.title\n  }\n}];"
+      },
+      "id": "inject-article",
+      "name": "Inject Article into File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 120],
+      "notes": "Decodes fallback-data.ts, inserts new article at top of articles[] (newest first), re-encodes to base64."
+    },
+    {
+      "parameters": {
+        "owner": "YOUR_GITHUB_USERNAME",
+        "repository": "projectview-site",
+        "operation": "edit",
+        "filePath": "lib/fallback-data.ts",
+        "fileContent": "={{ $json.content }}",
+        "commitMessage": "=blog: add \"{{ $json.title }}\" [auto-published via Telegram]",
+        "additionalParameters": {
+          "sha": "={{ $json.sha }}",
+          "branch": "main"
+        }
+      },
+      "id": "git-push",
+      "name": "Git Push to GitHub",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [1980, 120],
+      "credentials": {
+        "githubApi": {
+          "id": "GITHUB_CREDENTIALS_ID",
+          "name": "GitHub"
+        }
+      },
+      "notes": "Commits updated fallback-data.ts to main. Replace YOUR_GITHUB_USERNAME with your actual GitHub username."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NETLIFY_BUILD_HOOK || 'https://api.netlify.com/build_hooks/YOUR_BUILD_HOOK_ID' }}",
+        "options": {}
+      },
+      "id": "trigger-netlify",
+      "name": "Trigger Netlify Deploy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 120],
+      "notes": "Fires a Netlify build hook to trigger deploy. Create one in: Netlify → Site settings → Build & deploy → Build hooks. Set NETLIFY_BUILD_HOOK env var in n8n, or replace the URL directly."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clean up draft from static data after publish\nconst chatId = $('Telegram Trigger').item.json.message.chat.id;\nconst staticData = $getWorkflowStaticData('global');\ndelete staticData['draft_' + chatId];\n\nconst article = $('Get Draft for Publish').item.json;\nreturn [{ json: { title: article.title, slug: article.slug } }];"
+      },
+      "id": "cleanup-draft",
+      "name": "Cleanup Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 120]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=✅ *Article publié avec succès !*\n\n📰 *{{ $json.title }}*\n\n🔗 projectview.fr/blog/{{ $json.slug }}\n\n⏱ Le site se redéploie. L'article sera en ligne dans ~1-2 minutes.\n\n_Commit poussé sur GitHub + build Netlify lancé._",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "confirm-published",
+      "name": "Confirm Published",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2640, 120],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Projectview Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Retrieve stored draft for modification\nconst chatId = $('Telegram Trigger').item.json.message.chat.id;\nconst staticData = $getWorkflowStaticData('global');\nconst draftStr = staticData['draft_' + chatId];\n\nif (!draftStr) {\n  throw new Error('NO_DRAFT');\n}\n\nreturn [{ json: JSON.parse(draftStr) }];"
+      },
+      "id": "get-draft-modify",
+      "name": "Get Draft for Modify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 840],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Tu es un rédacteur expert pour Projectview.fr. L'utilisateur souhaite modifier un brouillon d'article existant. Applique les modifications demandées tout en gardant le reste intact.\n\nRetourne UNIQUEMENT le JSON complet corrigé, sans texte avant ni après :\n```json\n{\n  \"title\": \"...\",\n  \"slug\": \"...\",\n  \"excerpt\": \"...\",\n  \"content\": \"...\",\n  \"category\": \"...\",\n  \"categorySlug\": \"...\",\n  \"author\": \"...\",\n  \"authorBio\": \"...\",\n  \"readTime\": \"...\"\n}\n```"
+            },
+            {
+              "role": "user",
+              "content": "=Voici l'article actuel :\n{{ JSON.stringify($('Get Draft for Modify').item.json) }}\n\nModifications demandées :\n{{ $('Telegram Trigger').item.json.message.text.replace(/^modifier\\s*/i, '') }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.5,
+          "maxTokens": 3000
+        }
+      },
+      "id": "ai-modify",
+      "name": "AI Modify Article",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.6,
+      "position": [1540, 840],
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI"
+        }
+      },
+      "notes": "Lower temperature (0.5) for faithful edits. Feeds back into Parse & Store Draft → Preview loop."
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          { "node": "Is /start or /help?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Is /start or /help?": {
+      "main": [
+        [
+          { "node": "Send Help", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Is Approval?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Is Approval?": {
+      "main": [
+        [
+          { "node": "Get Draft for Publish", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Is Modification?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Draft for Publish": {
+      "main": [
+        [
+          { "node": "Draft Found?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Draft Found?": {
+      "main": [
+        [
+          { "node": "Send Publishing Status", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "No Draft Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Send Publishing Status": {
+      "main": [
+        [
+          { "node": "Get fallback-data.ts", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get fallback-data.ts": {
+      "main": [
+        [
+          { "node": "Inject Article into File", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Inject Article into File": {
+      "main": [
+        [
+          { "node": "Git Push to GitHub", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Git Push to GitHub": {
+      "main": [
+        [
+          { "node": "Trigger Netlify Deploy", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Trigger Netlify Deploy": {
+      "main": [
+        [
+          { "node": "Cleanup Draft", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Cleanup Draft": {
+      "main": [
+        [
+          { "node": "Confirm Published", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Is Modification?": {
+      "main": [
+        [
+          { "node": "Is Cancel?", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "AI Generate Article", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Is Cancel?": {
+      "main": [
+        [
+          { "node": "Confirm Cancel", "type": "main", "index": 0 },
+          { "node": "Clear Draft", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Get Draft for Modify", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "AI Generate Article": {
+      "main": [
+        [
+          { "node": "Parse & Store Draft", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse & Store Draft": {
+      "main": [
+        [
+          { "node": "Send Preview", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Draft for Modify": {
+      "main": [
+        [
+          { "node": "AI Modify Article", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "AI Modify Article": {
+      "main": [
+        [
+          { "node": "Parse & Store Draft", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "any",
+    "errorWorkflow": ""
+  },
+  "staticData": {},
+  "tags": [
+    { "name": "blog" },
+    { "name": "telegram" },
+    { "name": "netlify" },
+    { "name": "git" }
+  ]
+}

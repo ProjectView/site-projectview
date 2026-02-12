@@ -1,0 +1,307 @@
+@import "tailwindcss";
+
+/* ===========================
+   Tailwind v4 Theme Configuration
+   Modern / Framer-inspired aesthetic
+   =========================== */
+
+@theme {
+  /* Dark theme base — deep charcoal */
+  --color-dark-bg: #09090B;
+  --color-dark-surface: #111113;
+  --color-dark-elevated: #1A1A1F;
+  --color-dark-border: rgba(255, 255, 255, 0.07);
+  --color-dark-border-hover: rgba(255, 255, 255, 0.14);
+
+  /* Light theme base */
+  --color-light-bg: #FAFAFA;
+  --color-light-surface: #FFFFFF;
+  --color-light-elevated: #F4F4F5;
+  --color-light-border: #E4E4E7;
+  --color-light-border-hover: #D4D4D8;
+
+  /* Brand colors — vibrant, saturated */
+  --color-brand-teal: #0EA5E9;
+  --color-brand-teal-light: #38BDF8;
+  --color-brand-teal-dark: #0284C7;
+  --color-brand-green: #22C55E;
+  --color-brand-orange: #F97316;
+  --color-brand-gold: #EAB308;
+  --color-brand-red: #EF4444;
+  --color-brand-purple: #A855F7;
+  --color-brand-pink: #EC4899;
+
+  /* Text colors */
+  --color-ink-primary: #FAFAFA;
+  --color-ink-secondary: #A1A1AA;
+  --color-ink-tertiary: #71717A;
+  --color-ink-light-primary: #09090B;
+  --color-ink-light-secondary: #52525B;
+
+  /* Font families — Montserrat for everything */
+  --font-heading: "Montserrat", system-ui, sans-serif;
+  --font-body: "Montserrat", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Animations */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-mesh-move: meshMove 25s ease-in-out infinite;
+  --animate-gradient-shift: gradientShift 6s ease-in-out infinite;
+  --animate-pulse-glow: pulseGlow 4s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes meshMove {
+    0%, 100% { background-position: 0% 0%, 100% 0%, 50% 100%; }
+    25% { background-position: 100% 50%, 0% 100%, 80% 0%; }
+    50% { background-position: 50% 100%, 50% 0%, 0% 50%; }
+    75% { background-position: 0% 50%, 100% 50%, 50% 0%; }
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+  }
+}
+
+/* ===========================
+   CSS Custom Properties
+   =========================== */
+
+:root {
+  /* Vibrant modern gradients */
+  --gradient-brand: linear-gradient(135deg, #0EA5E9, #A855F7, #F97316);
+  --gradient-brand-hover: linear-gradient(135deg, #38BDF8, #C084FC, #FB923C);
+  --gradient-glow-teal: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.2), transparent 70%);
+  --gradient-glow-purple: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15), transparent 70%);
+  --gradient-glow-orange: radial-gradient(ellipse at center, rgba(249, 115, 22, 0.15), transparent 70%);
+  --gradient-mesh: radial-gradient(at 20% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+                   radial-gradient(at 80% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                   radial-gradient(at 60% 80%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
+}
+
+/* ===========================
+   Base Styles — Dark Theme Default
+   =========================== */
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-dark-bg);
+  color: var(--color-ink-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light theme overrides */
+[data-theme="light"] body,
+.light body {
+  background-color: var(--color-light-bg);
+  color: var(--color-ink-light-primary);
+  color-scheme: light;
+}
+
+/* ===========================
+   Typography — Bold modern sans-serif
+   =========================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+/* ===========================
+   Hero Gradient Mesh — Vibrant
+   =========================== */
+
+.hero-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 80%, rgba(249, 115, 22, 0.1) 0%, transparent 50%);
+  animation: meshMove 25s ease-in-out infinite;
+}
+
+/* ===========================
+   Glass Effect Utility — Modern
+   =========================== */
+
+.glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .glass,
+.light .glass {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ===========================
+   Gradient Text Utility — Vibrant + animated
+   =========================== */
+
+.gradient-text {
+  background: var(--gradient-brand);
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 6s ease-in-out infinite;
+}
+
+/* ===========================
+   Gradient Border Utility
+   =========================== */
+
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--gradient-brand);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ===========================
+   Glow Effects — Bolder
+   =========================== */
+
+.glow-teal {
+  background: var(--gradient-glow-teal);
+}
+
+.glow-purple {
+  background: var(--gradient-glow-purple);
+}
+
+.glow-orange {
+  background: var(--gradient-glow-orange);
+}
+
+/* ===========================
+   Gradient Orb — decorative
+   =========================== */
+
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* ===========================
+   Selection
+   =========================== */
+
+::selection {
+  background-color: rgba(14, 165, 233, 0.3);
+  color: #FAFAFA;
+}
+
+/* ===========================
+   Scrollbar (Webkit)
+   =========================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-secondary);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb,
+.light ::-webkit-scrollbar-thumb {
+  background: var(--color-light-border-hover);
+}
+
+/* ===========================
+   Accessibility — Focus Outlines
+   =========================== */
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-brand-teal);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-brand-teal);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  z-index: 100;
+  transition: top 0.2s;
+  border-radius: 0 0 0.75rem 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ===========================
+   Accessibility — Reduced Motion
+   =========================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

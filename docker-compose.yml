@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # ── PostgreSQL ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: projectview-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: projectview_strapi
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: strapi
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  # ── Strapi CMS ──
+  strapi:
+    build:
+      context: ./strapi
+      dockerfile: Dockerfile
+    container_name: projectview-strapi
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      HOST: 0.0.0.0
+      PORT: 1337
+      APP_KEYS: key1-projectview-dev,key2-projectview-dev
+      API_TOKEN_SALT: projectview-api-token-salt-dev
+      ADMIN_JWT_SECRET: projectview-admin-jwt-secret-dev
+      TRANSFER_TOKEN_SALT: projectview-transfer-token-salt-dev
+      JWT_SECRET: projectview-jwt-secret-dev
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: projectview_strapi
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      DATABASE_SSL: 'false'
+    volumes:
+      - ./strapi:/srv/app
+      - strapi-node-modules:/srv/app/node_modules
+    ports:
+      - '1337:1337'
+
+  # ── Next.js Frontend ──
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: projectview-nextjs
+    restart: unless-stopped
+    depends_on:
+      - strapi
+    environment:
+      STRAPI_URL: http://strapi:1337
+      STRAPI_API_TOKEN: ${STRAPI_API_TOKEN:-}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    ports:
+      - '3000:3000'
+
+volumes:
+  postgres-data:
+  strapi-node-modules:
