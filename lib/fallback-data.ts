@@ -170,6 +170,18 @@ export const categories = [
 
 export const articles: Article[] = [
   {
+    title: 'onozndoianziudnaiz',
+    slug: 'onozndoianziudnaiz',
+    excerpt: 'onzaodnoiazdn',
+    content: 'alzjdozandoinaiozndioanziodn\n\nazdpazdpazd',
+    category: 'Collaboration',
+    categorySlug: 'collaboration',
+    date: '13 Fév 2026',
+    author: 'Claire Rousseau',
+    authorBio: 'Spécialiste IA et automatisation chez Projectview',
+    readTime: '1 min',
+  },
+  {
     title: "Comment l'affichage dynamique transforme le retail en 2025",
     slug: 'affichage-dynamique-retail-2025',
     excerpt: "Découvrez comment les écrans interactifs révolutionnent l'expérience en magasin et augmentent l'engagement client de manière spectaculaire.",
