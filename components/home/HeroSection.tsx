@@ -163,7 +163,7 @@ export function HeroSection() {
         ))}
 
       {/* ── Main content ── */}
-      <div className="relative mx-auto max-w-[1280px] w-full px-6 py-32 lg:py-0 z-10">
+      <div className="relative mx-auto max-w-[1280px] w-full px-6 pt-28 pb-20 lg:pt-32 lg:pb-0 z-10">
         <div className="flex flex-col items-center text-center">
           {/* Status badge */}
           <motion.div
