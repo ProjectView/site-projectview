@@ -170,16 +170,16 @@ export const categories = [
 
 export const articles: Article[] = [
   {
-    title: 'Comment l',
-    slug: 'affichage-dynamique-retail-2025',
+    title: 'Comment les écrans interactifs révolutionnent l',
+    slug: 'comment-les-ecrans-interactifs-revolutionnent-l',
     excerpt: 'Découvrez comment les écrans interactifs révolutionnent l',
     content: 'L',
     category: 'Affichage Dynamique',
     categorySlug: 'affichage-dynamique',
     date: '15 Jan 2025',
     author: 'Sophie Martin',
-    authorBio: 'Experte en solutions d\\',
-    readTime: '5 min',
+    authorBio: 'Experte en solutions d\'affichage dynamique chez Projectview',
+    readTime: '1 min',
   },
   {
     title: 'VR immobilière : vendre un bien avant sa construction',
@@ -208,7 +208,7 @@ export const articles: Article[] = [
   {
     title: 'Les tendances de la collaboration hybride en 2025',
     slug: 'tendances-collaboration-hybride-2025',
-    excerpt: 'Le travail hybride est là pour rester. Découvrez les technologies qui rendent la collaboration à distance aussi naturelle qu\\',
+    excerpt: 'Le travail hybride est là pour rester. Découvrez les technologies qui rendent la collaboration à distance aussi naturelle qu\\\\',
     content: 'Le travail hybride n',
     category: 'Collaboration',
     categorySlug: 'collaboration',
@@ -226,7 +226,7 @@ export const articles: Article[] = [
     categorySlug: 'tendances',
     date: '12 Déc 2024',
     author: 'Sophie Martin',
-    authorBio: 'Experte en solutions d\\',
+    authorBio: 'Experte en solutions d\\\\',
     readTime: '4 min',
   },
   {
