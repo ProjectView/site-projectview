@@ -1,17 +1,18 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { getCsrfToken } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
+
+const AUTH_BASE = '/api/admin/auth';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/admin/dashboard';
 
@@ -21,20 +22,34 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
+      // Get CSRF token (this also sets the csrf cookie)
+      const csrfToken = await getCsrfToken();
+
+      // POST to the credentials callback endpoint manually
+      const res = await fetch(`${AUTH_BASE}/callback/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          csrfToken: csrfToken || '',
+          email,
+          password,
+          json: 'true',
+        }),
+        redirect: 'follow',
       });
 
-      if (result?.error) {
+      // If the response redirected to an error page, login failed
+      const url = new URL(res.url);
+      if (url.searchParams.has('error')) {
         setError('Email ou mot de passe incorrect.');
-      } else {
-        router.push(callbackUrl);
+        setLoading(false);
+        return;
       }
+
+      // Login succeeded — the session cookie is now set, navigate to dashboard
+      window.location.href = callbackUrl;
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.');
-    } finally {
       setLoading(false);
     }
   };
