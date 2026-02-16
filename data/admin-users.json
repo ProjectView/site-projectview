@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "name": "Adelin",
+    "email": "admin@projectview.fr",
+    "passwordHash": "$2b$12$xW/iLoIsv32GZqnKhNSQ4O7zpr7f.eqsl0jkhW0867On0o2CQ60KS",
+    "role": "admin",
+    "createdAt": "2026-02-13T11:24:01.035Z"
+  },
+  {
+    "id": "bf8b3852-d2ed-4c1e-aee5-fbde5a8a3270",
+    "name": "Bernard",
+    "email": "bernard@projectview.fr",
+    "passwordHash": "$2b$12$.4dxvBf6fyM.BjDDedzpbe9Kw3NZwXwYdeoZVlaZHj932dVwce/Wi",
+    "role": "admin",
+    "createdAt": "2026-02-13T13:12:18.106Z"
+  }
+]

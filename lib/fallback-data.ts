@@ -28,6 +28,7 @@ export interface Article {
   author: string;
   authorBio: string;
   readTime: string;
+  coverImage?: string;
 }
 
 export interface Testimonial {
@@ -180,6 +181,7 @@ export const articles: Article[] = [
     author: 'Sophie Martin',
     authorBio: 'Experte en solutions d\'affichage dynamique chez Projectview',
     readTime: '1 min',
+    coverImage: '/images/blog/affichage-dynamique-retail-2025.jpeg',
   },
   {
     title: 'VR immobilière : vendre un bien avant sa construction',
@@ -192,6 +194,7 @@ export const articles: Article[] = [
     author: 'Thomas Bernard',
     authorBio: 'Directeur technique et passionné de réalité virtuelle',
     readTime: '4 min',
+    coverImage: '/images/blog/vr-immobiliere-vente-avant-construction.jpeg',
   },
   {
     title: 'L',
@@ -204,6 +207,7 @@ export const articles: Article[] = [
     author: 'Claire Rousseau',
     authorBio: 'Spécialiste IA et automatisation chez Projectview',
     readTime: '6 min',
+    coverImage: '/images/blog/ia-relation-client-b2b.jpeg',
   },
   {
     title: 'Les tendances de la collaboration hybride en 2025',
@@ -216,6 +220,7 @@ export const articles: Article[] = [
     author: 'Pierre Lefèvre',
     authorBio: 'Consultant en transformation digitale des espaces de travail',
     readTime: '5 min',
+    coverImage: '/images/blog/tendances-collaboration-hybride-2025.jpeg',
   },
   {
     title: 'Retail 2025 : l',
@@ -228,6 +233,7 @@ export const articles: Article[] = [
     author: 'Sophie Martin',
     authorBio: 'Experte en solutions d\\\\',
     readTime: '4 min',
+    coverImage: '/images/blog/retail-2025-experience-client.jpeg',
   },
   {
     title: 'Comment choisir sa table tactile de négociation',
@@ -240,6 +246,7 @@ export const articles: Article[] = [
     author: 'Thomas Bernard',
     authorBio: 'Directeur technique et passionné de réalité virtuelle',
     readTime: '7 min',
+    coverImage: '/images/blog/choisir-table-tactile-negociation.jpeg',
   },
 ];
 

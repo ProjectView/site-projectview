@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createMessage } from '@/lib/messages';
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,9 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    // Persist message locally
+    await createMessage({ name, email, phone, company, solution, message });
 
     // Forward to N8N webhook if configured
     const webhookUrl = process.env.N8N_WEBHOOK_URL;

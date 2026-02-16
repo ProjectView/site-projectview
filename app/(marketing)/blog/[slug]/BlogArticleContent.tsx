@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Share2, Linkedin, Twitter } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
@@ -98,11 +99,22 @@ export function BlogArticleContent({ article }: { article: Article }) {
         </div>
       </section>
 
-      {/* Cover image placeholder */}
+      {/* Cover image */}
       <section className="px-6">
         <div className="mx-auto max-w-[1280px]">
-          <div className="w-full aspect-[21/9] rounded-2xl bg-dark-elevated overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-brand-teal/10 via-brand-purple/5 to-brand-orange/10" />
+          <div className="w-full aspect-[21/9] rounded-2xl bg-dark-elevated overflow-hidden relative">
+            {article.coverImage ? (
+              <Image
+                src={article.coverImage}
+                alt={article.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1280px) 100vw, 1280px"
+                priority
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-brand-teal/10 via-brand-purple/5 to-brand-orange/10" />
+            )}
           </div>
         </div>
       </section>

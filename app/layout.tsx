@@ -1,10 +1,6 @@
 import type { Metadata } from 'next';
 import { Montserrat, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { NoiseOverlay } from '@/components/ui/NoiseOverlay';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -47,20 +43,9 @@ export default function RootLayout({
       data-theme="dark"
       className={`${montserrat.variable} ${jetbrainsMono.variable}`}
     >
-      <head>
-        <OrganizationJsonLd />
-      </head>
       <body className="bg-dark-bg text-ink-primary antialiased">
         <ThemeProvider>
-          <a href="#main-content" className="skip-link">
-            Aller au contenu principal
-          </a>
-          <NoiseOverlay />
-          <Navbar />
-          <div id="main-content">
-            {children}
-          </div>
-          <Footer />
+          {children}
         </ThemeProvider>
       </body>
     </html>

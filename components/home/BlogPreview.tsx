@@ -2,50 +2,13 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { SectionWrapper } from '@/components/ui/SectionWrapper';
 import { Heading } from '@/components/ui/Heading';
 import { GradientText } from '@/components/ui/GradientText';
 import { Badge } from '@/components/ui/Badge';
-
-interface Article {
-  title: string;
-  slug: string;
-  excerpt: string;
-  category: string;
-  date: string;
-  image: string;
-}
-
-const fallbackArticles: Article[] = [
-  {
-    title: "Comment l'affichage dynamique transforme le retail en 2025",
-    slug: 'affichage-dynamique-retail-2025',
-    excerpt:
-      "Découvrez comment les écrans interactifs révolutionnent l'expérience en magasin et augmentent l'engagement client.",
-    category: 'Affichage Dynamique',
-    date: '15 Jan 2025',
-    image: '/blog-placeholder-1.jpg',
-  },
-  {
-    title: 'VR immobilière : vendre un bien avant sa construction',
-    slug: 'vr-immobiliere-vente-avant-construction',
-    excerpt:
-      'La réalité virtuelle permet aux promoteurs de proposer des visites immersives de projets encore sur plan.',
-    category: 'Présentation Innovante',
-    date: '8 Jan 2025',
-    image: '/blog-placeholder-2.jpg',
-  },
-  {
-    title: "L'IA au service de la relation client B2B",
-    slug: 'ia-relation-client-b2b',
-    excerpt:
-      "Comment un assistant IA personnalisé peut réduire le temps de réponse et améliorer la satisfaction client.",
-    category: 'Assistant IA',
-    date: '2 Jan 2025',
-    image: '/blog-placeholder-3.jpg',
-  },
-];
+import { articles as allArticles } from '@/lib/fallback-data';
 
 const stagger = {
   hidden: {},
@@ -58,7 +21,7 @@ const fadeUp = {
 };
 
 export function BlogPreview() {
-  const articles = fallbackArticles;
+  const articles = allArticles.slice(0, 3);
 
   return (
     <SectionWrapper>
@@ -89,12 +52,19 @@ export function BlogPreview() {
           <motion.div key={article.slug} variants={fadeUp}>
             <Link href={`/blog/${article.slug}`} className="group block">
               <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] overflow-hidden transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.14] hover:-translate-y-0.5 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)]">
-                {/* Image placeholder */}
+                {/* Cover image */}
                 <div className="relative aspect-[16/10] bg-dark-elevated overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-brand-teal/10 via-brand-purple/5 to-brand-orange/10 group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-ink-tertiary text-xs">Image</span>
-                  </div>
+                  {article.coverImage ? (
+                    <Image
+                      src={article.coverImage}
+                      alt={article.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-teal/10 via-brand-purple/5 to-brand-orange/10 group-hover:scale-105 transition-transform duration-500" />
+                  )}
                 </div>
 
                 {/* Content */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, LogIn } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
@@ -59,6 +59,15 @@ export function Navbar() {
           {/* Right side */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
+
+            {/* Login — admin access */}
+            <Link
+              href="/admin/login"
+              className="hidden md:flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.04] border border-white/[0.06] text-ink-secondary hover:text-ink-primary hover:bg-white/[0.08] transition-all duration-200"
+              title="Espace admin"
+            >
+              <LogIn className="w-4 h-4" />
+            </Link>
 
             {/* Contact CTA — modern gradient fill */}
             <Link
