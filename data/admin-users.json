@@ -2,8 +2,8 @@
   {
     "id": "1",
     "name": "Adelin",
-    "email": "admin@projectview.fr",
-    "passwordHash": "$2b$12$xW/iLoIsv32GZqnKhNSQ4O7zpr7f.eqsl0jkhW0867On0o2CQ60KS",
+    "email": "adelin@projectview.fr",
+    "passwordHash": "$2b$12$uS3EYVFr0qi3z/u.AMV51espG7.o8La6SLjuNCjLEbjkrkuy8D1Lu",
     "role": "admin",
     "createdAt": "2026-02-13T11:24:01.035Z"
   },
