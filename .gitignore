@@ -34,8 +34,6 @@ yarn-error.log*
 # knowledge base uploaded files
 data/knowledge-base/
 
-# runtime config (contains secrets like API keys)
-data/chatbot-config.json
 
 # vercel
 .vercel
