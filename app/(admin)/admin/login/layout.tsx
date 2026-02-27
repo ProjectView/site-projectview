@@ -1,5 +1,3 @@
-import { SessionProvider } from 'next-auth/react';
-
 export const metadata = {
   title: 'Connexion — Projectview Admin',
 };
@@ -10,9 +8,5 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <SessionProvider basePath="/api/admin/auth">
-      {children}
-    </SessionProvider>
-  );
+  return <>{children}</>;
 }

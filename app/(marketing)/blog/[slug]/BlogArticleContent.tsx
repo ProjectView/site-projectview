@@ -9,9 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Heading } from '@/components/ui/Heading';
 import { GradientText } from '@/components/ui/GradientText';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Button } from '@/components/ui/Button';
 import type { Article } from '@/lib/fallback-data';
-import { getRelatedArticles } from '@/lib/fallback-data';
 
 function ReadingProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -36,9 +34,55 @@ function ReadingProgressBar() {
   );
 }
 
+function ImagePromptCallout({ block, index }: { block: string; index: number }) {
+  const inner = block.slice('[IMAGE:'.length, -1).trim();
+  const sepIdx = inner.indexOf('||');
+  const title = sepIdx !== -1 ? inner.slice(0, sepIdx).trim() : '';
+  const prompt = sepIdx !== -1 ? inner.slice(sepIdx + 2).trim() : inner;
+
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div
+      key={index}
+      className="my-10 rounded-2xl border border-dashed border-brand-teal/40 bg-brand-teal/[0.04] p-6"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-lg leading-none">🖼️</span>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-brand-teal font-semibold">
+          Image à générer — Nano Banana Pro
+        </span>
+      </div>
+      {title && (
+        <p className="text-sm text-ink-primary font-semibold mb-3">{title}</p>
+      )}
+      <div className="relative bg-dark-bg rounded-xl p-4 border border-white/[0.06]">
+        <p className="font-mono text-xs text-ink-secondary leading-relaxed pr-16 select-all">
+          {prompt}
+        </p>
+        <button
+          onClick={handleCopy}
+          className="absolute top-3 right-3 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/[0.08] text-ink-tertiary hover:text-brand-teal hover:border-brand-teal/40 transition-all"
+        >
+          {copied ? '✓ Copié' : 'Copier'}
+        </button>
+      </div>
+      <p className="mt-3 text-[11px] text-ink-tertiary italic">
+        Remplacez ce bloc par l&apos;image une fois générée.
+      </p>
+    </div>
+  );
+}
+
 function renderContent(content: string) {
-  // Simple markdown-like rendering for fallback content
   return content.split('\n\n').map((block, i) => {
+    // Section heading
     if (block.startsWith('## ')) {
       return (
         <h2 key={i} className="font-heading font-bold text-2xl mt-12 mb-4" id={`section-${i}`}>
@@ -46,6 +90,35 @@ function renderContent(content: string) {
         </h2>
       );
     }
+
+    // Image prompt callout
+    if (block.startsWith('[IMAGE:') && block.endsWith(']')) {
+      return <ImagePromptCallout key={i} block={block} index={i} />;
+    }
+
+    // Standalone markdown image: ![alt](src)
+    const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      const [, alt, src] = imgMatch;
+      return (
+        <figure key={i} className="my-8">
+          <div className="relative w-full rounded-2xl overflow-hidden bg-dark-elevated">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt={alt}
+              className="w-full h-auto rounded-2xl object-cover"
+            />
+          </div>
+          {alt && alt !== 'image' && (
+            <figcaption className="text-center text-xs text-ink-tertiary mt-2 italic">
+              {alt}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
+
     return (
       <p key={i} className="text-ink-secondary text-base leading-relaxed mb-6">
         {block}
@@ -66,8 +139,12 @@ function extractHeadings(content: string): { text: string; id: string }[] {
     .filter(Boolean) as { text: string; id: string }[];
 }
 
-export function BlogArticleContent({ article }: { article: Article }) {
-  const related = getRelatedArticles(article.slug, 3);
+interface BlogArticleContentProps {
+  article: Article;
+  related: Article[];
+}
+
+export function BlogArticleContent({ article, related }: BlogArticleContentProps) {
   const headings = extractHeadings(article.content);
 
   return (
@@ -122,12 +199,10 @@ export function BlogArticleContent({ article }: { article: Article }) {
       {/* Body + TOC sidebar */}
       <section className="px-6 py-16">
         <div className="mx-auto max-w-[1280px] flex gap-16">
-          {/* Main content */}
           <article className="max-w-[720px] flex-1">
             {renderContent(article.content)}
           </article>
 
-          {/* Sticky TOC sidebar */}
           {headings.length > 0 && (
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-24">
@@ -146,7 +221,6 @@ export function BlogArticleContent({ article }: { article: Article }) {
                   ))}
                 </nav>
 
-                {/* Share buttons */}
                 <div className="mt-8 pt-8 border-t border-white/[0.08]">
                   <p className="text-xs uppercase tracking-widest text-ink-tertiary mb-4">
                     Partager

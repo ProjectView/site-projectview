@@ -1,29 +1,35 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { articles, getArticleBySlug } from '@/lib/fallback-data';
+import { getArticleBySlugFS, getRelatedArticlesFS, getAllSlugs } from '@/lib/firestore-articles';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import { BlogArticleContent } from './BlogArticleContent';
 
+export const revalidate = 60;
+export const dynamicParams = true;
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://projectview.fr';
 
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+export async function generateStaticParams() {
+  const slugs = await getAllSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  return params.then(({ slug }) => {
-    const article = getArticleBySlug(slug);
-    if (!article) return { title: 'Article introuvable — Projectview' };
-    return {
-      title: `${article.title} — Projectview Blog`,
-      description: article.excerpt,
-    };
-  });
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await getArticleBySlugFS(slug);
+  if (!article) return { title: 'Article introuvable — Projectview' };
+  return {
+    title: `${article.title} — Projectview Blog`,
+    description: article.excerpt,
+  };
 }
 
 export default async function BlogArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const [article, related] = await Promise.all([
+    getArticleBySlugFS(slug),
+    getRelatedArticlesFS(slug),
+  ]);
   if (!article) notFound();
 
   return (
@@ -42,7 +48,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
           { name: article.title, url: `${SITE_URL}/blog/${slug}` },
         ]}
       />
-      <BlogArticleContent article={article} />
+      <BlogArticleContent article={article} related={related} />
     </>
   );
 }

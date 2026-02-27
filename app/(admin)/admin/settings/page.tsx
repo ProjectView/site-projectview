@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import {
   User,
   Users,
@@ -67,8 +66,19 @@ const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: st
   { id: 'integrations', label: 'Intégrations', icon: Plug },
 ];
 
+function getUserInfo() {
+  if (typeof document === 'undefined') return null;
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)__user_info=([^;]*)/);
+    if (!match) return null;
+    return JSON.parse(decodeURIComponent(match[1])) as { name?: string; email?: string };
+  } catch {
+    return null;
+  }
+}
+
 export default function SettingsPage() {
-  const { data: session } = useSession();
+  const [userInfo, setUserInfo] = useState<{ name?: string; email?: string } | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -113,6 +123,7 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
+    setUserInfo(getUserInfo());
     fetchUsers();
     fetchSettings();
   }, []);
@@ -148,7 +159,7 @@ export default function SettingsPage() {
     }
 
     // Find current user in users list
-    const currentUser = users.find((u) => u.email === session?.user?.email);
+    const currentUser = users.find((u) => u.email === userInfo?.email);
     if (!currentUser) return;
 
     setSaving(true);
@@ -271,7 +282,7 @@ export default function SettingsPage() {
                 <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider mb-2">Nom</label>
                 <input
                   type="text"
-                  defaultValue={session?.user?.name || ''}
+                  defaultValue={userInfo?.name || ''}
                   readOnly
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-ink-primary outline-none opacity-70"
                 />
@@ -280,7 +291,7 @@ export default function SettingsPage() {
                 <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider mb-2">Email</label>
                 <input
                   type="email"
-                  defaultValue={session?.user?.email || ''}
+                  defaultValue={userInfo?.email || ''}
                   readOnly
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-ink-primary outline-none opacity-70"
                 />

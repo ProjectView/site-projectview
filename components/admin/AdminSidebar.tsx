@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  BarChart2,
   FileText,
   MessageSquare,
   Bot,
@@ -17,6 +18,7 @@ import { GradientText } from '@/components/ui/GradientText';
 
 const navItems = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart2 },
   { label: 'Articles', href: '/admin/articles', icon: FileText },
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { label: 'Chatbot', href: '/admin/chatbot', icon: Bot },

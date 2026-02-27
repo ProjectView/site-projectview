@@ -1,4 +1,3 @@
-import { SessionProvider } from 'next-auth/react';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 export const metadata = {
@@ -10,9 +9,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <SessionProvider basePath="/api/admin/auth">
-      <AdminShell>{children}</AdminShell>
-    </SessionProvider>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

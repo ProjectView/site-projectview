@@ -7,7 +7,9 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
 import { Heading } from '@/components/ui/Heading';
 import { GradientText } from '@/components/ui/GradientText';
-import { articles, categories } from '@/lib/fallback-data';
+import type { Article } from '@/lib/fallback-data';
+
+type Category = { name: string; slug: string };
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,7 +17,12 @@ const fadeUp = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
 };
 
-export function BlogPageContent() {
+interface BlogPageContentProps {
+  articles: Article[];
+  categories: Category[];
+}
+
+export function BlogPageContent({ articles, categories }: BlogPageContentProps) {
   const [activeCategory, setActiveCategory] = useState('tous');
 
   const filtered = activeCategory === 'tous'

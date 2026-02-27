@@ -1,24 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { checkAdminSession } from '@/lib/firebase-admin';
 import { deleteAdmin, updateAdminPassword } from '@/lib/admin-users';
 
 export const runtime = 'nodejs';
-
-async function checkAuth(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
-  }
-  return null;
-}
 
 // PATCH /api/admin/users/[id] — Update password
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await checkAuth(request);
+  const authError = await checkAdminSession(request);
   if (authError) return authError;
 
   const { id } = await params;
@@ -51,7 +43,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await checkAuth(request);
+  const authError = await checkAdminSession(request);
   if (authError) return authError;
 
   const { id } = await params;

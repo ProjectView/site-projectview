@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { checkAdminSession } from '@/lib/firebase-admin';
 
 export const runtime = 'nodejs';
 
 // POST /api/admin/deploy — Trigger Netlify deploy
 export async function POST(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   try {
     const hookUrl = process.env.NETLIFY_BUILD_HOOK;

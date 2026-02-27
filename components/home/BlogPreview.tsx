@@ -8,7 +8,7 @@ import { SectionWrapper } from '@/components/ui/SectionWrapper';
 import { Heading } from '@/components/ui/Heading';
 import { GradientText } from '@/components/ui/GradientText';
 import { Badge } from '@/components/ui/Badge';
-import { articles as allArticles } from '@/lib/fallback-data';
+import type { Article } from '@/lib/fallback-data';
 
 const stagger = {
   hidden: {},
@@ -20,8 +20,12 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
-export function BlogPreview() {
-  const articles = allArticles.slice(0, 3);
+interface BlogPreviewProps {
+  articles: Article[];
+}
+
+export function BlogPreview({ articles }: BlogPreviewProps) {
+  const preview = articles.slice(0, 3);
 
   return (
     <SectionWrapper>
@@ -48,11 +52,10 @@ export function BlogPreview() {
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
       >
-        {articles.map((article) => (
+        {preview.map((article) => (
           <motion.div key={article.slug} variants={fadeUp}>
             <Link href={`/blog/${article.slug}`} className="group block">
               <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] overflow-hidden transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.14] hover:-translate-y-0.5 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)]">
-                {/* Cover image */}
                 <div className="relative aspect-[16/10] bg-dark-elevated overflow-hidden">
                   {article.coverImage ? (
                     <Image
@@ -67,7 +70,6 @@ export function BlogPreview() {
                   )}
                 </div>
 
-                {/* Content */}
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-3">
                     <Badge className="text-[10px] py-1 px-2.5">{article.category}</Badge>
@@ -86,7 +88,6 @@ export function BlogPreview() {
         ))}
       </motion.div>
 
-      {/* Mobile "voir tout" link */}
       <div className="mt-8 text-center sm:hidden">
         <Link
           href="/blog"

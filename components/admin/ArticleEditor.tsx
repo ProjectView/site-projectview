@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Save,
-  Eye,
-  EyeOff,
   ArrowLeft,
   FileText,
   Tag,
@@ -22,11 +20,14 @@ import {
   Image,
   ImagePlus,
   Loader2,
+  BarChart2,
 } from 'lucide-react';
 import NextImage from 'next/image';
 import { categories } from '@/lib/fallback-data';
 import type { Article } from '@/lib/fallback-data';
 import { Toast, ToastType } from './Toast';
+import { ImageUploadModal } from './ImageUploadModal';
+import { SeoPanel, computeSeoScore } from './SeoPanel';
 
 interface ArticleEditorProps {
   initialData?: Article;
@@ -51,8 +52,18 @@ function markdownToHtml(md: string): string {
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Images — must come BEFORE links to avoid conflict
+    .replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<figure class="my-4"><img src="$2" alt="$1" class="w-full rounded-xl object-cover" /><figcaption class="text-center text-xs text-ink-tertiary mt-1 italic">$1</figcaption></figure>'
+    )
     // Links
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-brand-teal underline">$1</a>')
+    // Image prompt callouts — render as a simple notice in preview
+    .replace(
+      /\[IMAGE: ([^\|]+)\|\|[^\]]+\]/g,
+      '<div class="my-4 rounded-xl border border-dashed border-brand-teal/30 bg-brand-teal/5 px-4 py-3 text-xs text-brand-teal font-mono">🖼️ $1</div>'
+    )
     // Blockquotes
     .replace(/^> (.+)$/gm, '<blockquote class="border-l-2 border-brand-teal/40 pl-4 italic text-ink-secondary my-4">$1</blockquote>')
     // Unordered lists
@@ -73,7 +84,8 @@ function markdownToHtml(md: string): string {
 
 export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
   const router = useRouter();
-  const [showPreview, setShowPreview] = useState(false);
+  const [rightPanel, setRightPanel] = useState<'preview' | 'seo'>('preview');
+  const [seoScore, setSeoScore] = useState(0);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
@@ -93,8 +105,22 @@ export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || '');
   const [generatingImage, setGeneratingImage] = useState(false);
 
+  // Image upload modal
+  const [showImageModal, setShowImageModal] = useState(false);
+  // Textarea ref + saved cursor position for image insertion
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const savedCursorPos = useRef<number>(0);
+
   const selectedCategory = categories.find((c) => c.slug === categorySlug);
   const selectedAuthor = authors[authorIndex];
+
+  // Debounced SEO score for tab badge
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSeoScore(computeSeoScore(title, excerpt, content, coverImage));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [title, excerpt, content, coverImage]);
 
   // Generate cover image with Gemini
   const handleGenerateImage = async () => {
@@ -140,24 +166,50 @@ export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
     }
   };
 
-  // Insert markdown helpers
+  // Open image modal — save current cursor position
+  const handleOpenImageModal = useCallback(() => {
+    savedCursorPos.current = textareaRef.current?.selectionStart ?? content.length;
+    setShowImageModal(true);
+  }, [content.length]);
+
+  // Insert image markdown at saved cursor position
+  const handleImageConfirm = useCallback((path: string, alt: string) => {
+    setShowImageModal(false);
+    const imageMarkdown = `\n\n![${alt}](${path})\n\n`;
+    setContent((prev) => {
+      const pos = savedCursorPos.current;
+      return prev.slice(0, pos) + imageMarkdown + prev.slice(pos);
+    });
+    // Restore focus
+    setTimeout(() => {
+      const ta = textareaRef.current;
+      if (ta) {
+        ta.focus();
+        const newPos = savedCursorPos.current + imageMarkdown.length;
+        ta.setSelectionRange(newPos, newPos);
+      }
+    }, 0);
+  }, []);
+
+  // Insert markdown at cursor inside the textarea
   const insertMarkdown = useCallback((prefix: string, suffix: string = '') => {
-    const textarea = document.getElementById('article-content') as HTMLTextAreaElement;
+    const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const newText = content.substring(0, start) + prefix + selectedText + suffix + content.substring(end);
-    setContent(newText);
+    const selected = textarea.value.substring(start, end);
+    const newValue =
+      textarea.value.substring(0, start) + prefix + selected + suffix + textarea.value.substring(end);
 
-    // Restore focus and cursor
+    setContent(newValue);
+
     setTimeout(() => {
       textarea.focus();
-      const cursorPos = start + prefix.length + selectedText.length + suffix.length;
-      textarea.setSelectionRange(cursorPos, cursorPos);
+      const pos = start + prefix.length + selected.length;
+      textarea.setSelectionRange(pos, pos);
     }, 0);
-  }, [content]);
+  }, []);
 
   // Save article
   const handleSave = async () => {
@@ -232,6 +284,14 @@ export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* Image upload modal */}
+      {showImageModal && (
+        <ImageUploadModal
+          onConfirm={handleImageConfirm}
+          onClose={() => setShowImageModal(false)}
+        />
+      )}
+
       {/* Toast */}
       {toast && (
         <Toast
@@ -255,36 +315,27 @@ export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
             {mode === 'create' ? 'Nouvel article' : 'Modifier l\'article'}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-white/[0.04] border border-white/[0.08] text-ink-secondary hover:bg-white/[0.08] hover:text-ink-primary transition-all cursor-pointer"
-          >
-            {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showPreview ? 'Masquer aperçu' : 'Aperçu'}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-teal via-brand-purple to-brand-orange text-white hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-          >
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Publication...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                {mode === 'create' ? 'Publier' : 'Enregistrer'}
-              </>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-teal via-brand-purple to-brand-orange text-white hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+        >
+          {saving ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Publication...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              {mode === 'create' ? 'Publier' : 'Enregistrer'}
+            </>
+          )}
+        </button>
       </div>
 
       {/* Main content area */}
-      <div className={`grid gap-6 ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Editor side */}
         <div className="space-y-5">
           {/* Title */}
@@ -370,22 +421,19 @@ export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
             <ToolbarButton icon={Quote} label="Citation" onClick={() => insertMarkdown('> ')} />
             <div className="w-px h-5 bg-white/[0.08] mx-1" />
             <ToolbarButton icon={Link2} label="Lien" onClick={() => insertMarkdown('[', '](url)')} />
-            <ToolbarButton icon={Image} label="Image" onClick={() => insertMarkdown('![alt](', ')')} />
+            <ToolbarButton icon={Image} label="Insérer une image" onClick={handleOpenImageModal} />
           </div>
 
-          {/* Content */}
+          {/* Content textarea */}
           <div>
             <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary uppercase tracking-wider mb-2">
               <FileText className="w-3.5 h-3.5" />
-              Contenu (Markdown)
+              Contenu
             </label>
-            <textarea
-              id="article-content"
+            <ContentTextarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Rédigez votre article en Markdown...&#10;&#10;## Mon titre de section&#10;&#10;Le contenu de votre article ici..."
-              rows={20}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-ink-primary placeholder:text-ink-tertiary outline-none focus:border-brand-teal/50 focus:ring-1 focus:ring-brand-teal/20 transition-all resize-y font-mono leading-relaxed"
+              onChange={setContent}
+              textareaRef={textareaRef}
             />
           </div>
 
@@ -450,47 +498,129 @@ export function ArticleEditor({ initialData, mode }: ArticleEditorProps) {
           )}
         </div>
 
-        {/* Preview side */}
-        {showPreview && (
-          <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-6 overflow-y-auto max-h-[calc(100vh-200px)] sticky top-24">
-            <div className="mb-6">
-              <p className="text-[10px] uppercase tracking-widest text-ink-tertiary mb-3 font-medium">Aperçu</p>
-              {selectedCategory && (
-                <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-brand-teal/15 text-brand-teal mb-3">
-                  {selectedCategory.name}
-                </span>
-              )}
-              <h1 className="text-2xl font-bold tracking-tight mb-3">
-                {title || 'Titre de l\'article'}
-              </h1>
-              {excerpt && (
-                <p className="text-ink-secondary text-sm mb-4 italic">{excerpt}</p>
-              )}
-              {coverImage && (
-                <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-dark-elevated mb-4">
-                  <NextImage
-                    src={coverImage}
-                    alt="Couverture"
-                    fill
-                    className="object-cover"
-                    sizes="600px"
-                  />
-                </div>
-              )}
-              <div className="flex items-center gap-3 text-xs text-ink-tertiary mb-6 pb-4 border-b border-white/[0.06]">
-                <span>Par {selectedAuthor.name}</span>
-                <span>·</span>
-                <span>{initialData?.date || 'Aujourd\'hui'}</span>
-              </div>
-            </div>
-            <div
-              className="prose-custom text-sm text-ink-primary leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: markdownToHtml(content || 'Commencez à écrire...') }}
-            />
+        {/* Right panel — Aperçu / SEO tabs */}
+        <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] overflow-hidden sticky top-24 max-h-[calc(100vh-160px)] flex flex-col">
+          {/* Tab header */}
+          <div className="flex items-center gap-1 px-4 pt-4 pb-0 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setRightPanel('preview')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                rightPanel === 'preview'
+                  ? 'bg-white/[0.08] text-ink-primary'
+                  : 'text-ink-tertiary hover:text-ink-secondary hover:bg-white/[0.04]'
+              }`}
+            >
+              Aperçu
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightPanel('seo')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                rightPanel === 'seo'
+                  ? 'bg-white/[0.08] text-ink-primary'
+                  : 'text-ink-tertiary hover:text-ink-secondary hover:bg-white/[0.04]'
+              }`}
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              Analyse SEO
+              {/* Score badge */}
+              <span
+                className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full leading-none ${
+                  seoScore >= 70
+                    ? 'bg-brand-green/15 text-brand-green'
+                    : seoScore >= 40
+                    ? 'bg-brand-orange/15 text-brand-orange'
+                    : 'bg-red-500/15 text-red-400'
+                }`}
+              >
+                {seoScore}
+              </span>
+            </button>
+            <div className="flex-1 h-px bg-white/[0.06] ml-2 mt-1 self-end mb-[9px]" />
           </div>
-        )}
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-y-auto p-6 pt-5">
+            {rightPanel === 'preview' ? (
+              <>
+                <div className="mb-6">
+                  {selectedCategory && (
+                    <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-brand-teal/15 text-brand-teal mb-3">
+                      {selectedCategory.name}
+                    </span>
+                  )}
+                  <h1 className="text-2xl font-bold tracking-tight mb-3">
+                    {title || 'Titre de l\'article'}
+                  </h1>
+                  {excerpt && (
+                    <p className="text-ink-secondary text-sm mb-4 italic">{excerpt}</p>
+                  )}
+                  {coverImage && (
+                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-dark-elevated mb-4">
+                      <NextImage
+                        src={coverImage}
+                        alt="Couverture"
+                        fill
+                        className="object-cover"
+                        sizes="600px"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-ink-tertiary mb-6 pb-4 border-b border-white/[0.06]">
+                    <span>Par {selectedAuthor.name}</span>
+                    <span>·</span>
+                    <span>{initialData?.date || 'Aujourd\'hui'}</span>
+                  </div>
+                </div>
+                <div
+                  className="prose-custom text-sm text-ink-primary leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: markdownToHtml(content || 'Commencez à écrire...') }}
+                />
+              </>
+            ) : (
+              <SeoPanel
+                title={title}
+                excerpt={excerpt}
+                content={content}
+                coverImage={coverImage}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ── Simple auto-resizing content textarea ─────────────────────────────────────
+function ContentTextarea({
+  value,
+  onChange,
+  textareaRef,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  textareaRef: { current: HTMLTextAreaElement | null };
+}) {
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.style.height = 'auto';
+      ta.style.height = `${Math.max(ta.scrollHeight, 480)}px`;
+    }
+  }, [value, textareaRef]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Commencez à rédiger votre article en markdown…&#10;&#10;## Titre de section&#10;&#10;Votre texte ici…"
+      className="w-full min-h-[480px] bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm font-mono text-ink-primary placeholder:text-ink-tertiary/50 outline-none focus:border-brand-teal/50 focus:ring-1 focus:ring-brand-teal/20 transition-all leading-relaxed"
+      style={{ overflow: 'hidden', resize: 'vertical' }}
+      spellCheck={false}
+    />
   );
 }
 

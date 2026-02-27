@@ -1,7 +1,9 @@
 import dynamic from 'next/dynamic';
 import { HeroSection } from '@/components/home/HeroSection';
+import { getAllArticles } from '@/lib/firestore-articles';
 
-// Lazy-load below-fold sections to reduce initial bundle
+export const revalidate = 60;
+
 const MissionSection = dynamic(() =>
   import('@/components/home/MissionSection').then((m) => m.MissionSection),
 );
@@ -18,14 +20,16 @@ const CTASection = dynamic(() =>
   import('@/components/home/CTASection').then((m) => m.CTASection),
 );
 
-export default function Home() {
+export default async function Home() {
+  const articles = await getAllArticles();
+
   return (
     <main>
       <HeroSection />
       <MissionSection />
       <SolutionsGrid />
       <TestimonialsSection />
-      <BlogPreview />
+      <BlogPreview articles={articles} />
       <CTASection />
     </main>
   );

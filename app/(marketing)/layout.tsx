@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 import { ChatWidget } from '@/components/chatbot/ChatWidget';
+import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 
 export default function MarketingLayout({
   children,
@@ -15,6 +16,7 @@ export default function MarketingLayout({
       <a href="#main-content" className="skip-link">
         Aller au contenu principal
       </a>
+      <AnalyticsTracker />
       <NoiseOverlay />
       <Navbar />
       <div id="main-content">

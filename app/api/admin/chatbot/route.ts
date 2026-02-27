@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { checkAdminSession } from '@/lib/firebase-admin';
 import { getChatbotConfig, saveChatbotConfig } from '@/lib/chatbot';
 
 export const runtime = 'nodejs';
 
 // GET /api/admin/chatbot — Get chatbot config
 export async function GET(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   try {
     const config = getChatbotConfig();
@@ -23,10 +21,8 @@ export async function GET(request: NextRequest) {
 
 // PUT /api/admin/chatbot — Update chatbot config
 export async function PUT(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   try {
     const body = await request.json();

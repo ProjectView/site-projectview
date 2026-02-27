@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { checkAdminSession } from '@/lib/firebase-admin';
 import { getAllAdmins, createAdmin } from '@/lib/admin-users';
 
 export const runtime = 'nodejs';
 
 // GET /api/admin/users — List all admin users
 export async function GET(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   try {
     const users = await getAllAdmins();
@@ -23,10 +21,8 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/users — Create a new admin user
 export async function POST(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   try {
     const body = await request.json();

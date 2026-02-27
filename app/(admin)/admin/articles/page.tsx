@@ -17,6 +17,7 @@ import { articles as localArticles, categories } from '@/lib/fallback-data';
 import type { Article } from '@/lib/fallback-data';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { Toast, ToastType } from '@/components/admin/Toast';
+import { computeSeoScore } from '@/components/admin/SeoPanel';
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>(localArticles);
@@ -179,11 +180,12 @@ export default function ArticlesPage() {
       {/* Table */}
       <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] overflow-hidden">
         {/* Header */}
-        <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto] gap-4 px-6 py-3 border-b border-white/[0.06] text-xs font-semibold uppercase tracking-wider text-ink-tertiary">
+        <div className="hidden sm:grid grid-cols-[1fr_180px_80px_128px_96px] px-6 py-3 border-b border-white/[0.06] text-xs font-semibold uppercase tracking-wider text-ink-tertiary">
           <span>Titre</span>
           <span>Catégorie</span>
+          <span className="text-center">SEO</span>
           <span>Date</span>
-          <span>Actions</span>
+          <span className="text-right">Actions</span>
         </div>
 
         {/* Loading state */}
@@ -212,10 +214,10 @@ export default function ArticlesPage() {
             {filtered.map((article) => (
               <div
                 key={article.slug}
-                className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto_auto] gap-2 sm:gap-4 items-center px-6 py-4 hover:bg-white/[0.02] transition-colors group"
+                className="grid grid-cols-1 sm:grid-cols-[1fr_180px_80px_128px_96px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors group"
               >
                 {/* Title + Author */}
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3 min-w-0 pr-4">
                   <FileText className="w-4 h-4 text-ink-tertiary flex-shrink-0 hidden sm:block" />
                   <div className="min-w-0">
                     <p className="text-sm text-ink-primary truncate font-medium">{article.title}</p>
@@ -224,18 +226,25 @@ export default function ArticlesPage() {
                 </div>
 
                 {/* Category */}
-                <span className="text-xs px-2 py-0.5 rounded-full bg-brand-teal/15 text-brand-teal whitespace-nowrap w-fit">
-                  {article.category}
-                </span>
+                <div className="flex items-center">
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-brand-teal/15 text-brand-teal whitespace-nowrap truncate max-w-full">
+                    {article.category}
+                  </span>
+                </div>
+
+                {/* SEO Score */}
+                <div className="flex items-center justify-center">
+                  <SeoScoreBadge article={article} />
+                </div>
 
                 {/* Date */}
-                <div className="flex items-center gap-1 text-xs text-ink-tertiary whitespace-nowrap">
-                  <Clock className="w-3 h-3" />
-                  {article.date}
+                <div className="flex items-center gap-1.5 text-xs text-ink-tertiary">
+                  <Clock className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{article.date}</span>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-end gap-1">
                   <Link
                     href={`/blog/${article.slug}`}
                     target="_blank"
@@ -264,6 +273,56 @@ export default function ArticlesPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── SEO score badge ────────────────────────────────────────────────────────────
+function SeoScoreBadge({ article }: { article: Article }) {
+  const score = computeSeoScore(
+    article.title,
+    article.excerpt,
+    article.content,
+    article.coverImage || '',
+  );
+
+  const color =
+    score >= 70
+      ? { bg: 'bg-brand-green/10', text: 'text-brand-green', ring: 'ring-brand-green/25' }
+      : score >= 40
+      ? { bg: 'bg-brand-orange/10', text: 'text-brand-orange', ring: 'ring-brand-orange/25' }
+      : { bg: 'bg-red-500/10', text: 'text-red-400', ring: 'ring-red-500/20' };
+
+  // Mini arc SVG
+  const r = 9;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  const strokeColor =
+    score >= 70 ? '#6B9B37' : score >= 40 ? '#D4842A' : '#C65D3E';
+
+  return (
+    <div
+      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${color.bg} ring-1 ${color.ring} w-fit`}
+      title={`Score SEO : ${score}/100`}
+    >
+      {/* Mini circle */}
+      <svg width="22" height="22" viewBox="0 0 22 22" className="-rotate-90 flex-shrink-0">
+        <circle cx="11" cy="11" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
+        <circle
+          cx="11"
+          cy="11"
+          r={r}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <span className={`text-xs font-mono font-bold leading-none ${color.text}`}>
+        {score}
+      </span>
     </div>
   );
 }

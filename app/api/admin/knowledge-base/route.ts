@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { checkAdminSession } from '@/lib/firebase-admin';
 import { getAllDocuments, addDocument, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/knowledge-base';
 import { extractTextFromFile } from '@/lib/extract-text';
 
@@ -8,10 +8,8 @@ export const runtime = 'nodejs';
 
 // GET — Liste tous les documents
 export async function GET(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   const kb = getAllDocuments();
   return NextResponse.json(kb);
@@ -19,10 +17,8 @@ export async function GET(request: NextRequest) {
 
 // POST — Upload d'un nouveau document
 export async function POST(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
 
   try {
     const formData = await request.formData();
@@ -57,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     if (!extractedText || extractedText.trim().length === 0) {
       return NextResponse.json(
-        { error: 'Aucun texte n\'a pu être extrait de ce fichier.' },
+        { error: "Aucun texte n'a pu être extrait de ce fichier." },
         { status: 400 }
       );
     }
