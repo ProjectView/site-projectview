@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // Standalone output for Docker deployment
-  output: 'standalone',
+  // Note: 'standalone' output is for Docker only — incompatible with Netlify
+  // output: 'standalone',
 
   images: {
     // Allow images from Strapi
