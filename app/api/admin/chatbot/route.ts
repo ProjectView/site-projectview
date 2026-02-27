@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { getChatbotConfig, saveChatbotConfig } from '@/lib/chatbot';
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const config = getChatbotConfig();
+    const config = await getChatbotConfig();
     return NextResponse.json({ config });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const config = saveChatbotConfig(body);
+    const config = await saveChatbotConfig(body);
     return NextResponse.json({ success: true, config });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';

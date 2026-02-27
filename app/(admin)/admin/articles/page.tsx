@@ -15,10 +15,11 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { articles as localArticles, categories } from '@/lib/fallback-data';
-import type { Article } from '@/lib/fallback-data';
+import type { Article, ArticleStatus } from '@/lib/fallback-data';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { Toast, ToastType } from '@/components/admin/Toast';
 import { computeSeoScore } from '@/components/admin/SeoPanel';
+import { StatusDropdown } from '@/components/admin/StatusDropdown';
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>(localArticles);
@@ -28,6 +29,24 @@ export default function ArticlesPage() {
   const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  // Count articles currently "mis-en-avant" for the dropdown limit check
+  const featuredCount = useMemo(
+    () => articles.filter((a) => a.status === 'mis-en-avant').length,
+    [articles]
+  );
+
+  // Optimistic status update — no refetch needed
+  function handleStatusChange(slug: string, status: ArticleStatus, scheduledDate?: string) {
+    setArticles((prev) =>
+      prev.map((a) =>
+        a.slug === slug
+          ? { ...a, status, scheduledDate: scheduledDate ?? undefined }
+          : a
+      )
+    );
+    setToast({ message: 'Statut mis à jour avec succès.', type: 'success' });
+  }
 
   // Fetch articles from API
   const fetchArticles = async () => {
@@ -179,11 +198,12 @@ export default function ArticlesPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] overflow-hidden">
+      <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08]">
         {/* Header */}
-        <div className="hidden sm:grid grid-cols-[1fr_180px_80px_128px_96px] px-6 py-3 border-b border-white/[0.06] text-xs font-semibold uppercase tracking-wider text-ink-tertiary">
+        <div className="hidden sm:grid grid-cols-[1fr_160px_140px_80px_128px_96px] px-6 py-3 border-b border-white/[0.06] text-xs font-semibold uppercase tracking-wider text-ink-tertiary rounded-t-2xl overflow-hidden">
           <span>Titre</span>
           <span>Catégorie</span>
+          <span>Statut</span>
           <span className="text-center">SEO</span>
           <span>Date</span>
           <span className="text-right">Actions</span>
@@ -215,7 +235,7 @@ export default function ArticlesPage() {
             {filtered.map((article) => (
               <div
                 key={article.slug}
-                className="grid grid-cols-1 sm:grid-cols-[1fr_180px_80px_128px_96px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors group"
+                className="grid grid-cols-1 sm:grid-cols-[1fr_160px_140px_80px_128px_96px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors group first:rounded-none last:rounded-b-2xl"
               >
                 {/* Title + Author */}
                 <div className="flex items-center gap-3 min-w-0 pr-4">
@@ -241,6 +261,17 @@ export default function ArticlesPage() {
                       Sans catégorie
                     </span>
                   )}
+                </div>
+
+                {/* Status */}
+                <div className="flex items-center">
+                  <StatusDropdown
+                    slug={article.slug}
+                    currentStatus={article.status ?? 'brouillon'}
+                    scheduledDate={article.scheduledDate}
+                    featuredCount={featuredCount}
+                    onStatusChange={handleStatusChange}
+                  />
                 </div>
 
                 {/* SEO Score */}

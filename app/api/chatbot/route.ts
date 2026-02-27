@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 // GET /api/chatbot — Public: get chatbot public config (enabled, welcome, position, color)
 export async function GET() {
   try {
-    const config = getChatbotConfig();
+    const config = await getChatbotConfig();
     // Only expose public-safe fields
     return NextResponse.json({
       enabled: config.enabled,
@@ -28,7 +28,7 @@ export async function GET() {
 // POST /api/chatbot — Public: chat with the AI assistant
 export async function POST(request: Request) {
   try {
-    const config = getChatbotConfig();
+    const config = await getChatbotConfig();
 
     if (!config.enabled) {
       return NextResponse.json(

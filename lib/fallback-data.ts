@@ -17,6 +17,15 @@ export interface Solution {
   keyBenefits: { title: string; description: string }[];
 }
 
+export type ArticleStatus =
+  | 'en-cours'
+  | 'publie'
+  | 'mis-en-avant'
+  | 'programme'
+  | 'brouillon'
+  | 'proposition'
+  | 'invisible';
+
 export interface Article {
   title: string;
   slug: string;
@@ -29,6 +38,8 @@ export interface Article {
   authorBio: string;
   readTime: string;
   coverImage?: string;
+  status?: ArticleStatus;
+  scheduledDate?: string; // ISO date (YYYY-MM-DD) pour le statut "programme"
 }
 
 export interface Testimonial {

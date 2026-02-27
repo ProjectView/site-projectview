@@ -32,6 +32,16 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   ]);
   if (!article) notFound();
 
+  // Vérifier la visibilité publique de l'article
+  const status = article.status ?? 'publie';
+  const isVisible =
+    status === 'publie' ||
+    status === 'mis-en-avant' ||
+    (status === 'programme' &&
+      article.scheduledDate != null &&
+      new Date(article.scheduledDate) <= new Date());
+  if (!isVisible) notFound();
+
   return (
     <>
       <ArticleJsonLd

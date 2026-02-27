@@ -1,5 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+// Chatbot config — stocké dans Firestore (collection "config", document "chatbot")
+// Remplace l'ancien stockage fichier (fs) incompatible avec les environnements serverless (Netlify).
+import { getAdminFirestore } from '@/lib/firebase-admin';
 
 export interface ChatbotConfig {
   enabled: boolean;
@@ -13,8 +14,6 @@ export interface ChatbotConfig {
   /** Clé API OpenAI saisie depuis l'admin — prioritaire sur OPENAI_API_KEY env var */
   openaiApiKey: string;
 }
-
-const CONFIG_FILE = path.join(process.cwd(), 'data', 'chatbot-config.json');
 
 const DEFAULT_CONFIG: ChatbotConfig = {
   enabled: false,
@@ -53,18 +52,37 @@ Ton objectif est de comprendre le projet du visiteur, puis de recueillir ses coo
   openaiApiKey: '',
 };
 
-export function getChatbotConfig(): ChatbotConfig {
+const FIRESTORE_COLLECTION = 'config';
+const FIRESTORE_DOC = 'chatbot';
+
+/** Lit la config depuis Firestore. Retourne la config par défaut en cas d'erreur. */
+export async function getChatbotConfig(): Promise<ChatbotConfig> {
   try {
-    const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-    return { ...DEFAULT_CONFIG, ...JSON.parse(data) };
+    const doc = await getAdminFirestore()
+      .collection(FIRESTORE_COLLECTION)
+      .doc(FIRESTORE_DOC)
+      .get();
+
+    if (!doc.exists) return DEFAULT_CONFIG;
+
+    const data = doc.data() as Partial<ChatbotConfig>;
+    return { ...DEFAULT_CONFIG, ...data };
   } catch {
     return DEFAULT_CONFIG;
   }
 }
 
-export function saveChatbotConfig(config: Partial<ChatbotConfig>): ChatbotConfig {
-  const current = getChatbotConfig();
-  const updated = { ...current, ...config };
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+/** Sauvegarde la config dans Firestore. Retourne la config fusionnée. */
+export async function saveChatbotConfig(
+  config: Partial<ChatbotConfig>
+): Promise<ChatbotConfig> {
+  const current = await getChatbotConfig();
+  const updated: ChatbotConfig = { ...current, ...config };
+
+  await getAdminFirestore()
+    .collection(FIRESTORE_COLLECTION)
+    .doc(FIRESTORE_DOC)
+    .set(updated);
+
   return updated;
 }
