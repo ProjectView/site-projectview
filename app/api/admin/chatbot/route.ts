@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { getChatbotConfig, saveChatbotConfig } from '@/lib/chatbot';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/admin/chatbot — Get chatbot config
 export async function GET(request: NextRequest) {

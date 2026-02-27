@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { generateArticleImage } from '@/lib/generate-image';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // POST — Generate a banner image for an article
 export async function POST(request: NextRequest) {

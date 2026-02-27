@@ -4,6 +4,7 @@ import { checkAdminSession } from '@/lib/firebase-admin';
 import { removeDocument, getDocumentById } from '@/lib/knowledge-base';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // DELETE — Supprimer un document
 export async function DELETE(

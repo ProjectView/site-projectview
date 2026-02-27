@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { getAnalyticsSummary, getTodayStats } from '@/lib/firestore-analytics';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const authError = await checkAdminSession(request);

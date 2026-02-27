@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
+
 import {
   getMessageById,
   markMessageAsRead,
@@ -9,6 +10,7 @@ import {
 } from '@/lib/messages';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/admin/messages/[id]
 export async function GET(

@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { trackEvent } from '@/lib/firestore-analytics';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Simple in-memory rate limit: sessionId+path → last event timestamp
 const recentEvents = new Map<string, number>();

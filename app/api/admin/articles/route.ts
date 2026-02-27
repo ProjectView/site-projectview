@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { categories } from '@/lib/fallback-data';
@@ -6,6 +6,7 @@ import { getAllArticles, createArticleFS } from '@/lib/firestore-articles';
 import { generateSlug, formatDateFR, estimateReadTime } from '@/lib/admin-api';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/admin/articles — List all articles
 export async function GET(request: NextRequest) {

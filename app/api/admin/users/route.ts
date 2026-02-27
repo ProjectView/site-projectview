@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { getAllAdmins, createAdmin } from '@/lib/admin-users';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/admin/users — List all admin users
 export async function GET(request: NextRequest) {

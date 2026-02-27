@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const SESSION_COOKIE_NAME = '__session';
 const SESSION_DURATION_MS = 60 * 60 * 24 * 5 * 1000; // 5 jours
@@ -17,12 +18,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier l'ID token et créer un session cookie (5 jours)
-    const sessionCookie = await adminAuth.createSessionCookie(idToken, {
+    const sessionCookie = await getAdminAuth().createSessionCookie(idToken, {
       expiresIn: SESSION_DURATION_MS,
     });
 
     // Décoder le token pour récupérer les infos utilisateur
-    const decoded = await adminAuth.verifyIdToken(idToken);
+    const decoded = await getAdminAuth().verifyIdToken(idToken);
     const userInfo = JSON.stringify({
       email: decoded.email || '',
       uid: decoded.uid,

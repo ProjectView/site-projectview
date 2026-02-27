@@ -4,6 +4,7 @@ import { checkAdminSession } from '@/lib/firebase-admin';
 import { deleteAdmin, updateAdminPassword } from '@/lib/admin-users';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // PATCH /api/admin/users/[id] — Update password
 export async function PATCH(

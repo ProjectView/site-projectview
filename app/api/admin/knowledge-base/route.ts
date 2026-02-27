@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
 import { getAllDocuments, addDocument, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/lib/knowledge-base';
 import { extractTextFromFile } from '@/lib/extract-text';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET — Liste tous les documents
 export async function GET(request: NextRequest) {
