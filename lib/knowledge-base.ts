@@ -37,18 +37,23 @@ const KB_FILES_DIR = path.join(DATA_DIR, 'knowledge-base');
 // ─── Helpers ──────────────────────────────────────────────
 
 function ensureDirs() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(KB_FILES_DIR)) fs.mkdirSync(KB_FILES_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (!fs.existsSync(KB_FILES_DIR)) fs.mkdirSync(KB_FILES_DIR, { recursive: true });
+  } catch {
+    // Filesystem en lecture seule (environnement serverless) — ignoré
+  }
 }
 
 function readKB(): KnowledgeBase {
-  ensureDirs();
-  if (!fs.existsSync(KB_JSON)) {
-    const empty: KnowledgeBase = { documents: [], totalTokenEstimate: 0 };
-    fs.writeFileSync(KB_JSON, JSON.stringify(empty, null, 2));
+  const empty: KnowledgeBase = { documents: [], totalTokenEstimate: 0 };
+  try {
+    ensureDirs();
+    if (!fs.existsSync(KB_JSON)) return empty;
+    return JSON.parse(fs.readFileSync(KB_JSON, 'utf-8'));
+  } catch {
     return empty;
   }
-  return JSON.parse(fs.readFileSync(KB_JSON, 'utf-8'));
 }
 
 function writeKB(kb: KnowledgeBase) {
@@ -156,16 +161,20 @@ export function removeDocument(id: string): boolean {
 // ─── Context Builder (CAG) ────────────────────────────────
 
 export function buildKnowledgeContext(): string {
-  const kb = readKB();
-  if (kb.documents.length === 0) return '';
+  try {
+    const kb = readKB();
+    if (kb.documents.length === 0) return '';
 
-  const sections = kb.documents.map(
-    (doc) => `[Document: ${doc.originalName}]\n${doc.extractedText}`
-  );
+    const sections = kb.documents.map(
+      (doc) => `[Document: ${doc.originalName}]\n${doc.extractedText}`
+    );
 
-  return (
-    '\n\n--- BASE DE CONNAISSANCES ---\n' +
-    sections.join('\n\n') +
-    '\n--- FIN DE LA BASE DE CONNAISSANCES ---'
-  );
+    return (
+      '\n\n--- BASE DE CONNAISSANCES ---\n' +
+      sections.join('\n\n') +
+      '\n--- FIN DE LA BASE DE CONNAISSANCES ---'
+    );
+  } catch {
+    return '';
+  }
 }
