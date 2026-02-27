@@ -1,12 +1,10 @@
 // Firestore article storage — replaces GitHub-based storage
-// Firebase Admin must be initialized before any call to this module
-import '@/lib/firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getAdminFirestore } from '@/lib/firebase-admin';
 import { articles as fallbackArticles } from '@/lib/fallback-data';
 import type { Article } from '@/lib/fallback-data';
 
 function db() {
-  return getFirestore();
+  return getAdminFirestore();
 }
 
 // ─── Read ────────────────────────────────────────────────────────────────────
