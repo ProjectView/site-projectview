@@ -8,32 +8,46 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Force correct MIME types for Next.js static assets
-# CSS files land in /_next/static/chunks/ (not /css/) in Next.js 13+
+# Empêcher l'Edge CDN Netlify de mettre en cache le HTML des pages
+# Sans ça, le HTML servi peut avoir des heures/jours de retard et référencer
+# des chunks CSS/JS qui n'existent plus (nouveau build = nouveaux hashes)
 [[headers]]
-  for = "/_next/static/chunks/*.js"
+  for = "/*"
   [headers.values]
-    Content-Type = "application/javascript; charset=utf-8"
+    CDN-Cache-Control = "no-store"
+
+# Les assets statiques Next.js sont content-addressed (hash dans le nom)
+# → cache immutable côté CDN et navigateur
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    CDN-Cache-Control = "public, max-age=31536000, immutable"
     Cache-Control = "public, max-age=31536000, immutable"
 
+# MIME types explicites pour les CSS chunks (Netlify peut les servir en text/plain sinon)
 [[headers]]
   for = "/_next/static/chunks/*.css"
   [headers.values]
     Content-Type = "text/css; charset=utf-8"
+    CDN-Cache-Control = "public, max-age=31536000, immutable"
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
   for = "/_next/static/css/*.css"
   [headers.values]
     Content-Type = "text/css; charset=utf-8"
+    CDN-Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/chunks/*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    CDN-Cache-Control = "public, max-age=31536000, immutable"
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
   for = "/_next/static/media/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/_next/static/*"
-  [headers.values]
+    CDN-Cache-Control = "public, max-age=31536000, immutable"
     Cache-Control = "public, max-age=31536000, immutable"
