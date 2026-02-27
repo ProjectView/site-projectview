@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase-client';
+import { getClientAuth } from '@/lib/firebase-client';
 import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
+
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,6 +22,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Obtenir l'instance auth au moment du submit (lazy, côté client uniquement)
+      const auth = getClientAuth();
+      if (!auth) {
+        setError('Configuration Firebase manquante. Contactez l\'administrateur.');
+        return;
+      }
+
       // 1. Connexion Firebase côté client
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
