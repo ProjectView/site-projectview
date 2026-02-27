@@ -12,6 +12,9 @@ import {
   Sparkles,
   RefreshCw,
   BookOpen,
+  KeyRound,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Toast, ToastType } from '@/components/admin/Toast';
 import { KnowledgeBase } from '@/components/admin/KnowledgeBase';
@@ -25,6 +28,7 @@ interface ChatbotConfig {
   accentColor: string;
   maxTokens: number;
   temperature: number;
+  openaiApiKey: string;
 }
 
 const MODELS = [
@@ -46,6 +50,7 @@ export default function ChatbotPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [showKey, setShowKey] = useState(false);
 
   // Fetch config
   const fetchConfig = async () => {
@@ -172,6 +177,72 @@ export default function ChatbotPage() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* API Key */}
+      <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-ink-tertiary" />
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-secondary">
+            Clé API OpenAI
+          </h2>
+          <span
+            className={`ml-auto inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${
+              config.openaiApiKey
+                ? 'bg-green-500/10 text-green-400'
+                : 'bg-amber-500/10 text-amber-400'
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                config.openaiApiKey ? 'bg-green-400' : 'bg-amber-400'
+              }`}
+            />
+            {config.openaiApiKey ? 'Clé configurée' : 'Non configurée'}
+          </span>
+        </div>
+
+        <p className="text-xs text-ink-tertiary leading-relaxed">
+          Nécessaire pour que le chatbot réponde aux visiteurs. Stockée côté serveur — jamais exposée au public.
+        </p>
+
+        {/* Input + eye toggle */}
+        <div className="relative">
+          <input
+            type={showKey ? 'text' : 'password'}
+            value={config.openaiApiKey}
+            onChange={(e) => setConfig({ ...config, openaiApiKey: e.target.value })}
+            placeholder="sk-proj-..."
+            autoComplete="off"
+            spellCheck={false}
+            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg pl-4 pr-12 py-3 text-sm font-mono text-ink-primary placeholder:text-ink-tertiary outline-none focus:border-brand-teal/50 focus:ring-1 focus:ring-brand-teal/20 transition-all"
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-ink-tertiary hover:text-ink-primary hover:bg-white/[0.06] transition-all cursor-pointer"
+            title={showKey ? 'Masquer la clé' : 'Afficher la clé'}
+          >
+            {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+
+        <p className="text-[11px] text-ink-tertiary leading-relaxed">
+          💡 Obtenez votre clé sur{' '}
+          <a
+            href="https://platform.openai.com/api-keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-teal underline underline-offset-2 hover:no-underline"
+          >
+            platform.openai.com/api-keys
+          </a>
+          . Elle commence par{' '}
+          <code className="font-mono text-[10px] bg-white/[0.06] px-1.5 py-0.5 rounded">
+            sk-
+          </code>
+          .
+        </p>
       </div>
 
       {/* Model selection */}

@@ -8,6 +8,7 @@ import {
   BarChart2,
   FileText,
   MessageSquare,
+  CalendarDays,
   Bot,
   Settings,
   LogOut,
@@ -21,6 +22,7 @@ const navItems = [
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart2 },
   { label: 'Articles', href: '/admin/articles', icon: FileText },
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
+  { label: 'Agenda', href: '/admin/agenda', icon: CalendarDays },
   { label: 'Chatbot', href: '/admin/chatbot', icon: Bot },
   { label: 'Paramètres', href: '/admin/settings', icon: Settings },
 ];

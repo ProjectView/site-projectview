@@ -1,11 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, CalendarCheck } from 'lucide-react';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  appointmentBooked?: {
+    id: string;
+    date?: string | null;
+    time?: string | null;
+    subject: string;
+    name: string;
+  };
 }
 
 interface ChatConfig {
@@ -13,6 +20,20 @@ interface ChatConfig {
   welcomeMessage: string;
   position: 'bottom-right' | 'bottom-left';
   accentColor: string;
+}
+
+// Format "YYYY-MM-DD" → "vendredi 15 mars 2024"
+function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
 export function ChatWidget() {
@@ -86,7 +107,14 @@ export function ChatWidget() {
 
       if (res.ok) {
         const data = await res.json();
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.reply,
+            ...(data.appointmentBooked ? { appointmentBooked: data.appointmentBooked } : {}),
+          },
+        ]);
       } else {
         setMessages((prev) => [
           ...prev,
@@ -119,7 +147,7 @@ export function ChatWidget() {
             : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
       >
-        <div className="w-[340px] sm:w-[380px] max-h-[500px] rounded-2xl bg-dark-surface/95 backdrop-blur-2xl border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden">
+        <div className="w-[340px] sm:w-[380px] max-h-[660px] rounded-2xl bg-dark-surface/95 backdrop-blur-2xl border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden">
           {/* Header */}
           <div
             className="px-4 py-3 flex items-center justify-between flex-shrink-0"
@@ -146,14 +174,15 @@ export function ChatWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[350px]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[520px]">
             {messages.map((msg, i) => (
               <div
                 key={i}
                 className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
               >
+                {/* Avatar */}
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 self-start mt-0.5 ${
                     msg.role === 'assistant' ? '' : 'bg-white/[0.08]'
                   }`}
                   style={msg.role === 'assistant' ? { backgroundColor: accent + '20' } : undefined}
@@ -164,19 +193,60 @@ export function ChatWidget() {
                     <User className="w-3 h-3 text-ink-secondary" />
                   )}
                 </div>
-                <div
-                  className={`max-w-[80%] px-3 py-2 rounded-xl text-sm leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-white/[0.08] text-ink-primary'
-                      : 'text-ink-primary'
-                  }`}
-                  style={
-                    msg.role === 'assistant'
-                      ? { backgroundColor: accent + '10' }
-                      : undefined
-                  }
-                >
-                  {msg.content}
+
+                {/* Bubble + optional appointment card */}
+                <div className="max-w-[80%] space-y-2">
+                  {/* Text bubble */}
+                  {msg.content && (
+                    <div
+                      className={`px-3 py-2 rounded-xl text-sm leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-white/[0.08] text-ink-primary'
+                          : 'text-ink-primary'
+                      }`}
+                      style={
+                        msg.role === 'assistant'
+                          ? { backgroundColor: accent + '10' }
+                          : undefined
+                      }
+                    >
+                      {msg.content}
+                    </div>
+                  )}
+
+                  {/* Appointment confirmation card */}
+                  {msg.appointmentBooked && (
+                    <div className="rounded-xl overflow-hidden border border-green-500/25 bg-green-500/5">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border-b border-green-500/15">
+                        <CalendarCheck className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        <span className="text-xs font-semibold text-green-400">
+                          Demande envoyée !
+                        </span>
+                      </div>
+                      <div className="px-3 py-2.5 space-y-1.5 text-xs">
+                        <div className="flex gap-2">
+                          <span className="text-[10px] text-ink-tertiary uppercase tracking-wider w-14 flex-shrink-0 pt-px">Contact</span>
+                          <span className="text-ink-primary leading-relaxed">{msg.appointmentBooked.name}</span>
+                        </div>
+                        {msg.appointmentBooked.date && (
+                          <div className="flex gap-2">
+                            <span className="text-[10px] text-ink-tertiary uppercase tracking-wider w-14 flex-shrink-0 pt-px">Date</span>
+                            <span className="text-ink-primary capitalize leading-relaxed">
+                              {formatDate(msg.appointmentBooked.date)}
+                              {msg.appointmentBooked.time ? ` à ${msg.appointmentBooked.time}` : ''}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-3 py-2 border-t border-green-500/10">
+                        <p className="text-[10px] text-ink-tertiary leading-relaxed">
+                          {msg.appointmentBooked.date
+                            ? "Un conseiller vous confirmera ce créneau par email."
+                            : "Un conseiller Projectview vous recontactera dans les 24h ouvrées."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

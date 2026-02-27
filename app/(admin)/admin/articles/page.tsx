@@ -12,6 +12,7 @@ import {
   Eye,
   Filter,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { articles as localArticles, categories } from '@/lib/fallback-data';
 import type { Article } from '@/lib/fallback-data';
@@ -227,9 +228,19 @@ export default function ArticlesPage() {
 
                 {/* Category */}
                 <div className="flex items-center">
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-brand-teal/15 text-brand-teal whitespace-nowrap truncate max-w-full">
-                    {article.category}
-                  </span>
+                  {article.category ? (
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-brand-teal/15 text-brand-teal whitespace-nowrap truncate max-w-full">
+                      {article.category}
+                    </span>
+                  ) : (
+                    <span
+                      className="inline-flex items-center gap-1.5 text-xs text-red-400 font-medium"
+                      title="Cet article n'a aucune catégorie"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                      Sans catégorie
+                    </span>
+                  )}
                 </div>
 
                 {/* SEO Score */}

@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getChatbotConfig } from '@/lib/chatbot';
 import { buildKnowledgeContext } from '@/lib/knowledge-base';
+import { createAppointment } from '@/lib/firestore-appointments';
+
+// Regex to detect the booking marker emitted by the AI
+const APPOINTMENT_REGEX = /<<APPOINTMENT_BOOKED:([\s\S]+?)>>/;
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/chatbot — Public: get chatbot public config (enabled, welcome, position, color)
 export async function GET() {
@@ -41,11 +46,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check for OpenAI API key
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Clé API : priorité à la clé saisie dans l'admin, sinon variable d'env
+    const apiKey = config.openaiApiKey || process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Clé API IA non configurée.' },
+        { error: 'Clé API IA non configurée. Renseignez-la dans Admin → Chatbot.' },
         { status: 500 }
       );
     }
@@ -77,9 +82,53 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'Désolé, je ne peux pas répondre pour le moment.';
+    const rawReply: string = data.choices?.[0]?.message?.content || 'Désolé, je ne peux pas répondre pour le moment.';
 
-    return NextResponse.json({ reply });
+    // ── Detect appointment booking marker ──────────────────────────────────────
+    const match = rawReply.match(APPOINTMENT_REGEX);
+    if (match) {
+      // Strip the marker from the displayed reply
+      const cleanReply = rawReply.replace(APPOINTMENT_REGEX, '').trim();
+
+      try {
+        const parsed = JSON.parse(match[1]);
+        const appointment = await createAppointment({
+          status: 'pending',
+          prospect: {
+            name: String(parsed.name || '').slice(0, 100),
+            email: String(parsed.email || '').slice(0, 200),
+            phone: parsed.phone && parsed.phone !== 'null' ? String(parsed.phone).slice(0, 30) : null,
+            company: parsed.company && parsed.company !== 'null' ? String(parsed.company).slice(0, 100) : null,
+            comment: parsed.comment && parsed.comment !== 'null' ? String(parsed.comment).slice(0, 1000) : null,
+          },
+          slot: {
+            date: parsed.date && parsed.date !== 'null' ? String(parsed.date).slice(0, 10) : null,
+            time: parsed.time && parsed.time !== 'null' ? String(parsed.time).slice(0, 5) : null,
+            duration: Number(parsed.duration) || 60,
+            subject: String(parsed.subject || 'Demande de démonstration Projectview').slice(0, 200),
+            notes: parsed.notes && parsed.notes !== 'null' ? String(parsed.notes).slice(0, 500) : null,
+          },
+          source: 'chatbot',
+        });
+
+        return NextResponse.json({
+          reply: cleanReply,
+          appointmentBooked: {
+            id: appointment.id,
+            date: appointment.slot.date,
+            time: appointment.slot.time,
+            subject: appointment.slot.subject,
+            name: appointment.prospect.name,
+          },
+        });
+      } catch (bookingError) {
+        console.error('Appointment booking error:', bookingError);
+        // Don't fail the chat — just return the clean reply without booking confirmation
+        return NextResponse.json({ reply: cleanReply });
+      }
+    }
+
+    return NextResponse.json({ reply: rawReply });
   } catch (error) {
     console.error('Chatbot error:', error);
     return NextResponse.json(
