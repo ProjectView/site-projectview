@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { checkAdminSession } from '@/lib/firebase-admin';
-import { getLeadById, updateLead, deleteLead } from '@/lib/firestore-leads';
+import { getNotes, addNote } from '@/lib/firestore-leads';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// GET /api/admin/leads/[id] — Get a single lead
+// GET /api/admin/leads/[id]/notes
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -16,17 +16,16 @@ export async function GET(
 
   const { id } = await params;
   try {
-    const lead = await getLeadById(id);
-    if (!lead) return NextResponse.json({ error: 'Introuvable' }, { status: 404 });
-    return NextResponse.json({ lead });
+    const notes = await getNotes(id);
+    return NextResponse.json({ notes });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// PATCH /api/admin/leads/[id] — Update a lead
-export async function PATCH(
+// POST /api/admin/leads/[id]/notes
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -36,26 +35,15 @@ export async function PATCH(
   const { id } = await params;
   try {
     const body = await request.json();
-    const lead = await updateLead(id, body);
-    return NextResponse.json({ lead });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Erreur inconnue';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-// DELETE /api/admin/leads/[id] — Delete a lead
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const authError = await checkAdminSession(request);
-  if (authError) return authError;
-
-  const { id } = await params;
-  try {
-    await deleteLead(id);
-    return NextResponse.json({ success: true });
+    if (!body.content?.trim()) {
+      return NextResponse.json({ error: 'Le contenu est requis.' }, { status: 400 });
+    }
+    const note = await addNote(id, {
+      type: body.type ?? 'note',
+      content: body.content.trim(),
+      author: 'Admin',
+    });
+    return NextResponse.json({ note }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';
     return NextResponse.json({ error: message }, { status: 500 });

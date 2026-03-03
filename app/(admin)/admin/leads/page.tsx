@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Plus, Users, LayoutList, Columns, Search, Trash2, Edit3,
   Building2, Mail, Phone, MapPin, Calendar, Flag, RefreshCw,
@@ -57,6 +58,7 @@ function formatDate(iso?: string) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function LeadsPage() {
+  const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'kanban'>('list');
@@ -251,7 +253,8 @@ export default function LeadsPage() {
                   const overdue = isOverdue(lead.nextActionDate);
                   return (
                     <div key={lead.id}
-                      className={`grid grid-cols-1 lg:grid-cols-[1.5fr_1fr_1.2fr_120px_100px_120px_130px_88px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors ${i === filtered.length - 1 ? 'rounded-b-2xl' : ''}`}>
+                      onClick={() => router.push(`/admin/leads/${lead.id}`)}
+                      className={`grid grid-cols-1 lg:grid-cols-[1.5fr_1fr_1.2fr_120px_100px_120px_130px_88px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors cursor-pointer ${i === filtered.length - 1 ? 'rounded-b-2xl' : ''}`}>
                       {/* Company + Name */}
                       <div className="flex items-center gap-3 min-w-0 pr-4">
                         <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center flex-shrink-0">
@@ -298,12 +301,12 @@ export default function LeadsPage() {
                       </div>
                       {/* Actions */}
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEdit(lead)}
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(lead); }}
                           className="flex items-center justify-center w-8 h-8 rounded-lg text-ink-tertiary hover:text-brand-teal hover:bg-brand-teal/10 transition-all cursor-pointer"
                           title="Modifier">
                           <Edit3 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => setDeleteId(lead.id)}
+                        <button onClick={(e) => { e.stopPropagation(); setDeleteId(lead.id); }}
                           className="flex items-center justify-center w-8 h-8 rounded-lg text-ink-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
                           title="Supprimer">
                           <Trash2 className="w-4 h-4" />
@@ -391,12 +394,15 @@ function KanbanCard({ lead, onEdit, onDelete, onStatusChange }: {
   onDelete: (id: string) => void;
   onStatusChange: (id: string, s: LeadStatus) => void;
 }) {
+  const router = useRouter();
   const [statusOpen, setStatusOpen] = useState(false);
   const overdue = isOverdue(lead.nextActionDate);
   const pc = lead.priority ? PRIORITY_CONFIG[lead.priority] : null;
 
   return (
-    <div className="relative bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 hover:border-white/[0.14] transition-all group">
+    <div
+      onClick={() => router.push(`/admin/leads/${lead.id}`)}
+      className="relative bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4 hover:border-white/[0.14] transition-all group cursor-pointer">
       {/* Priority indicator */}
       {lead.priority === 'high' && (
         <div className="absolute top-3 right-3">
@@ -450,7 +456,7 @@ function KanbanCard({ lead, onEdit, onDelete, onStatusChange }: {
       <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
         {/* Status selector */}
         <div className="relative">
-          <button onClick={() => setStatusOpen((o) => !o)}
+          <button onClick={(e) => { e.stopPropagation(); setStatusOpen((o) => !o); }}
             className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-full font-medium cursor-pointer transition-all
               ${STATUS_CONFIG[lead.status].bg} ${STATUS_CONFIG[lead.status].color}`}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_CONFIG[lead.status].dot }} />
@@ -462,7 +468,7 @@ function KanbanCard({ lead, onEdit, onDelete, onStatusChange }: {
               {STATUSES.map((s) => {
                 const sc = STATUS_CONFIG[s];
                 return (
-                  <button key={s} onClick={() => { onStatusChange(lead.id, s); setStatusOpen(false); }}
+                  <button key={s} onClick={(e) => { e.stopPropagation(); onStatusChange(lead.id, s); setStatusOpen(false); }}
                     className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-all cursor-pointer
                       ${s === lead.status ? `${sc.bg} ${sc.color} font-semibold` : 'text-ink-secondary hover:bg-white/[0.05]'}`}>
                     <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: sc.dot }} />
@@ -476,11 +482,11 @@ function KanbanCard({ lead, onEdit, onDelete, onStatusChange }: {
 
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onEdit(lead)}
+          <button onClick={(e) => { e.stopPropagation(); onEdit(lead); }}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-ink-tertiary hover:text-brand-teal hover:bg-brand-teal/10 transition-all cursor-pointer">
             <Edit3 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onDelete(lead.id)}
+          <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id); }}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-ink-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer">
             <Trash2 className="w-3.5 h-3.5" />
           </button>

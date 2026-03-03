@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
+  UserCheck,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 
@@ -23,6 +24,7 @@ const navItems = [
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart2 },
   { label: 'Articles', href: '/admin/articles', icon: FileText },
   { label: 'Prospects', href: '/admin/leads', icon: Users },
+  { label: 'Clients', href: '/admin/clients', icon: UserCheck },
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { label: 'Agenda', href: '/admin/agenda', icon: CalendarDays },
   { label: 'Chatbot', href: '/admin/chatbot', icon: Bot },
