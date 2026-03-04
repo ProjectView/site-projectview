@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Note: 'standalone' output is for Docker only — incompatible with Netlify
   // output: 'standalone',
 
+  // Allow preview tool to load /_next/* chunks from different origin in dev
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
+
   images: {
     // Allow images from Strapi
     remotePatterns: [

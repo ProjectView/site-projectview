@@ -6,8 +6,9 @@ import {
   ArrowLeft, Building2, Mail, Phone, MapPin, Globe, Briefcase,
   Flag, Calendar, AlertCircle, Edit3, Trash2, UserCheck, UserPlus,
   MessageSquare, PhoneCall, RefreshCw, Plus, Loader2, X,
-  Clock, CheckCircle2, CalendarCheck, Send, FileText,
+  Clock, CheckCircle2, CalendarCheck, Send, FileText, Zap,
 } from 'lucide-react';
+import type { EmailSequence } from '@/lib/firestore-sequences';
 import { Toast, ToastType } from '@/components/admin/Toast';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import type { Lead, LeadStatus, LeadPriority, NoteType, LeadNote } from '@/lib/firestore-leads';
@@ -118,6 +119,14 @@ export function LeadDetailView({ id, mode }: LeadDetailViewProps) {
   const [deleting, setDeleting] = useState(false);
   const [confirmConvert, setConfirmConvert] = useState(false);
   const [converting, setConverting] = useState(false);
+
+  // Sequence assignment
+  const [seqModalOpen, setSeqModalOpen] = useState(false);
+  const [sequences, setSequences] = useState<EmailSequence[]>([]);
+  const [seqLoading, setSeqLoading] = useState(false);
+  const [selectedSeqId, setSelectedSeqId] = useState('');
+  const [confirmAssign, setConfirmAssign] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   // Fetch
   const fetchData = useCallback(async () => {
@@ -252,6 +261,44 @@ export function LeadDetailView({ id, mode }: LeadDetailViewProps) {
     }
   };
 
+  // Open sequence modal — lazy fetch sequences
+  const handleOpenSeqModal = async () => {
+    setSeqModalOpen(true);
+    if (sequences.length > 0) return;
+    setSeqLoading(true);
+    try {
+      const res = await fetch('/api/admin/sequences');
+      if (res.ok) {
+        const data = await res.json();
+        setSequences(data.sequences ?? []);
+        if (data.sequences?.length > 0) setSelectedSeqId(data.sequences[0].id);
+      }
+    } catch { /* silent */ } finally { setSeqLoading(false); }
+  };
+
+  // Assign sequence
+  const handleAssignSequence = async () => {
+    if (!selectedSeqId) return;
+    setAssigning(true);
+    try {
+      const res = await fetch('/api/admin/sequences/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sequenceId: selectedSeqId, leadIds: [id] }),
+      });
+      if (!res.ok) throw new Error('Erreur serveur');
+      setConfirmAssign(false);
+      setSeqModalOpen(false);
+      const seq = sequences.find((s) => s.id === selectedSeqId);
+      setToast({ message: `Séquence "${seq?.name ?? ''}" envoyée à N8N.`, type: 'success' });
+      // Refresh notes to show the auto-added relance note
+      const notesRes = await fetch(`/api/admin/leads/${id}/notes`);
+      if (notesRes.ok) { const d = await notesRes.json(); setNotes(d.notes); }
+    } catch {
+      setToast({ message: "Erreur lors de l'envoi de la séquence.", type: 'error' });
+    } finally { setAssigning(false); }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -302,6 +349,17 @@ export function LeadDetailView({ id, mode }: LeadDetailViewProps) {
         onCancel={() => setConfirmConvert(false)}
       />
 
+      <ConfirmDialog
+        open={confirmAssign}
+        title="Lancer la séquence"
+        message={`Lancer la séquence "${sequences.find((s) => s.id === selectedSeqId)?.name ?? ''}" pour ${fullName(lead)} ? N8N prendra en charge l'envoi automatique des emails.`}
+        confirmLabel="Lancer"
+        variant="warning"
+        loading={assigning}
+        onConfirm={handleAssignSequence}
+        onCancel={() => setConfirmAssign(false)}
+      />
+
       {/* Back + actions header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button onClick={() => router.push(backHref)}
@@ -314,6 +372,12 @@ export function LeadDetailView({ id, mode }: LeadDetailViewProps) {
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-white/[0.04] border border-white/[0.08] text-ink-secondary hover:text-ink-primary hover:bg-white/[0.08] transition-all cursor-pointer">
             <Edit3 className="w-4 h-4" /> Modifier
           </button>
+          {lead.email && (
+            <button onClick={handleOpenSeqModal}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-violet-500/10 border border-violet-500/20 text-violet-400 hover:bg-violet-500/20 transition-all cursor-pointer">
+              <Zap className="w-4 h-4" /> Séquence email
+            </button>
+          )}
           {mode === 'prospect' && !lead.isClient && (
             <button onClick={() => setConfirmConvert(true)}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all cursor-pointer">
@@ -645,6 +709,72 @@ export function LeadDetailView({ id, mode }: LeadDetailViewProps) {
           )}
         </div>
       </div>
+
+      {/* Sequence selection modal */}
+      {seqModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSeqModalOpen(false)} />
+          <div className="relative w-full max-w-md bg-dark-surface border border-white/[0.10] rounded-2xl shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <h2 className="text-base font-bold flex items-center gap-2">
+                <Zap className="w-4 h-4 text-violet-400" /> Envoyer une séquence email
+              </h2>
+              <button onClick={() => setSeqModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-secondary hover:text-ink-primary hover:bg-white/[0.06] transition-all cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <p className="text-sm text-ink-secondary">
+                Choisissez une séquence à lancer pour <span className="font-semibold text-ink-primary">{fullName(lead)}</span>.
+                N8N prendra en charge l&apos;envoi automatique des emails.
+              </p>
+              {seqLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-5 h-5 animate-spin text-ink-tertiary" />
+                </div>
+              ) : sequences.length === 0 ? (
+                <div className="rounded-xl bg-white/[0.04] border border-white/[0.08] p-4 text-center text-sm text-ink-tertiary">
+                  Aucune séquence disponible.{' '}
+                  <a href="/admin/leadgen" className="text-brand-teal hover:underline">Créer une séquence →</a>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-medium text-ink-secondary block mb-1.5">Séquence</label>
+                  <select
+                    value={selectedSeqId}
+                    onChange={(e) => setSelectedSeqId(e.target.value)}
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-ink-primary outline-none focus:border-brand-teal/50 transition-colors cursor-pointer"
+                  >
+                    {sequences.map((s) => (
+                      <option key={s.id} value={s.id} className="bg-dark-surface">
+                        {s.name} ({s.emails.length} étape{s.emails.length > 1 ? 's' : ''})
+                      </option>
+                    ))}
+                  </select>
+                  {selectedSeqId && sequences.find((s) => s.id === selectedSeqId)?.description && (
+                    <p className="mt-2 text-xs text-ink-tertiary leading-relaxed">
+                      {sequences.find((s) => s.id === selectedSeqId)?.description}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/[0.06]">
+              <button onClick={() => setSeqModalOpen(false)}
+                className="px-4 py-2 rounded-lg text-sm text-ink-secondary hover:text-ink-primary hover:bg-white/[0.06] transition-all cursor-pointer">
+                Annuler
+              </button>
+              <button
+                onClick={() => setConfirmAssign(true)}
+                disabled={!selectedSeqId || seqLoading}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 transition-all cursor-pointer">
+                <Zap className="w-4 h-4" /> Lancer la séquence
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {editOpen && (
