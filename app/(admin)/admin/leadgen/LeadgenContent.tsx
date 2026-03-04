@@ -93,21 +93,21 @@ function autoMapHeaders(headers: string[]): Record<string, string> {
 // ── Sector chips ──────────────────────────────────────────────────────────
 
 const SECTOR_CHIPS = [
-  { label: 'Installateur solaire',  q: 'installateur panneaux solaires',       icon: '☀️' },
-  { label: 'Cuisiniste / Showroom', q: 'cuisiniste showroom cuisine',           icon: '🍳' },
+  { label: 'Installateur solaire',  q: 'installateur solaire photovoltaïque',  icon: '☀️' },
+  { label: 'Cuisiniste / Showroom', q: 'cuisiniste',                           icon: '🍳' },
   { label: 'Agence immobilière',    q: 'agence immobilière',                   icon: '🏠' },
-  { label: 'Promoteur immobilier',  q: 'promoteur immobilier construction',     icon: '🏗️' },
-  { label: 'Architecte',           q: 'cabinet architecture architecte',       icon: '📐' },
-  { label: 'Retail / Mode',         q: 'boutique prêt-à-porter enseigne mode', icon: '👗' },
+  { label: 'Promoteur immobilier',  q: 'promoteur immobilier',                 icon: '🏗️' },
+  { label: 'Architecte',           q: 'architecte',                           icon: '📐' },
+  { label: 'Retail / Mode',         q: 'commerce habillement mode',            icon: '👗' },
   { label: 'Concessionnaire auto',  q: 'concessionnaire automobile',           icon: '🚗' },
-  { label: 'Centre commercial',     q: 'centre commercial galerie',            icon: '🛍️' },
+  { label: 'Centre commercial',     q: 'centre commercial',                    icon: '🛍️' },
   { label: 'Salle de sport',        q: 'salle de sport fitness',               icon: '💪' },
-  { label: 'Hôtel',                 q: 'hôtel hébergement',                    icon: '🏨' },
-  { label: 'Coworking',             q: 'espace coworking bureau partagé',      icon: '💼' },
-  { label: 'ESN / IT / Conseil',    q: 'entreprise services numériques IT',    icon: '💻' },
-  { label: 'Aménagement intérieur', q: 'décorateur intérieur agencement',      icon: '🛋️' },
-  { label: 'Santé / Clinique',      q: 'clinique cabinet médical',             icon: '🏥' },
-  { label: 'Paysagiste / BTP',      q: 'paysagiste entreprise bâtiment',       icon: '🌿' },
+  { label: 'Hôtel',                 q: 'hôtel',                                icon: '🏨' },
+  { label: 'Coworking',             q: 'coworking',                            icon: '💼' },
+  { label: 'ESN / IT',              q: 'services informatiques numérique',     icon: '💻' },
+  { label: 'Aménagement intérieur', q: 'agencement intérieur décoration',      icon: '🛋️' },
+  { label: 'Santé / Clinique',      q: 'clinique médecine santé',              icon: '🏥' },
+  { label: 'Paysagiste / BTP',      q: 'paysagiste',                           icon: '🌿' },
 ];
 
 // ── Main Component ────────────────────────────────────────────────────────
@@ -121,22 +121,24 @@ export function LeadgenContent() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Zap className="w-6 h-6 text-brand-orange" />
-          Leadgen
-        </h1>
-        <p className="text-ink-secondary text-sm mt-1">
-          Trouvez, importez et contactez vos prospects directement depuis le back-office.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Zap className="w-6 h-6 text-brand-orange" />
+            Génération de prospects
+          </h1>
+          <p className="text-ink-secondary text-sm mt-1">
+            Découvrez des entreprises cibles, trouvez leurs emails et lancez des séquences automatisées.
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 p-1 bg-white/[0.04] border border-white/[0.08] rounded-xl w-fit">
         {([
-          { key: 'importer', label: 'Importer', icon: Upload },
+          { key: 'importer', label: 'Trouver des prospects', icon: Search },
           { key: 'sequences', label: 'Séquences email', icon: Mail },
-          { key: 'envois', label: 'Envois', icon: Send },
+          { key: 'envois', label: 'Historique envois', icon: Send },
         ] as { key: Tab; label: string; icon: React.ElementType }[]).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -165,31 +167,81 @@ export function LeadgenContent() {
 
 function ImportTab({ setToast }: { setToast: (t: { message: string; type: ToastType } | null) => void }) {
   const [prefillDomain, setPrefillDomain] = useState('');
+  const [activeSource, setActiveSource] = useState<'sirene' | 'csv'>('sirene');
   const hunterRef = useRef<HTMLDivElement>(null);
 
   const handleSelectDomain = (domain: string) => {
     setPrefillDomain(domain);
     setTimeout(() => {
-      hunterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+      hunterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
   };
 
   return (
-    <div className="space-y-6">
-      <SireneSection setToast={setToast} onSelectDomain={handleSelectDomain} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <HunterSection ref={hunterRef} setToast={setToast} prefillDomain={prefillDomain} />
-        <CsvSection setToast={setToast} />
+    <div className="space-y-5">
+
+      {/* Workflow guide */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { n: '1', icon: Building2, color: 'text-brand-green', bg: 'bg-brand-green/10', border: 'border-brand-green/20', title: 'Cherchez une entreprise', desc: 'Choisissez un secteur ou tapez un mot-clé, ex : "cuisiniste Lyon"' },
+          { n: '2', icon: Search,    color: 'text-brand-teal',  bg: 'bg-brand-teal/10',  border: 'border-brand-teal/20',  title: 'Trouvez les emails',      desc: 'Cliquez "→ Chercher les emails" sur une entreprise pour lancer Hunter.io' },
+          { n: '3', icon: Users,     color: 'text-brand-orange', bg: 'bg-brand-orange/10', border: 'border-brand-orange/20', title: 'Importez dans le CRM',   desc: 'Sélectionnez les contacts trouvés et importez-les en un clic' },
+        ].map(({ n, icon: Icon, color, bg, border, title, desc }) => (
+          <div key={n} className={`flex gap-3 p-4 rounded-xl border ${border} ${bg}`}>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${bg} border ${border}`}>
+              <span className={`text-xs font-bold ${color}`}>{n}</span>
+            </div>
+            <div className="min-w-0">
+              <p className={`text-sm font-semibold ${color}`}>{title}</p>
+              <p className="text-xs text-ink-tertiary mt-0.5 leading-relaxed">{desc}</p>
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Source toggle */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-ink-tertiary">Source :</span>
+        <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/[0.08] rounded-lg">
+          <button
+            onClick={() => setActiveSource('sirene')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              activeSource === 'sirene' ? 'bg-white/[0.10] text-ink-primary' : 'text-ink-tertiary hover:text-ink-secondary'
+            }`}
+          >
+            <Building2 className="w-3.5 h-3.5" /> Recherche SIRENE
+          </button>
+          <button
+            onClick={() => setActiveSource('csv')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              activeSource === 'csv' ? 'bg-white/[0.10] text-ink-primary' : 'text-ink-tertiary hover:text-ink-secondary'
+            }`}
+          >
+            <Upload className="w-3.5 h-3.5" /> Importer un CSV
+          </button>
+        </div>
+      </div>
+
+      {activeSource === 'sirene' ? (
+        /* SIRENE flow: search panel + Hunter panel side by side on large screens */
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-5">
+          <SireneSection setToast={setToast} onSelectDomain={handleSelectDomain} />
+          <div ref={hunterRef}>
+            <HunterSection setToast={setToast} prefillDomain={prefillDomain} />
+          </div>
+        </div>
+      ) : (
+        <CsvSection setToast={setToast} />
+      )}
     </div>
   );
 }
 
 // Hunter.io section
-const HunterSection = forwardRef<HTMLDivElement, {
+function HunterSection({ setToast, prefillDomain }: {
   setToast: (t: { message: string; type: ToastType } | null) => void;
   prefillDomain?: string;
-}>(function HunterSection({ setToast, prefillDomain }, ref) {
+}) {
   const [domain, setDomain] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<HunterEmail[]>([]);
@@ -260,31 +312,39 @@ const HunterSection = forwardRef<HTMLDivElement, {
   };
 
   return (
-    <div ref={ref} className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-6 space-y-5">
-      <div>
-        <h2 className="font-semibold text-ink-primary flex items-center gap-2">
-          <Search className="w-4 h-4 text-brand-teal" />
-          Trouver les emails (Hunter.io)
-        </h2>
-        <p className="text-xs text-ink-tertiary mt-1">Hunter.io — 25 recherches gratuites/mois</p>
+    <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-5 space-y-4 h-full flex flex-col">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h2 className="font-semibold text-ink-primary flex items-center gap-2 text-sm">
+            <span className="w-5 h-5 rounded-full bg-brand-teal/15 border border-brand-teal/30 flex items-center justify-center text-[10px] font-bold text-brand-teal flex-shrink-0">2</span>
+            Trouver les emails
+          </h2>
+          <p className="text-xs text-ink-tertiary mt-1 ml-7">Entrez un domaine pour récupérer les emails via Hunter.io</p>
+        </div>
+        <span className="text-[10px] text-ink-tertiary bg-white/[0.04] border border-white/[0.08] px-2 py-1 rounded-full flex-shrink-0">25 recherches/mois</span>
       </div>
 
-      <div className="flex gap-2">
-        <div className="flex-1 space-y-1">
-          <input
-            value={domain}
-            onChange={(e) => { setDomain(e.target.value); }}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="acme.fr, entreprise.com..."
-            className={inputCls()}
-          />
-          {prefillDomain && domain === prefillDomain && (
-            <p className="text-xs text-amber-400 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              Domaine suggéré depuis SIRENE — vérifiez avant de lancer
-            </p>
-          )}
+      {/* Prefill notice */}
+      {prefillDomain && domain === prefillDomain && (
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-500/8 border border-amber-500/20">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-xs text-amber-300 font-medium">Domaine suggéré automatiquement</p>
+            <p className="text-[11px] text-amber-400/70 mt-0.5">Vérifiez que <span className="font-mono">{domain}</span> est le bon domaine avant de chercher.</p>
+          </div>
         </div>
+      )}
+
+      {/* Search input */}
+      <div className="flex gap-2">
+        <input
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          placeholder="ex : acme.fr, solar-solutions.fr..."
+          className={inputCls()}
+        />
         <button
           onClick={handleSearch}
           disabled={loading || !domain.trim()}
@@ -356,9 +416,20 @@ const HunterSection = forwardRef<HTMLDivElement, {
           <p className="text-sm">Aucun email trouvé pour ce domaine</p>
         </div>
       )}
+
+      {/* Empty state — waiting for SIRENE selection */}
+      {!searched && !domain && (
+        <div className="flex-1 flex flex-col items-center justify-center py-10 text-ink-tertiary border-2 border-dashed border-white/[0.06] rounded-xl">
+          <Search className="w-8 h-8 mb-3 opacity-20" />
+          <p className="text-sm font-medium text-ink-secondary">En attente d&apos;un domaine</p>
+          <p className="text-xs mt-1 text-center max-w-[200px] leading-relaxed">
+            Cliquez <span className="text-brand-teal font-medium">→ Chercher les emails</span> sur une entreprise à gauche
+          </p>
+        </div>
+      )}
     </div>
   );
-});
+}
 
 // ── SIRENE section ────────────────────────────────────────────────────────
 
@@ -375,8 +446,8 @@ function SireneSection({ setToast, onSelectDomain }: {
   const [totalPages, setTotalPages] = useState(1);
   const [searched, setSearched] = useState(false);
 
-  const handleSearch = async (p = 1) => {
-    const q = (query.trim() + (city.trim() ? ` ${city.trim()}` : '')).trim();
+  const handleSearch = async (p = 1, overrideQ?: string) => {
+    const q = (overrideQ ?? (query.trim() + (city.trim() ? ` ${city.trim()}` : ''))).trim();
     if (!q) return;
     setLoading(true);
     setSearched(true);
@@ -395,59 +466,72 @@ function SireneSection({ setToast, onSelectDomain }: {
   };
 
   return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-6 space-y-5">
+    <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-5 space-y-4">
+      {/* Header */}
       <div>
-        <h2 className="font-semibold text-ink-primary flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-brand-green" />
-          Découvrir des entreprises
+        <h2 className="font-semibold text-ink-primary flex items-center gap-2 text-sm">
+          <span className="w-5 h-5 rounded-full bg-brand-green/15 border border-brand-green/30 flex items-center justify-center text-[10px] font-bold text-brand-green flex-shrink-0">1</span>
+          Chercher des entreprises
         </h2>
-        <p className="text-xs text-ink-tertiary mt-1">
-          Base SIRENE (api.gouv.fr) — 100% gratuit, entreprises françaises actives
+        <p className="text-xs text-ink-tertiary mt-1 ml-7">
+          Base SIRENE officielle — entreprises françaises actives, 100% gratuit
         </p>
       </div>
 
-      {/* Sector chips */}
-      <div className="flex flex-wrap gap-1.5">
-        {SECTOR_CHIPS.map((chip) => (
-          <button
-            key={chip.label}
-            onClick={() => setQuery(chip.q)}
-            className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer ${
-              query === chip.q
-                ? 'bg-brand-green/15 border-brand-green/40 text-brand-green'
-                : 'bg-white/[0.04] border-white/[0.08] text-ink-secondary hover:border-white/[0.20] hover:text-ink-primary'
-            }`}
-          >
-            <span>{chip.icon}</span>
-            {chip.label}
-          </button>
-        ))}
+      {/* Sector chips — clicking auto-triggers search */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-tertiary mb-2">
+          Secteurs cibles Projectview — cliquez pour rechercher instantanément
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {SECTOR_CHIPS.map((chip) => (
+            <button
+              key={chip.label}
+              onClick={() => { setQuery(chip.q); handleSearch(1, chip.q); }}
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer ${
+                query === chip.q
+                  ? 'bg-brand-green/15 border-brand-green/40 text-brand-green'
+                  : 'bg-white/[0.04] border-white/[0.08] text-ink-secondary hover:border-brand-green/30 hover:text-ink-primary hover:bg-brand-green/5'
+              }`}
+            >
+              <span className="text-[11px]">{chip.icon}</span>
+              {chip.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search row */}
-      <div className="flex gap-2">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="Secteur ou type d'entreprise..."
-          className={inputCls() + ' flex-1'}
-        />
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="Ville (optionnel)"
-          className={inputCls() + ' w-36 flex-shrink-0'}
-        />
-        <button
-          onClick={() => handleSearch()}
-          disabled={loading || !query.trim()}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-brand-green/10 text-brand-green hover:bg-brand-green/20 disabled:opacity-50 transition-all cursor-pointer flex-shrink-0"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-          Rechercher
-        </button>
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-tertiary mb-2">
+          Ou recherchez librement
+        </p>
+        <div className="space-y-2">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="ex : cuisiniste showroom, promoteur immobilier..."
+            className={inputCls()}
+          />
+          <div className="flex gap-2">
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Ville (optionnel)"
+              className={inputCls() + ' flex-1'}
+            />
+            <button
+              onClick={() => handleSearch()}
+              disabled={loading || !query.trim()}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-brand-green/10 text-brand-green hover:bg-brand-green/20 disabled:opacity-50 transition-all cursor-pointer flex-shrink-0"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              Rechercher
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Results table */}
@@ -486,9 +570,10 @@ function SireneSection({ setToast, onSelectDomain }: {
                     <td className="px-3 py-3">
                       <button
                         onClick={() => onSelectDomain(c.guessDomain)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal/10 text-brand-teal hover:bg-brand-teal/20 transition-all cursor-pointer whitespace-nowrap"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal/10 border border-brand-teal/20 text-brand-teal hover:bg-brand-teal/20 hover:border-brand-teal/40 transition-all cursor-pointer whitespace-nowrap"
                       >
-                        <Search className="w-3 h-3" />→ Hunter.io
+                        <Mail className="w-3 h-3" />
+                        Chercher les emails →
                       </button>
                     </td>
                   </tr>
