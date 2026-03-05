@@ -136,15 +136,21 @@ const TESTIMONIALS = [
   },
 ];
 
+/* ─── Demo tabs ─────────────────────────────────────────────────────── */
+
+type DemoTab = 'dashboard' | 'crm' | 'articles' | 'chatbot' | 'seo';
+
+const DEMO_TABS: { id: DemoTab; label: string; icon: React.ElementType }[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+  { id: 'crm',       label: 'CRM',       icon: Users },
+  { id: 'articles',  label: 'Articles',  icon: FileText },
+  { id: 'chatbot',   label: 'Chatbot',   icon: MessageSquare },
+  { id: 'seo',       label: 'SEO',       icon: TrendingUp },
+];
+
 /* ─── Typing targets ────────────────────────────────────────────────── */
 
 const TYPING_TARGETS = ['architectes', 'retailers', 'showrooms', 'constructeurs', 'promoteurs', 'startups'];
-
-/* ─── Helpers ───────────────────────────────────────────────────────── */
-
-function formatEur(n: number): string {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
-}
 
 /* ══════════════════════════════════════════════════════════════════════
    SCROLL PROGRESS BAR
@@ -175,7 +181,6 @@ function StickyCTA() {
   const ctaRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    // Find the final CTA section by its id
     ctaRef.current = document.getElementById('cta-section');
   }, []);
 
@@ -184,7 +189,6 @@ function StickyCTA() {
       const scrollY = window.scrollY;
       const show = scrollY > 600;
 
-      // Hide when near the final CTA section
       if (ctaRef.current) {
         const rect = ctaRef.current.getBoundingClientRect();
         if (rect.top < window.innerHeight * 0.85) {
@@ -207,7 +211,7 @@ function StickyCTA() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl backdrop-blur-xl bg-dark-surface/85 border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
         >
           <Link
@@ -235,6 +239,54 @@ function StickyCTA() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   HOTSPOT COMPONENT
+══════════════════════════════════════════════════════════════════════ */
+
+interface HotspotProps {
+  id: string;
+  tooltip: string;
+  active: boolean;
+  onToggle: (id: string) => void;
+  above?: boolean;
+}
+
+function Hotspot({ id, tooltip, active, onToggle, above = false }: HotspotProps) {
+  return (
+    <div className="relative flex items-center justify-center z-10">
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggle(id); }}
+        className="relative flex items-center justify-center w-6 h-6 cursor-pointer"
+        aria-label="En savoir plus"
+      >
+        {/* Pulsing ring */}
+        <motion.span
+          className="absolute w-5 h-5 rounded-full bg-brand-orange/35"
+          animate={{ scale: [1, 1.9, 1.9], opacity: [0.7, 0, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
+        />
+        {/* Inner dot */}
+        <span className="relative w-2.5 h-2.5 rounded-full bg-brand-orange shadow-[0_0_6px_rgba(212,132,42,0.7)]" />
+      </button>
+
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: above ? 4 : -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: above ? 4 : -4 }}
+            transition={{ duration: 0.18 }}
+            onClick={(e) => e.stopPropagation()}
+            className={`absolute ${above ? 'bottom-8' : 'top-8'} left-1/2 -translate-x-1/2 z-30 w-52 rounded-xl border border-white/[0.15] bg-dark-elevated p-3 shadow-2xl`}
+          >
+            <p className="text-[11px] text-ink-secondary leading-relaxed">{tooltip}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
 
@@ -249,7 +301,7 @@ export function PlatformeContent() {
       <FrontSection />
       <BackOfficeSection />
       <BriqueSection />
-      <RoiSection />
+      <DemoSection />
       <CtaSection />
     </main>
   );
@@ -274,7 +326,6 @@ function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden px-6 pt-24 pb-20">
-      {/* Mesh background */}
       <div className="absolute inset-0 -z-10">
         <div className="hero-mesh absolute inset-0 opacity-60" />
         <div className="gradient-orb absolute -top-40 -left-40 w-[700px] h-[700px] bg-brand-teal/10 blur-[120px]" />
@@ -285,13 +336,7 @@ function HeroSection() {
       <div className="max-w-[1280px] mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-          {/* Left — copy */}
-          <motion.div
-            className="space-y-8"
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-          >
+          <motion.div className="space-y-8" initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeUp} custom={0}>
               <Badge>Sur mesure · Brick by brick · Full-stack</Badge>
             </motion.div>
@@ -305,17 +350,12 @@ function HeroSection() {
               </h1>
             </motion.div>
 
-            <motion.p
-              variants={fadeUp}
-              custom={2}
-              className="text-lg text-ink-secondary leading-relaxed max-w-xl"
-            >
+            <motion.p variants={fadeUp} custom={2} className="text-lg text-ink-secondary leading-relaxed max-w-xl">
               La Plateforme, c&apos;est un front au niveau des meilleurs sites du monde
               et un back-office complet pour piloter votre activité —
               construit <span className="text-ink-primary font-medium">brique par brique</span>, exactement pour vous.
             </motion.p>
 
-            {/* Typing animation */}
             <motion.div variants={fadeUp} custom={3} className="flex items-center gap-2 text-sm text-ink-tertiary">
               <span>Fait sur mesure pour les</span>
               <AnimatePresence mode="wait">
@@ -341,12 +381,7 @@ function HeroSection() {
               </Button>
             </motion.div>
 
-            {/* Stats row */}
-            <motion.div
-              variants={fadeUp}
-              custom={5}
-              className="flex flex-wrap gap-6 pt-4 border-t border-white/[0.06]"
-            >
+            <motion.div variants={fadeUp} custom={5} className="flex flex-wrap gap-6 pt-4 border-t border-white/[0.06]">
               {[
                 { value: '100%', label: 'Sur mesure' },
                 { value: '24/7', label: 'Actif & performant' },
@@ -365,16 +400,14 @@ function HeroSection() {
             className="relative h-[520px] hidden lg:block"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
           >
-            {/* Front mockup — browser window */}
             <motion.div
               className="absolute top-0 left-0 w-[370px] rounded-2xl overflow-hidden border border-white/[0.10] shadow-[0_40px_80px_rgba(0,0,0,0.5)]"
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
               style={{ transform: 'perspective(1000px) rotateY(-4deg) rotateX(3deg)' }}
             >
-              {/* Browser chrome */}
               <div className="bg-dark-elevated px-4 py-3 flex items-center gap-2 border-b border-white/[0.06]">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-500/60" />
@@ -385,7 +418,6 @@ function HeroSection() {
                   projectview.fr
                 </div>
               </div>
-              {/* Page preview */}
               <div className="bg-[#0A0A0B] p-5 space-y-4 h-[280px] overflow-hidden">
                 <div className="h-3 w-24 rounded-full bg-white/[0.06]" />
                 <div className="h-8 w-48 rounded-xl bg-gradient-to-r from-brand-teal/30 to-brand-purple/20" />
@@ -403,14 +435,12 @@ function HeroSection() {
               </div>
             </motion.div>
 
-            {/* Back-office mockup — app window */}
             <motion.div
               className="absolute bottom-0 right-0 w-[330px] rounded-2xl overflow-hidden border border-white/[0.12] shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
               style={{ transform: 'perspective(1000px) rotateY(4deg) rotateX(-2deg)' }}
             >
-              {/* Title bar */}
               <div className="bg-dark-surface px-4 py-3 flex items-center gap-3 border-b border-white/[0.06]">
                 <LayoutDashboard className="w-4 h-4 text-brand-teal" />
                 <span className="text-xs font-medium text-ink-secondary">Back-office</span>
@@ -418,17 +448,14 @@ function HeroSection() {
                   {[1,2,3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/[0.15]" />)}
                 </div>
               </div>
-              {/* Sidebar + content */}
               <div className="flex bg-[#0D0D10] h-[260px]">
-                {/* Sidebar */}
                 <div className="w-12 bg-dark-surface/50 flex flex-col items-center py-3 gap-3 border-r border-white/[0.05]">
                   {[BarChart3, FileText, Users, MessageSquare, Zap].map((Icon, i) => (
-                    <div key={i} className={`w-7 h-7 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-brand-teal/20' : 'hover:bg-white/[0.04]'}`}>
+                    <div key={i} className={`w-7 h-7 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-brand-teal/20' : ''}`}>
                       <Icon className={`w-3.5 h-3.5 ${i === 0 ? 'text-brand-teal' : 'text-ink-tertiary'}`} />
                     </div>
                   ))}
                 </div>
-                {/* Content */}
                 <div className="flex-1 p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     {[
@@ -453,7 +480,6 @@ function HeroSection() {
               </div>
             </motion.div>
 
-            {/* Connector line */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-24 bg-gradient-to-b from-brand-teal/0 via-brand-teal/40 to-brand-orange/0" />
           </motion.div>
         </div>
@@ -489,10 +515,7 @@ function ProblemeSection() {
           variants={stagger}
         >
           <motion.div variants={fadeUp}><Badge>Le constat</Badge></motion.div>
-          <motion.h2
-            variants={fadeUp} custom={1}
-            className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight leading-tight"
-          >
+          <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight leading-tight">
             Votre site vitrine vous coûte de l&apos;argent.
             <br />
             <GradientText>Il devrait en rapporter.</GradientText>
@@ -504,11 +527,7 @@ function ProblemeSection() {
           initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
           variants={stagger}
         >
-          {/* Old */}
-          <motion.div
-            variants={fadeUp} custom={0}
-            className="rounded-2xl border border-red-500/20 bg-red-500/[0.03] p-8 space-y-5"
-          >
+          <motion.div variants={fadeUp} custom={0} className="rounded-2xl border border-red-500/20 bg-red-500/[0.03] p-8 space-y-5">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                 <X className="w-4 h-4 text-red-400" />
@@ -525,11 +544,7 @@ function ProblemeSection() {
             </ul>
           </motion.div>
 
-          {/* New */}
-          <motion.div
-            variants={fadeUp} custom={1}
-            className="rounded-2xl border border-brand-teal/25 bg-brand-teal/[0.04] p-8 space-y-5 relative overflow-hidden"
-          >
+          <motion.div variants={fadeUp} custom={1} className="rounded-2xl border border-brand-teal/25 bg-brand-teal/[0.04] p-8 space-y-5 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-brand-teal/5 to-transparent pointer-events-none" />
             <div className="flex items-center gap-3 relative">
               <div className="w-8 h-8 rounded-full bg-brand-teal/15 border border-brand-teal/30 flex items-center justify-center">
@@ -566,17 +581,14 @@ function TestimonialsSection() {
           {TESTIMONIALS.map(({ quote, name, role, company }, i) => (
             <motion.div key={name} variants={fadeUp} custom={i}>
               <GlassCard className="p-6 h-full space-y-4 hover:-translate-y-1 transition-transform duration-300">
-                {/* Stars */}
                 <div className="flex gap-0.5">
                   {[1,2,3,4,5].map((s) => (
                     <Star key={s} className="w-3.5 h-3.5 fill-brand-orange text-brand-orange" />
                   ))}
                 </div>
-                {/* Quote */}
                 <p className="text-sm text-ink-secondary leading-relaxed italic">
                   &ldquo;{quote}&rdquo;
                 </p>
-                {/* Author */}
                 <div className="flex items-center gap-3 pt-1 border-t border-white/[0.06]">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-teal/30 to-brand-purple/20 flex items-center justify-center text-xs font-bold text-brand-teal">
                     {name.charAt(0)}
@@ -607,10 +619,7 @@ function FrontSection() {
           variants={stagger}
         >
           <motion.div variants={fadeUp}><Badge>Le front-end</Badge></motion.div>
-          <motion.h2
-            variants={fadeUp} custom={1}
-            className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight"
-          >
+          <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight">
             Un design qui impose le <GradientText>respect</GradientText>.
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-ink-secondary text-lg max-w-xl mx-auto">
@@ -664,23 +673,18 @@ function BackOfficeSection() {
   return (
     <SectionWrapper glow="none" className="py-32 px-6 bg-dark-surface/30">
       <div className="max-w-[1280px] mx-auto space-y-12">
-        {/* Header */}
         <motion.div
           className="text-center space-y-4"
           initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
           variants={stagger}
         >
           <motion.div variants={fadeUp}><Badge>Le back-office</Badge></motion.div>
-          <motion.h2
-            variants={fadeUp} custom={1}
-            className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight"
-          >
+          <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight">
             Tous les outils. <GradientText>Un seul endroit.</GradientText>
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-ink-secondary text-lg max-w-xl mx-auto">
             Chaque brique est disponible à la carte. Vous choisissez ce dont vous avez besoin.
           </motion.p>
-          {/* Counter */}
           <motion.div variants={fadeUp} custom={3} className="flex items-center justify-center gap-6 pt-2">
             <span className="flex items-center gap-2 text-sm text-ink-secondary">
               <span className="w-2 h-2 rounded-full bg-brand-green inline-block" />
@@ -693,7 +697,6 @@ function BackOfficeSection() {
           </motion.div>
         </motion.div>
 
-        {/* Tab selector */}
         <motion.div
           className="flex flex-wrap justify-center gap-2"
           initial={{ opacity: 0, y: 20 }}
@@ -716,7 +719,6 @@ function BackOfficeSection() {
           ))}
         </motion.div>
 
-        {/* Feature grid */}
         <motion.div
           key={activeTab}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -733,7 +735,6 @@ function BackOfficeSection() {
                     ? 'bg-white/[0.03] border-white/[0.08] hover:border-white/[0.16] hover:bg-white/[0.05]'
                     : 'bg-white/[0.015] border-dashed border-white/[0.06] opacity-70 hover:opacity-90'
                 }`}>
-                  {/* Status badge */}
                   <div className="absolute top-4 right-4">
                     {f.status === 'live' ? (
                       <span className="flex items-center gap-1 text-[10px] font-semibold text-brand-green bg-brand-green/10 border border-brand-green/20 px-2 py-0.5 rounded-full">
@@ -746,7 +747,6 @@ function BackOfficeSection() {
                       </span>
                     )}
                   </div>
-
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-brand-teal/10 group-hover:border-brand-teal/20 transition-all">
                       <Icon className="w-5 h-5 text-ink-tertiary group-hover:text-brand-teal transition-colors" />
@@ -778,10 +778,7 @@ function BriqueSection() {
           variants={stagger}
         >
           <motion.div variants={fadeUp}><Badge>L&apos;approche</Badge></motion.div>
-          <motion.h2
-            variants={fadeUp} custom={1}
-            className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight"
-          >
+          <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight">
             Construit brique <GradientText>par brique</GradientText>.
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-ink-secondary text-lg max-w-lg mx-auto">
@@ -789,29 +786,18 @@ function BriqueSection() {
           </motion.p>
         </motion.div>
 
-        {/* Timeline */}
         <div className="relative">
-          {/* Connecting line (desktop) */}
           <div className="hidden lg:block absolute top-10 left-[calc(10%+20px)] right-[calc(10%+20px)] h-px bg-gradient-to-r from-brand-teal/0 via-brand-teal/30 to-brand-orange/0" />
-
           <motion.div
             className="grid grid-cols-1 lg:grid-cols-5 gap-8"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
             variants={stagger}
           >
             {STEPS.map(({ n, emoji, title, desc }, i) => (
-              <motion.div
-                key={n}
-                variants={fadeUp}
-                custom={i}
-                className="flex flex-col items-center text-center lg:items-start lg:text-left gap-4"
-              >
-                {/* Number circle */}
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-2xl bg-dark-surface border border-white/[0.08] flex flex-col items-center justify-center gap-0.5 flex-shrink-0">
-                    <span className="text-2xl">{emoji}</span>
-                    <span className="text-[10px] font-mono text-ink-tertiary">{n}</span>
-                  </div>
+              <motion.div key={n} variants={fadeUp} custom={i} className="flex flex-col items-center text-center lg:items-start lg:text-left gap-4">
+                <div className="w-20 h-20 rounded-2xl bg-dark-surface border border-white/[0.08] flex flex-col items-center justify-center gap-0.5 flex-shrink-0">
+                  <span className="text-2xl">{emoji}</span>
+                  <span className="text-[10px] font-mono text-ink-tertiary">{n}</span>
                 </div>
                 <div>
                   <h3 className="font-bold text-ink-primary mb-2">{title}</h3>
@@ -826,126 +812,348 @@ function BriqueSection() {
   );
 }
 
-/* ─── 6. ROI CALCULATOR ─────────────────────────────────────────────── */
+/* ─── 6. INTERACTIVE DEMO ───────────────────────────────────────────── */
 
-function RoiSection() {
-  const [agenceBudget, setAgenceBudget] = useState(3000);
-  const [leadsPerMonth, setLeadsPerMonth] = useState(20);
-  const [clientValue, setClientValue] = useState(5000);
+function DemoSection() {
+  const [activeTab, setActiveTab] = useState<DemoTab>('dashboard');
+  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
 
-  const opportunite = leadsPerMonth * 12 * clientValue * 0.08;
-  const total = agenceBudget + opportunite;
+  function toggleHotspot(id: string) {
+    setActiveHotspot((prev) => (prev === id ? null : id));
+  }
 
   return (
-    <section className="relative py-32 px-6 overflow-hidden">
-      {/* Background glow */}
+    <section
+      className="relative py-32 px-6 overflow-hidden"
+      onClick={() => setActiveHotspot(null)}
+    >
       <div className="absolute inset-0 -z-10">
-        <div className="gradient-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-orange/8 blur-[120px]" />
+        <div className="gradient-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-teal/6 blur-[140px]" />
       </div>
 
       <div className="max-w-[1280px] mx-auto">
+        {/* Header */}
         <motion.div
           className="text-center mb-12 space-y-4"
           initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
           variants={stagger}
         >
-          <motion.div variants={fadeUp}><Badge>Le calculateur</Badge></motion.div>
-          <motion.h2
-            variants={fadeUp} custom={1}
-            className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight"
-          >
-            Combien vous coûte <GradientText>vraiment</GradientText> votre site ?
+          <motion.div variants={fadeUp}><Badge>Essayez par vous-même</Badge></motion.div>
+          <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight">
+            Explorez votre futur <GradientText>back-office</GradientText>.
           </motion.h2>
-          <motion.p variants={fadeUp} custom={2} className="text-ink-secondary text-lg max-w-xl mx-auto">
-            Ajustez les curseurs selon votre situation. Voyez le manque à gagner en temps réel.
+          <motion.p variants={fadeUp} custom={2} className="text-ink-secondary text-lg max-w-lg mx-auto">
+            Naviguez entre les modules. Cliquez sur les{' '}
+            <span className="inline-flex items-center gap-1 text-brand-orange font-medium">
+              <span className="w-2 h-2 rounded-full bg-brand-orange inline-block" />
+              points orange
+            </span>
+            {' '}pour découvrir chaque feature.
           </motion.p>
         </motion.div>
 
+        {/* App Window */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          className="max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl mx-auto"
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
         >
-          <div className="rounded-3xl border border-white/[0.10] bg-white/[0.03] backdrop-blur-xl p-8 md:p-10 space-y-8">
-            {/* Sliders */}
-            <div className="space-y-7">
-              {/* Slider 1 */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-ink-secondary">Budget agence / an</label>
-                  <span className="text-sm font-bold font-mono text-brand-orange">{formatEur(agenceBudget)}</span>
-                </div>
-                <input
-                  type="range" min={500} max={10000} step={500}
-                  value={agenceBudget}
-                  onChange={(e) => setAgenceBudget(Number(e.target.value))}
-                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                  style={{ accentColor: '#D4842A' }}
-                />
-                <p className="text-[11px] text-ink-tertiary">Ce que vous payez pour maintenir votre site actuel</p>
+          <div className="rounded-2xl border border-white/[0.10] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.5)]">
+            {/* Title bar */}
+            <div className="bg-dark-elevated px-5 py-3 flex items-center gap-3 border-b border-white/[0.06]">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/60" />
+                <div className="w-3 h-3 rounded-full bg-green-500/60" />
               </div>
-
-              {/* Slider 2 */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-ink-secondary">Leads manqués / mois</label>
-                  <span className="text-sm font-bold font-mono text-brand-teal">{leadsPerMonth}</span>
-                </div>
-                <input
-                  type="range" min={0} max={100} step={5}
-                  value={leadsPerMonth}
-                  onChange={(e) => setLeadsPerMonth(Number(e.target.value))}
-                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                  style={{ accentColor: '#3B7A8C' }}
-                />
-                <p className="text-[11px] text-ink-tertiary">Visiteurs qui quittent votre site sans laisser leurs coordonnées</p>
-              </div>
-
-              {/* Slider 3 */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-ink-secondary">Valeur moyenne d&apos;un client</label>
-                  <span className="text-sm font-bold font-mono text-brand-green">{formatEur(clientValue)}</span>
-                </div>
-                <input
-                  type="range" min={500} max={20000} step={500}
-                  value={clientValue}
-                  onChange={(e) => setClientValue(Number(e.target.value))}
-                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                  style={{ accentColor: '#6B9B37' }}
-                />
-                <p className="text-[11px] text-ink-tertiary">Chiffre d&apos;affaires moyen généré par client signé</p>
-              </div>
+              <span className="text-[11px] text-ink-tertiary font-medium mx-auto">Back-office · Projectview</span>
             </div>
 
-            {/* Result */}
-            <div className="rounded-2xl border border-brand-orange/25 bg-brand-orange/[0.05] p-6 space-y-3 text-center">
-              <p className="text-sm text-ink-tertiary">Manque à gagner estimé / an</p>
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={total}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.25 }}
-                  className="text-[clamp(2.5rem,6vw,4rem)] font-bold font-mono text-brand-orange leading-none"
-                >
-                  {formatEur(total)}
-                </motion.p>
-              </AnimatePresence>
-              <p className="text-xs text-ink-tertiary max-w-xs mx-auto">
-                dont {formatEur(opportunite)} de revenus potentiels non capturés
-                (taux de conversion moyen 8 %)
-              </p>
-            </div>
+            {/* Body */}
+            <div className="flex bg-[#0D0D10]" style={{ minHeight: 460 }}>
+              {/* Sidebar — desktop */}
+              <nav className="hidden lg:flex w-44 flex-col bg-dark-surface/50 border-r border-white/[0.05] py-3 flex-shrink-0">
+                {DEMO_TABS.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={(e) => { e.stopPropagation(); setActiveTab(id); setActiveHotspot(null); }}
+                    className={`flex items-center gap-2.5 px-4 py-2.5 mx-2 rounded-lg text-sm font-medium transition-all cursor-pointer text-left ${
+                      activeTab === id
+                        ? 'bg-brand-teal/15 text-brand-teal'
+                        : 'text-ink-tertiary hover:text-ink-secondary hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </nav>
 
-            {/* CTA */}
-            <div className="text-center space-y-3">
-              <Button href="/contact" variant="primary" className="w-full sm:w-auto">
-                Demander mon devis personnalisé <ArrowRight className="w-4 h-4" />
-              </Button>
-              <p className="text-xs text-ink-tertiary">Premier appel offert · Devis sous 48h · Sans engagement</p>
+              {/* Content */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Mobile tab bar */}
+                <div className="lg:hidden flex gap-1 overflow-x-auto p-2 border-b border-white/[0.05] flex-shrink-0">
+                  {DEMO_TABS.map(({ id, label, icon: Icon }) => (
+                    <button
+                      key={id}
+                      onClick={(e) => { e.stopPropagation(); setActiveTab(id); setActiveHotspot(null); }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer flex-shrink-0 ${
+                        activeTab === id ? 'bg-brand-teal/15 text-brand-teal' : 'text-ink-tertiary'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab content */}
+                <div className="flex-1 overflow-y-auto">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.15 }}
+                      className="p-5 space-y-4"
+                    >
+
+                      {/* ─── DASHBOARD ─── */}
+                      {activeTab === 'dashboard' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            {[
+                              { label: 'Visiteurs', value: '1 284', color: 'text-brand-teal', hs: null as string | null },
+                              { label: 'Leads', value: '37', color: 'text-brand-orange', hs: 'dashboard-1' as string | null },
+                              { label: 'Articles', value: '12', color: 'text-brand-green', hs: null as string | null },
+                              { label: 'Score SEO', value: '94', color: 'text-brand-purple', hs: null as string | null },
+                            ].map(({ label, value, color, hs }) => (
+                              <div key={label} className="relative bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                                <p className="text-[10px] text-ink-tertiary mb-0.5">{label}</p>
+                                <p className={`text-xl font-bold font-mono ${color}`}>{value}</p>
+                                {hs && (
+                                  <div className="absolute top-2 right-2">
+                                    <Hotspot id={hs} tooltip="Chaque visiteur qui remplit un formulaire entre directement dans votre CRM avec ses coordonnées." active={activeHotspot === hs} onToggle={toggleHotspot} />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="relative bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                            <p className="text-[10px] font-medium text-ink-tertiary mb-3">Visites — 7 derniers jours</p>
+                            <div className="flex items-end gap-1.5 h-14">
+                              {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
+                                <div
+                                  key={i}
+                                  style={{ height: `${h}%` }}
+                                  className="flex-1 rounded-t bg-brand-teal/25 hover:bg-brand-teal/45 transition-colors"
+                                />
+                              ))}
+                            </div>
+                            <div className="absolute top-3 right-3">
+                              <Hotspot id="dashboard-2" tooltip="Analytics temps réel : sources de trafic, pages populaires, durée de session, taux de rebond." active={activeHotspot === 'dashboard-2'} onToggle={toggleHotspot} above />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {[
+                              { dot: 'bg-brand-green', text: 'Article publié · "Guide SEO 2025" — Score 94' },
+                              { dot: 'bg-brand-teal', text: 'Lead importé · InnoSolar SAS · Paris 75' },
+                              { dot: 'bg-brand-purple', text: 'Chatbot · 12 messages · 3 leads qualifiés' },
+                            ].map(({ dot, text }) => (
+                              <div key={text} className="flex items-center gap-2.5 py-1.5 border-b border-white/[0.04] last:border-0">
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dot}`} />
+                                <p className="text-[11px] text-ink-secondary truncate">{text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {/* ─── CRM ─── */}
+                      {activeTab === 'crm' && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-semibold text-ink-primary">Prospects</h3>
+                              <span className="text-[10px] bg-brand-teal/10 text-brand-teal border border-brand-teal/20 px-2 py-0.5 rounded-full font-medium">24</span>
+                            </div>
+                            <button className="text-[11px] bg-brand-teal/10 text-brand-teal border border-brand-teal/20 px-2.5 py-1 rounded-lg cursor-default">
+                              + Ajouter
+                            </button>
+                          </div>
+
+                          <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+                            <div className="grid grid-cols-3 bg-white/[0.02] border-b border-white/[0.05] px-3 py-2">
+                              {['Nom & Entreprise', 'Statut', 'Ajouté le'].map((h) => (
+                                <p key={h} className="text-[10px] font-medium text-ink-tertiary">{h}</p>
+                              ))}
+                            </div>
+                            {[
+                              { nom: 'Marie D.', co: 'AtelierBois', statut: 'Chaud', date: '12 mars', hs: 'crm-2' as string | null },
+                              { nom: 'Karim B.', co: 'InnoSpace', statut: 'Contacté', date: '10 mars', hs: null as string | null },
+                              { nom: 'Thomas R.', co: 'BuildCo', statut: 'Nouveau', date: '8 mars', hs: null as string | null },
+                              { nom: 'Sophie L.', co: 'Arch.Studio', statut: 'Chaud', date: '5 mars', hs: null as string | null },
+                            ].map(({ nom, co, statut, date, hs }) => (
+                              <div key={nom} className="grid grid-cols-3 px-3 py-2.5 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors">
+                                <div>
+                                  <p className="text-[11px] text-ink-primary">{nom}</p>
+                                  <p className="text-[10px] text-ink-tertiary">{co}</p>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                    statut === 'Chaud' ? 'bg-brand-orange/10 text-brand-orange' :
+                                    statut === 'Contacté' ? 'bg-brand-teal/10 text-brand-teal' :
+                                    'bg-white/[0.06] text-ink-tertiary'
+                                  }`}>{statut}</span>
+                                  {hs && <Hotspot id={hs} tooltip="Pipeline CRM : faites passer vos prospects de Nouveau → Contacté → Chaud d'un simple clic." active={activeHotspot === hs} onToggle={toggleHotspot} />}
+                                </div>
+                                <p className="text-[11px] text-ink-tertiary self-center">{date}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="relative flex items-center gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-dashed border-white/[0.06]">
+                            <Users className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
+                            <p className="text-[11px] text-ink-tertiary">Cliquez sur une ligne pour ouvrir la fiche complète</p>
+                            <div className="ml-auto">
+                              <Hotspot id="crm-1" tooltip="Fiche prospect : notes, historique des échanges, documents, assignation de séquences email automatisées." active={activeHotspot === 'crm-1'} onToggle={toggleHotspot} above />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* ─── ARTICLES ─── */}
+                      {activeTab === 'articles' && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-ink-primary">
+                              Articles <span className="text-ink-tertiary font-normal">(12)</span>
+                            </h3>
+                            <div className="relative flex items-center gap-2">
+                              <button className="text-[11px] bg-brand-green/10 text-brand-green border border-brand-green/20 px-2.5 py-1 rounded-lg cursor-default">
+                                + Nouvel article
+                              </button>
+                              <Hotspot id="articles-2" tooltip="Éditeur rich text avec preview en direct. Images, vidéos, blocs code. Publiez en un clic." active={activeHotspot === 'articles-2'} onToggle={toggleHotspot} above />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            {[
+                              { title: 'Guide SEO complet pour PME en 2025', score: 94, status: 'Publié', date: '12 mars', hs: 'articles-1' as string | null },
+                              { title: 'Comment digitaliser son showroom ?', score: 78, status: 'Publié', date: '8 mars', hs: null as string | null },
+                              { title: "L'impact du chatbot IA sur les ventes", score: 61, status: 'Brouillon', date: '5 mars', hs: null as string | null },
+                            ].map(({ title, score, status, date, hs }) => (
+                              <div key={title} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-white/[0.10] transition-colors">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[11px] font-medium text-ink-primary truncate">{title}</p>
+                                  <p className="text-[10px] text-ink-tertiary mt-0.5">{date}</p>
+                                </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <div className="relative flex items-center gap-1">
+                                    <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-lg ${
+                                      score >= 85 ? 'bg-brand-green/10 text-brand-green' :
+                                      score >= 65 ? 'bg-brand-orange/10 text-brand-orange' :
+                                      'bg-red-500/10 text-red-400'
+                                    }`}>{score}</span>
+                                    {hs && <Hotspot id={hs} tooltip="Score SEO calculé en temps réel : title, H1, mots-clés, lisibilité, balises meta, liens internes." active={activeHotspot === hs} onToggle={toggleHotspot} above />}
+                                  </div>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                    status === 'Publié' ? 'bg-brand-green/10 text-brand-green' : 'bg-white/[0.06] text-ink-tertiary'
+                                  }`}>{status}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {/* ─── CHATBOT ─── */}
+                      {activeTab === 'chatbot' && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-ink-primary">Chatbot IA</h3>
+                            <div className="relative flex items-center gap-2">
+                              <span className="flex items-center gap-1.5 text-[10px] font-medium text-brand-purple bg-brand-purple/10 border border-brand-purple/20 px-2.5 py-1 rounded-full">
+                                <BookOpen className="w-3 h-3" />
+                                8 documents sources
+                              </span>
+                              <Hotspot id="chatbot-2" tooltip="Ajoutez des PDF, URLs ou textes depuis le back-office. Le chatbot se met à jour instantanément." active={activeHotspot === 'chatbot-2'} onToggle={toggleHotspot} above />
+                            </div>
+                          </div>
+
+                          <div className="bg-[#0A0A0B] rounded-xl border border-white/[0.06] p-4 space-y-3">
+                            {[
+                              { from: 'user', text: 'Quels sont vos délais de livraison ?' },
+                              { from: 'bot', text: 'Nos projets sont livrés en 3 à 4 semaines selon la complexité. Un appel de découverte gratuit permet d\'avoir une estimation précise.', hs: 'chatbot-1' as string | null },
+                              { from: 'user', text: 'Proposez-vous de la maintenance après livraison ?' },
+                              { from: 'bot', text: 'Oui, notre back-office vous rend autonome pour les mises à jour courantes. Nous proposons aussi des contrats de support mensuel.', hs: null as string | null },
+                            ].map(({ from, text, hs }, i) => (
+                              <div key={i} className={`flex ${from === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`relative max-w-[80%] rounded-2xl px-3.5 py-2.5 ${
+                                  from === 'user'
+                                    ? 'bg-brand-teal/15 rounded-tr-sm'
+                                    : 'bg-white/[0.05] rounded-tl-sm'
+                                }`}>
+                                  <p className="text-[11px] text-ink-secondary leading-relaxed">{text}</p>
+                                  {hs && (
+                                    <div className="absolute -top-2 -right-2">
+                                      <Hotspot id={hs} tooltip="Le chatbot est entraîné sur VOS contenus et FAQ. Il répond comme un expert de votre business, 24h/24." active={activeHotspot === hs} onToggle={toggleHotspot} above />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {/* ─── SEO ─── */}
+                      {activeTab === 'seo' && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-ink-primary">Audit SEO</h3>
+                            <span className="text-[10px] text-ink-tertiary">Dernière analyse : il y a 2 min</span>
+                          </div>
+
+                          <div className="relative bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 text-center space-y-3">
+                            <p className="text-[10px] text-ink-tertiary font-medium">Score global</p>
+                            <p className="text-5xl font-bold font-mono text-brand-green">94</p>
+                            <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                              <div className="h-full w-[94%] bg-gradient-to-r from-brand-teal to-brand-green rounded-full" />
+                            </div>
+                            <p className="text-[10px] text-ink-secondary">Excellent · 94 / 100</p>
+                            <div className="absolute top-3 right-3">
+                              <Hotspot id="seo-1" tooltip="Score calculé automatiquement à chaque publication. Corrigez les problèmes en direct depuis l'éditeur." active={activeHotspot === 'seo-1'} onToggle={toggleHotspot} above />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            {[
+                              { ok: true,  label: 'Meta title optimisé', hs: null as string | null },
+                              { ok: true,  label: 'Open Graph configuré', hs: null as string | null },
+                              { ok: true,  label: 'Sitemap XML à jour', hs: null as string | null },
+                              { ok: false, label: 'Alt images manquantes (3)', hs: 'seo-2' as string | null },
+                              { ok: true,  label: 'JSON-LD structuré présent', hs: null as string | null },
+                            ].map(({ ok, label, hs }) => (
+                              <div key={label} className={`flex items-center gap-3 p-2.5 rounded-lg ${ok ? '' : 'bg-amber-500/[0.04] border border-amber-500/10'}`}>
+                                <span className={`text-sm flex-shrink-0 ${ok ? 'text-brand-green' : 'text-amber-400'}`}>{ok ? '✓' : '⚠'}</span>
+                                <p className={`text-[11px] flex-1 ${ok ? 'text-ink-secondary' : 'text-amber-400'}`}>{label}</p>
+                                {hs && <Hotspot id={hs} tooltip="Chaque problème est listé avec le lien direct vers la page à corriger. Résolvez en 2 clics." active={activeHotspot === hs} onToggle={toggleHotspot} above />}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -959,7 +1167,6 @@ function RoiSection() {
 function CtaSection() {
   return (
     <section id="cta-section" className="relative py-40 px-6 overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 -z-10">
         <div className="hero-mesh absolute inset-0 opacity-50" />
         <div className="gradient-orb absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-brand-teal/12 blur-[100px]" />
@@ -971,14 +1178,9 @@ function CtaSection() {
         initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
       >
-        <motion.div variants={fadeUp}>
-          <Badge>Passez à l&apos;action</Badge>
-        </motion.div>
+        <motion.div variants={fadeUp}><Badge>Passez à l&apos;action</Badge></motion.div>
 
-        <motion.h2
-          variants={fadeUp} custom={1}
-          className="text-[clamp(2.5rem,5vw,4rem)] font-bold tracking-tight leading-tight"
-        >
+        <motion.h2 variants={fadeUp} custom={1} className="text-[clamp(2.5rem,5vw,4rem)] font-bold tracking-tight leading-tight">
           Prêt à passer au <GradientText>niveau supérieur</GradientText> ?
         </motion.h2>
 
@@ -995,16 +1197,8 @@ function CtaSection() {
           </Button>
         </motion.div>
 
-        {/* Guarantees */}
-        <motion.div
-          variants={fadeUp} custom={4}
-          className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-ink-tertiary pt-4"
-        >
-          {[
-            'Devis sous 48h',
-            'Premier appel offert',
-            'Pas d\'engagement',
-          ].map((g) => (
+        <motion.div variants={fadeUp} custom={4} className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-ink-tertiary pt-4">
+          {['Devis sous 48h', 'Premier appel offert', "Pas d'engagement"].map((g) => (
             <span key={g} className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-brand-green" />
               {g}
