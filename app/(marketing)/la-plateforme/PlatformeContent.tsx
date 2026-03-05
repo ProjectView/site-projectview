@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import {
   ArrowRight, Zap, Sparkles, BarChart3, Users, MessageSquare,
   FileText, Search, Mail, BookOpen, Upload, Calendar, Bot,
   TrendingUp, Edit3, Map, Layers, FlaskConical, Image, Grid3X3,
   Wand2, Building2, CheckCircle2, X, ChevronRight,
-  Monitor, LayoutDashboard, Gauge, ShieldCheck,
+  Monitor, LayoutDashboard, Gauge, ShieldCheck, Star,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 import { Badge } from '@/components/ui/Badge';
@@ -113,6 +113,127 @@ const FRONT_PILLARS = [
   },
 ];
 
+/* ─── Testimonials data ─────────────────────────────────────────────── */
+
+const TESTIMONIALS = [
+  {
+    quote: "Notre site génère maintenant 3× plus de demandes. Le back-office est une révélation — je modifie tout moi-même en 2 minutes.",
+    name: 'Marie D.',
+    role: 'Directrice Marketing',
+    company: 'AtelierBois Lyon',
+  },
+  {
+    quote: "En 3 semaines, site live avec CRM opérationnel et chatbot configuré. L'équipe Projectview est redoutablement efficace.",
+    name: 'Karim B.',
+    role: 'CEO',
+    company: 'InnoSpace Paris',
+  },
+  {
+    quote: "J'avais peur de la complexité. Finalement c'est moi qui gère tout depuis le back-office. Incroyable.",
+    name: 'Sophie L.',
+    role: 'Architecte',
+    company: 'Studio Lumière',
+  },
+];
+
+/* ─── Typing targets ────────────────────────────────────────────────── */
+
+const TYPING_TARGETS = ['architectes', 'retailers', 'showrooms', 'constructeurs', 'promoteurs', 'startups'];
+
+/* ─── Helpers ───────────────────────────────────────────────────────── */
+
+function formatEur(n: number): string {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SCROLL PROGRESS BAR
+══════════════════════════════════════════════════════════════════════ */
+
+function ScrollProgressBar() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-[3px] z-[60] origin-left"
+      style={{
+        scaleX,
+        background: 'linear-gradient(90deg, #3B7A8C, #6B9B37, #D4842A)',
+      }}
+    />
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STICKY CTA BAR
+══════════════════════════════════════════════════════════════════════ */
+
+function StickyCTA() {
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const ctaRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Find the final CTA section by its id
+    ctaRef.current = document.getElementById('cta-section');
+  }, []);
+
+  useEffect(() => {
+    function onScroll() {
+      const scrollY = window.scrollY;
+      const show = scrollY > 600;
+
+      // Hide when near the final CTA section
+      if (ctaRef.current) {
+        const rect = ctaRef.current.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.85) {
+          setVisible(false);
+          return;
+        }
+      }
+
+      setVisible(show);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {visible && !dismissed && (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl backdrop-blur-xl bg-dark-surface/85 border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+        >
+          <Link
+            href="/contact"
+            className="flex items-center gap-2 text-sm font-semibold text-ink-primary hover:text-brand-teal transition-colors whitespace-nowrap"
+          >
+            Démarrer mon projet
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-brand-green bg-brand-green/10 border border-brand-green/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
+            Devis gratuit · 48h
+          </span>
+          <button
+            onClick={() => setDismissed(true)}
+            className="ml-1 w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/[0.08] text-ink-tertiary hover:text-ink-secondary transition-colors"
+            aria-label="Fermer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
@@ -120,11 +241,15 @@ const FRONT_PILLARS = [
 export function PlatformeContent() {
   return (
     <main className="overflow-hidden">
+      <ScrollProgressBar />
+      <StickyCTA />
       <HeroSection />
       <ProblemeSection />
+      <TestimonialsSection />
       <FrontSection />
       <BackOfficeSection />
       <BriqueSection />
+      <RoiSection />
       <CtaSection />
     </main>
   );
@@ -133,6 +258,20 @@ export function PlatformeContent() {
 /* ─── 1. HERO ───────────────────────────────────────────────────────── */
 
 function HeroSection() {
+  const [targetIdx, setTargetIdx] = useState(0);
+  const [displayTarget, setDisplayTarget] = useState(TYPING_TARGETS[0]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTargetIdx((i) => {
+        const next = (i + 1) % TYPING_TARGETS.length;
+        setDisplayTarget(TYPING_TARGETS[next]);
+        return next;
+      });
+    }, 2600);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden px-6 pt-24 pb-20">
       {/* Mesh background */}
@@ -176,7 +315,24 @@ function HeroSection() {
               construit <span className="text-ink-primary font-medium">brique par brique</span>, exactement pour vous.
             </motion.p>
 
-            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-4">
+            {/* Typing animation */}
+            <motion.div variants={fadeUp} custom={3} className="flex items-center gap-2 text-sm text-ink-tertiary">
+              <span>Fait sur mesure pour les</span>
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={targetIdx}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <GradientText>{displayTarget}</GradientText>
+                </motion.span>
+              </AnimatePresence>
+              <span>.</span>
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={4} className="flex flex-wrap gap-4">
               <Button href="/contact" variant="primary">
                 Démarrer mon projet <ArrowRight className="w-4 h-4" />
               </Button>
@@ -188,7 +344,7 @@ function HeroSection() {
             {/* Stats row */}
             <motion.div
               variants={fadeUp}
-              custom={4}
+              custom={5}
               className="flex flex-wrap gap-6 pt-4 border-t border-white/[0.06]"
             >
               {[
@@ -393,6 +549,49 @@ function ProblemeSection() {
         </motion.div>
       </div>
     </SectionWrapper>
+  );
+}
+
+/* ─── 2b. TESTIMONIALS ──────────────────────────────────────────────── */
+
+function TestimonialsSection() {
+  return (
+    <section className="py-16 px-6">
+      <div className="max-w-[1280px] mx-auto">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-5"
+          initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
+          variants={stagger}
+        >
+          {TESTIMONIALS.map(({ quote, name, role, company }, i) => (
+            <motion.div key={name} variants={fadeUp} custom={i}>
+              <GlassCard className="p-6 h-full space-y-4 hover:-translate-y-1 transition-transform duration-300">
+                {/* Stars */}
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map((s) => (
+                    <Star key={s} className="w-3.5 h-3.5 fill-brand-orange text-brand-orange" />
+                  ))}
+                </div>
+                {/* Quote */}
+                <p className="text-sm text-ink-secondary leading-relaxed italic">
+                  &ldquo;{quote}&rdquo;
+                </p>
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-1 border-t border-white/[0.06]">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-teal/30 to-brand-purple/20 flex items-center justify-center text-xs font-bold text-brand-teal">
+                    {name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-ink-primary">{name}</p>
+                    <p className="text-[11px] text-ink-tertiary">{role} · {company}</p>
+                  </div>
+                </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
@@ -627,11 +826,139 @@ function BriqueSection() {
   );
 }
 
-/* ─── 6. CTA ────────────────────────────────────────────────────────── */
+/* ─── 6. ROI CALCULATOR ─────────────────────────────────────────────── */
+
+function RoiSection() {
+  const [agenceBudget, setAgenceBudget] = useState(3000);
+  const [leadsPerMonth, setLeadsPerMonth] = useState(20);
+  const [clientValue, setClientValue] = useState(5000);
+
+  const opportunite = leadsPerMonth * 12 * clientValue * 0.08;
+  const total = agenceBudget + opportunite;
+
+  return (
+    <section className="relative py-32 px-6 overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute inset-0 -z-10">
+        <div className="gradient-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-orange/8 blur-[120px]" />
+      </div>
+
+      <div className="max-w-[1280px] mx-auto">
+        <motion.div
+          className="text-center mb-12 space-y-4"
+          initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
+          variants={stagger}
+        >
+          <motion.div variants={fadeUp}><Badge>Le calculateur</Badge></motion.div>
+          <motion.h2
+            variants={fadeUp} custom={1}
+            className="text-[clamp(2rem,4.5vw,3.75rem)] font-bold tracking-tight"
+          >
+            Combien vous coûte <GradientText>vraiment</GradientText> votre site ?
+          </motion.h2>
+          <motion.p variants={fadeUp} custom={2} className="text-ink-secondary text-lg max-w-xl mx-auto">
+            Ajustez les curseurs selon votre situation. Voyez le manque à gagner en temps réel.
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-2xl mx-auto"
+        >
+          <div className="rounded-3xl border border-white/[0.10] bg-white/[0.03] backdrop-blur-xl p-8 md:p-10 space-y-8">
+            {/* Sliders */}
+            <div className="space-y-7">
+              {/* Slider 1 */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-ink-secondary">Budget agence / an</label>
+                  <span className="text-sm font-bold font-mono text-brand-orange">{formatEur(agenceBudget)}</span>
+                </div>
+                <input
+                  type="range" min={500} max={10000} step={500}
+                  value={agenceBudget}
+                  onChange={(e) => setAgenceBudget(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{ accentColor: '#D4842A' }}
+                />
+                <p className="text-[11px] text-ink-tertiary">Ce que vous payez pour maintenir votre site actuel</p>
+              </div>
+
+              {/* Slider 2 */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-ink-secondary">Leads manqués / mois</label>
+                  <span className="text-sm font-bold font-mono text-brand-teal">{leadsPerMonth}</span>
+                </div>
+                <input
+                  type="range" min={0} max={100} step={5}
+                  value={leadsPerMonth}
+                  onChange={(e) => setLeadsPerMonth(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{ accentColor: '#3B7A8C' }}
+                />
+                <p className="text-[11px] text-ink-tertiary">Visiteurs qui quittent votre site sans laisser leurs coordonnées</p>
+              </div>
+
+              {/* Slider 3 */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-ink-secondary">Valeur moyenne d&apos;un client</label>
+                  <span className="text-sm font-bold font-mono text-brand-green">{formatEur(clientValue)}</span>
+                </div>
+                <input
+                  type="range" min={500} max={20000} step={500}
+                  value={clientValue}
+                  onChange={(e) => setClientValue(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{ accentColor: '#6B9B37' }}
+                />
+                <p className="text-[11px] text-ink-tertiary">Chiffre d&apos;affaires moyen généré par client signé</p>
+              </div>
+            </div>
+
+            {/* Result */}
+            <div className="rounded-2xl border border-brand-orange/25 bg-brand-orange/[0.05] p-6 space-y-3 text-center">
+              <p className="text-sm text-ink-tertiary">Manque à gagner estimé / an</p>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={total}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  className="text-[clamp(2.5rem,6vw,4rem)] font-bold font-mono text-brand-orange leading-none"
+                >
+                  {formatEur(total)}
+                </motion.p>
+              </AnimatePresence>
+              <p className="text-xs text-ink-tertiary max-w-xs mx-auto">
+                dont {formatEur(opportunite)} de revenus potentiels non capturés
+                (taux de conversion moyen 8 %)
+              </p>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center space-y-3">
+              <Button href="/contact" variant="primary" className="w-full sm:w-auto">
+                Demander mon devis personnalisé <ArrowRight className="w-4 h-4" />
+              </Button>
+              <p className="text-xs text-ink-tertiary">Premier appel offert · Devis sous 48h · Sans engagement</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── 7. CTA ────────────────────────────────────────────────────────── */
 
 function CtaSection() {
   return (
-    <section className="relative py-40 px-6 overflow-hidden">
+    <section id="cta-section" className="relative py-40 px-6 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <div className="hero-mesh absolute inset-0 opacity-50" />
