@@ -41,6 +41,7 @@ export default function RootLayout({
     <html
       lang="fr"
       data-theme="dark"
+      suppressHydrationWarning
       className={`${montserrat.variable} ${jetbrainsMono.variable}`}
     >
       <body className="bg-dark-bg text-ink-primary antialiased">
