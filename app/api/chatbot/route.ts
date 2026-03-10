@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getChatbotConfig } from '@/lib/chatbot';
 import { buildKnowledgeContext } from '@/lib/knowledge-base';
 import { createAppointment } from '@/lib/firestore-appointments';
+import { appendMessages } from '@/lib/firestore-conversations';
 
 // Regex to detect the booking marker emitted by the AI
 const APPOINTMENT_REGEX = /<<APPOINTMENT_BOOKED:([\s\S]+?)>>/;
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { messages } = await request.json();
+    const { messages, sessionId } = await request.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -84,6 +85,19 @@ export async function POST(request: Request) {
     const data = await response.json();
     const rawReply: string = data.choices?.[0]?.message?.content || 'Désolé, je ne peux pas répondre pour le moment.';
 
+    // ── Persist conversation ────────────────────────────────────────────────────
+    const now = new Date().toISOString();
+    if (sessionId && typeof sessionId === 'string') {
+      const userMsg = messages[messages.length - 1];
+      const msgs = [
+        { role: userMsg.role as 'user' | 'assistant', content: userMsg.content, timestamp: now },
+        { role: 'assistant' as const, content: rawReply.replace(APPOINTMENT_REGEX, '').trim() || rawReply, timestamp: now },
+      ];
+      await appendMessages(sessionId, msgs).catch((err) =>
+        console.error('Conversation save error:', err),
+      );
+    }
+
     // ── Detect appointment booking marker ──────────────────────────────────────
     const match = rawReply.match(APPOINTMENT_REGEX);
     if (match) {
@@ -110,6 +124,15 @@ export async function POST(request: Request) {
           },
           source: 'chatbot',
         });
+
+        // Update conversation with visitor info and appointmentId
+        if (sessionId && typeof sessionId === 'string') {
+          appendMessages(sessionId, [], {
+            visitorName: appointment.prospect.name,
+            visitorEmail: appointment.prospect.email,
+            appointmentId: appointment.id,
+          }).catch(() => {});
+        }
 
         return NextResponse.json({
           reply: cleanReply,

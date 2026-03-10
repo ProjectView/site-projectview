@@ -3,6 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, Send, Bot, User, CalendarCheck } from 'lucide-react';
 
+function getOrCreateSessionId(): string {
+  try {
+    const stored = sessionStorage.getItem('chatSessionId');
+    if (stored) return stored;
+    const id = crypto.randomUUID();
+    sessionStorage.setItem('chatSessionId', id);
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -44,6 +56,11 @@ export function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sessionIdRef = useRef<string>('');
+
+  useEffect(() => {
+    sessionIdRef.current = getOrCreateSessionId();
+  }, []);
 
   // Fetch chatbot config
   useEffect(() => {
@@ -99,6 +116,7 @@ export function ChatWidget() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: sessionIdRef.current,
           messages: newMessages
             .filter((m) => m.content !== config?.welcomeMessage || m.role === 'user')
             .map((m) => ({ role: m.role, content: m.content })),

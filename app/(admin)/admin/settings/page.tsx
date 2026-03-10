@@ -18,6 +18,12 @@ import {
   Mail,
   Phone,
   MapPin,
+  Eye,
+  EyeOff,
+  Facebook,
+  Instagram,
+  Linkedin,
+  ExternalLink,
 } from 'lucide-react';
 import { Toast, ToastType } from '@/components/admin/Toast';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
@@ -55,6 +61,13 @@ interface SiteSettings {
     n8nWebhook: string;
     githubConnected: boolean;
     netlifyConnected: boolean;
+  };
+  socialTokens: {
+    facebookPageId: string;
+    facebookPageAccessToken: string;
+    instagramBusinessAccountId: string;
+    linkedinAccessToken: string;
+    linkedinOrganizationId: string;
   };
 }
 
@@ -117,7 +130,17 @@ export default function SettingsPage() {
       const res = await fetch('/api/admin/settings');
       if (res.ok) {
         const data = await res.json();
-        setSettings(data.settings);
+        // Ensure socialTokens exists even if missing from older settings
+        setSettings({
+          ...data.settings,
+          socialTokens: data.settings.socialTokens ?? {
+            facebookPageId: '',
+            facebookPageAccessToken: '',
+            instagramBusinessAccountId: '',
+            linkedinAccessToken: '',
+            linkedinOrganizationId: '',
+          },
+        });
       }
     } catch { /* silent */ }
   };
@@ -559,6 +582,106 @@ export default function SettingsPage() {
             connected={false}
             details="Configurez OPENAI_API_KEY dans .env.local"
           />
+
+          {/* Social Media API Tokens */}
+          <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-ink-primary">API Réseaux Sociaux</h3>
+                <p className="text-xs text-ink-tertiary mt-0.5">
+                  Tokens pour publier directement sur vos réseaux sociaux
+                </p>
+              </div>
+            </div>
+
+            {/* Facebook */}
+            <div className="space-y-3 p-4 rounded-xl bg-blue-600/[0.06] border border-blue-600/[0.15]">
+              <div className="flex items-center gap-2 mb-2">
+                <Facebook className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium text-blue-400">Facebook</span>
+                <a
+                  href="https://developers.facebook.com/tools/explorer/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto flex items-center gap-1 text-xs text-ink-tertiary hover:text-blue-400 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Graph API Explorer
+                </a>
+              </div>
+              <TokenField
+                label="Page ID"
+                value={settings.socialTokens?.facebookPageId ?? ''}
+                onChange={(v) => setSettings({ ...settings, socialTokens: { ...settings.socialTokens, facebookPageId: v } })}
+                placeholder="123456789"
+                isSecret={false}
+              />
+              <TokenField
+                label="Page Access Token (long-lived, 60 jours)"
+                value={settings.socialTokens?.facebookPageAccessToken ?? ''}
+                onChange={(v) => setSettings({ ...settings, socialTokens: { ...settings.socialTokens, facebookPageAccessToken: v } })}
+                placeholder="EAAxxxxxxxxxxxxxxx..."
+              />
+            </div>
+
+            {/* Instagram */}
+            <div className="space-y-3 p-4 rounded-xl bg-pink-600/[0.06] border border-pink-600/[0.15]">
+              <div className="flex items-center gap-2 mb-2">
+                <Instagram className="w-4 h-4 text-pink-400" />
+                <span className="text-sm font-medium text-pink-400">Instagram</span>
+                <span className="ml-auto text-xs text-ink-tertiary">Utilise le même token que Facebook</span>
+              </div>
+              <TokenField
+                label="Business Account ID"
+                value={settings.socialTokens?.instagramBusinessAccountId ?? ''}
+                onChange={(v) => setSettings({ ...settings, socialTokens: { ...settings.socialTokens, instagramBusinessAccountId: v } })}
+                placeholder="17841xxxxxxxxxx"
+                isSecret={false}
+              />
+              <p className="text-xs text-ink-tertiary">
+                Le compte Instagram doit être un compte professionnel connecté à votre Page Facebook.
+              </p>
+            </div>
+
+            {/* LinkedIn */}
+            <div className="space-y-3 p-4 rounded-xl bg-sky-600/[0.06] border border-sky-600/[0.15]">
+              <div className="flex items-center gap-2 mb-2">
+                <Linkedin className="w-4 h-4 text-sky-400" />
+                <span className="text-sm font-medium text-sky-400">LinkedIn</span>
+                <a
+                  href="https://www.linkedin.com/developers/apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto flex items-center gap-1 text-xs text-ink-tertiary hover:text-sky-400 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Developer Portal
+                </a>
+              </div>
+              <TokenField
+                label="Organization ID (ID numérique de votre page)"
+                value={settings.socialTokens?.linkedinOrganizationId ?? ''}
+                onChange={(v) => setSettings({ ...settings, socialTokens: { ...settings.socialTokens, linkedinOrganizationId: v } })}
+                placeholder="12345678"
+                isSecret={false}
+              />
+              <TokenField
+                label="Access Token (OAuth2, 60 jours)"
+                value={settings.socialTokens?.linkedinAccessToken ?? ''}
+                onChange={(v) => setSettings({ ...settings, socialTokens: { ...settings.socialTokens, linkedinAccessToken: v } })}
+                placeholder="AQxxxxxxxxxxxxxxx..."
+              />
+            </div>
+
+            <button
+              onClick={handleSaveSettings}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-teal via-brand-purple to-brand-orange text-white hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Sauvegarde...' : 'Sauvegarder les tokens'}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -592,6 +715,46 @@ function InputField({
         placeholder={placeholder}
         className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-ink-primary placeholder:text-ink-tertiary outline-none focus:border-brand-teal/50 transition-colors"
       />
+    </div>
+  );
+}
+
+// Secret token field with show/hide toggle
+function TokenField({
+  label,
+  value,
+  placeholder,
+  onChange,
+  isSecret = true,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+  isSecret?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div>
+      <label className="block text-xs font-medium text-ink-secondary mb-1.5">{label}</label>
+      <div className="relative">
+        <input
+          type={isSecret && !visible ? 'password' : 'text'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-dark-bg/50 border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-ink-primary placeholder:text-ink-tertiary outline-none focus:border-brand-teal/50 transition-colors pr-10 font-mono"
+        />
+        {isSecret && (
+          <button
+            type="button"
+            onClick={() => setVisible(!visible)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-ink-secondary transition-colors"
+          >
+            {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

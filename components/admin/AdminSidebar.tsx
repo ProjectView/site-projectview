@@ -17,6 +17,7 @@ import {
   Users,
   UserCheck,
   Zap,
+  Share2,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 
@@ -24,6 +25,7 @@ const navItems = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart2 },
   { label: 'Articles', href: '/admin/articles', icon: FileText },
+  { label: 'Réseaux Sociaux', href: '/admin/social', icon: Share2 },
   { label: 'Prospects', href: '/admin/leads', icon: Users },
   { label: 'Clients', href: '/admin/clients', icon: UserCheck },
   { label: 'Leadgen', href: '/admin/leadgen', icon: Zap },

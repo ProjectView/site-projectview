@@ -25,6 +25,13 @@ export interface SiteSettings {
     githubConnected: boolean;
     netlifyConnected: boolean;
   };
+  socialTokens: {
+    facebookPageId: string;
+    facebookPageAccessToken: string;
+    instagramBusinessAccountId: string;
+    linkedinAccessToken: string;
+    linkedinOrganizationId: string;
+  };
 }
 
 const SETTINGS_FILE = path.join(process.cwd(), 'data', 'site-settings.json');
@@ -53,6 +60,13 @@ const DEFAULT_SETTINGS: SiteSettings = {
     githubConnected: false,
     netlifyConnected: false,
   },
+  socialTokens: {
+    facebookPageId: '',
+    facebookPageAccessToken: '',
+    instagramBusinessAccountId: '',
+    linkedinAccessToken: '',
+    linkedinOrganizationId: '',
+  },
 };
 
 export function getSiteSettings(): SiteSettings {
@@ -65,6 +79,7 @@ export function getSiteSettings(): SiteSettings {
       social: { ...DEFAULT_SETTINGS.social, ...parsed.social },
       seo: { ...DEFAULT_SETTINGS.seo, ...parsed.seo },
       integrations: { ...DEFAULT_SETTINGS.integrations, ...parsed.integrations },
+      socialTokens: { ...DEFAULT_SETTINGS.socialTokens, ...parsed.socialTokens },
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -78,6 +93,7 @@ export function saveSiteSettings(settings: Partial<SiteSettings>): SiteSettings 
     social: { ...current.social, ...(settings.social || {}) },
     seo: { ...current.seo, ...(settings.seo || {}) },
     integrations: { ...current.integrations, ...(settings.integrations || {}) },
+    socialTokens: { ...current.socialTokens, ...(settings.socialTokens || {}) },
   };
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), 'utf-8');
   return updated;

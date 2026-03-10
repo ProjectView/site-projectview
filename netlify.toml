@@ -8,6 +8,10 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Scheduled function: publish due social media posts every 15 minutes
+[functions."publish-scheduled-posts"]
+  schedule = "*/15 * * * *"
+
 # Empêcher le CDN Netlify ET le navigateur de mettre en cache le HTML des pages.
 # Sans ça, un navigateur peut charger du vieux HTML qui référence des chunks
 # JS/CSS d'un ancien build (hashes différents) → 404 → écran blanc.

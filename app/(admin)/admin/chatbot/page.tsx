@@ -15,7 +15,9 @@ import {
   KeyRound,
   Eye,
   EyeOff,
+  MessageSquare,
 } from 'lucide-react';
+import Link from 'next/link';
 import { Toast, ToastType } from '@/components/admin/Toast';
 import { KnowledgeBase } from '@/components/admin/KnowledgeBase';
 
@@ -128,11 +130,19 @@ export default function ChatbotPage() {
             Configurez le chatbot IA pour les visiteurs de votre site.
           </p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-teal via-brand-purple to-brand-orange text-white hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-        >
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/chatbot/conversations"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-white/[0.08] text-ink-secondary hover:text-ink-primary hover:bg-white/[0.04] transition-all"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Conversations
+          </Link>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-teal via-brand-purple to-brand-orange text-white hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+          >
           {saving ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -144,7 +154,8 @@ export default function ChatbotPage() {
               Sauvegarder
             </>
           )}
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Status card */}
