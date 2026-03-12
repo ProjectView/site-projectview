@@ -26,6 +26,11 @@ export default function AdminError({
           <p className="text-sm text-ink-secondary leading-relaxed">
             Un problème est survenu. Rechargez la page ou revenez au tableau de bord.
           </p>
+          {error.message && (
+            <p className="text-xs text-red-400 font-mono bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-left break-all">
+              {error.message}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">

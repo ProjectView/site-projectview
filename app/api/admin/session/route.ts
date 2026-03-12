@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth, checkAdminSession } from '@/lib/firebase-admin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SESSION_COOKIE_NAME = '__session';
 const SESSION_DURATION_MS = 60 * 60 * 24 * 5 * 1000; // 5 jours
+
+// GET /api/admin/session — Vérifie si la session courante est valide
+export async function GET(request: NextRequest) {
+  const authError = await checkAdminSession(request);
+  if (authError) return authError;
+  return NextResponse.json({ valid: true });
+}
 
 // POST /api/admin/session — Crée un cookie de session à partir d'un ID token Firebase
 export async function POST(request: NextRequest) {

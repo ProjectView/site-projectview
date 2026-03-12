@@ -37,6 +37,21 @@ export function AdminShell({ children }: AdminShellProps) {
     setUserInfo(getUserInfo());
   }, []);
 
+  // Vérifier la session Firebase au montage — si expirée, rediriger vers login
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/admin/session');
+        if (res.status === 401) {
+          router.replace('/admin/login');
+        }
+      } catch {
+        // Ignore les erreurs réseau — l'utilisateur restera sur la page
+      }
+    }
+    checkSession();
+  }, [router]);
+
   // Fetch unread message count
   useEffect(() => {
     async function fetchUnread() {
