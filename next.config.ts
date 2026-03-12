@@ -44,6 +44,12 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-XSS-Protection', value: '1; mode=block' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Empêcher le navigateur de cacher le HTML des pages.
+          // Sans ça, après un redéploiement le browser peut charger du vieux HTML
+          // qui référence des chunks JS/CSS supprimés → 404 → site cassé.
+          // Note: la règle suivante (js|css|...) override ce header pour les
+          // assets statiques, donc ils restent immutably cached.
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
         ],
       },
       {
