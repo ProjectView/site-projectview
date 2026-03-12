@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Plus,
@@ -13,7 +14,9 @@ import {
   Filter,
   RefreshCw,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
+import { GenerateArticleModal } from '@/components/admin/GenerateArticleModal';
 import { articles as localArticles, categories } from '@/lib/fallback-data';
 import type { Article, ArticleStatus } from '@/lib/fallback-data';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
@@ -22,6 +25,7 @@ import { computeSeoScore } from '@/components/admin/SeoPanel';
 import { StatusDropdown } from '@/components/admin/StatusDropdown';
 
 export default function ArticlesPage() {
+  const router = useRouter();
   const [articles, setArticles] = useState<Article[]>(localArticles);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -29,6 +33,7 @@ export default function ArticlesPage() {
   const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
 
   // Count articles currently "mis-en-avant" for the dropdown limit check
   const featuredCount = useMemo(
@@ -120,6 +125,17 @@ export default function ArticlesPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Generate article modal */}
+      {showGenerateModal && (
+        <GenerateArticleModal
+          onClose={() => setShowGenerateModal(false)}
+          onSuccess={(slug) => {
+            setShowGenerateModal(false);
+            router.push(`/admin/articles/${slug}/edit`);
+          }}
+        />
+      )}
+
       {/* Toast */}
       {toast && (
         <Toast
@@ -158,6 +174,13 @@ export default function ArticlesPage() {
             title="Rafraîchir"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={() => setShowGenerateModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-white/[0.06] border border-white/[0.08] text-ink-primary hover:bg-white/[0.1] transition-all cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-brand-teal" />
+            Générer avec l&apos;IA
           </button>
           <Link
             href="/admin/articles/new"

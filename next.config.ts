@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         hostname: '*.projectview.fr',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        pathname: '/**',
+      },
     ],
     // Optimize image formats
     formats: ['image/avif', 'image/webp'],
