@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "Next.js (Turbopack)",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:\\Users\\adeli\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js", "run", "dev"],
       "port": 3000
     }
   ]
