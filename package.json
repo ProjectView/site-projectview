@@ -31,7 +31,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.8",
+    "@netlify/plugin-nextjs": "^5.15.9",
     "@types/bcryptjs": "^2.4.6"
   }
 }
