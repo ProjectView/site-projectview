@@ -17,9 +17,9 @@ export function OrganizationJsonLd({ url = 'https://projectview.fr' }: Organizat
       'Nous transformons vos espaces physiques en environnements interactifs qui captivent, engagent et convertissent.',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '6 rue de Genève',
-      addressLocality: 'Saint Priest',
-      postalCode: '69800',
+      streetAddress: '18 rue Jules Ferry',
+      addressLocality: "Saint Symphorien d'Ozon",
+      postalCode: '69360',
       addressCountry: 'FR',
     },
     contactPoint: {

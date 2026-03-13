@@ -51,7 +51,7 @@ export function Footer() {
               </a>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-brand-teal flex-shrink-0 mt-0.5" />
-                <span>6 rue de Genève, 69800 Saint Priest</span>
+                <span>18 rue Jules Ferry, 69360 Saint Symphorien d'Ozon</span>
               </div>
             </div>
           </div>

@@ -194,7 +194,7 @@ export function ContactPageContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-ink-primary">Adresse</p>
-                  <p className="text-sm">6 rue de Genève<br />69800 Saint Priest, France</p>
+                  <p className="text-sm">18 rue Jules Ferry<br />69360 Saint Symphorien d'Ozon, France</p>
                 </div>
               </div>
             </div>
@@ -202,8 +202,8 @@ export function ContactPageContent() {
             {/* Google Maps embed */}
             <div className="rounded-2xl overflow-hidden border border-white/[0.08] h-80">
               <iframe
-                title="Projectview — 6 rue de Genève, Saint Priest"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2785.5!2d4.9!3d45.7!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s6+rue+de+Gen%C3%A8ve%2C+69800+Saint+Priest!5e0!3m2!1sfr!2sfr!4v1700000000000"
+                title="Projectview — 18 rue Jules Ferry, Saint Symphorien d'Ozon"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2785.5!2d4.9!3d45.7!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s18+rue+Jules+Ferry%2C+69360+Saint+Symphorien+d%27Ozon!5e0!3m2!1sfr!2sfr!4v1700000000000"
                 width="100%"
                 height="100%"
                 style={{ border: 0, filter: 'invert(0.9) hue-rotate(180deg) saturate(0.3)' }}
