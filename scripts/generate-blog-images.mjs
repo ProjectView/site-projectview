@@ -15,8 +15,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const IMAGES_DIR = path.join(ROOT, 'public', 'images', 'blog');
 
-const GEMINI_API_KEY = 'AIzaSyDR-ib0LvoJ63LdLVAGXVmoU9ro48Kv3w4';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  console.error('❌ GEMINI_API_KEY manquant. Définissez-la dans .env.local ou en variable d\'environnement.');
+  process.exit(1);
+}
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 
 const articles = [
   {

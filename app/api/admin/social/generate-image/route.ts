@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 
 export async function POST(request: NextRequest) {
   const authError = await checkAdminSession(request);
@@ -75,22 +75,28 @@ export async function POST(request: NextRequest) {
 function buildSocialPrompt(userPrompt: string, format: string): string {
   const aspectRatio =
     format === 'square'
-      ? 'square format (1:1 aspect ratio), optimized for Instagram'
-      : 'landscape format (1.91:1 aspect ratio), optimized for Facebook and LinkedIn';
+      ? 'square (1:1), optimised for Instagram — strong central subject, bold crop'
+      : 'landscape (1.91:1), optimised for Facebook and LinkedIn — wide scene with clear focal point';
 
-  return `Generate a professional social media image for the following concept. The image should be ${aspectRatio}.
+  return `Create a social media photograph for the following concept. Format: ${aspectRatio}.
 
 Concept: "${userPrompt}"
 
-Style requirements:
-- Modern, premium aesthetic with clean lines
-- Dark/moody atmosphere with warm accent colors (teal, orange, green tones)
-- Abstract or conceptual — do NOT include any text, logos, or watermarks
-- Professional photography or 3D render style
-- Suitable for a technology company focused on interactive displays, VR, AI, and collaboration
-- High contrast, cinematic lighting
-- No people's faces visible, no stock photo feel
-- Bold, eye-catching composition that works on social media
+The image must feel authentic and human — like a real photograph, not a CGI render or generic stock image.
+
+Visual approach:
+- Translate the concept into a SPECIFIC, CONCRETE real-world scene. Show the idea, don't just symbolise it.
+- Authentic environments: real offices, real showrooms, real products in use, real spaces with natural imperfections
+- Human presence where relevant: hands touching a screen, silhouettes in a bright room, a person's back facing an impressive display — no faces
+- Varied, natural lighting: window light, soft indoor light, a mix of warm and cool sources — whatever serves the concept
+- Photography style that fits: reportage, architectural, lifestyle, product — choose based on the subject
+- Bold composition that stops the scroll: strong contrast, interesting angle, something unexpected in the frame
+
+Avoid:
+- Dark backgrounds + floating glowing 3D objects
+- Neon teal/purple sci-fi aesthetics
+- Hollow "technology" clichés (handshakes, people pointing at charts, abstract circuits)
+- Any text, logos, watermarks, or overlaid UI elements
 
 Generate the image only, no text in the response.`;
 }

@@ -1,7 +1,7 @@
 import { getAdminStorage } from '@/lib/firebase-admin';
 
-const NANO_BANANA_PRO_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
+const NANO_BANANA_2_URL =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 
 // Helper: call Gemini Nano Banana Pro and upload to Firebase Storage
 async function callGeminiImage(prompt: string, storagePath: string): Promise<string> {
@@ -10,7 +10,7 @@ async function callGeminiImage(prompt: string, storagePath: string): Promise<str
     throw new Error('GEMINI_API_KEY manquant dans .env.local');
   }
 
-  const response = await fetch(`${NANO_BANANA_PRO_URL}?key=${apiKey}`, {
+  const response = await fetch(`${NANO_BANANA_2_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -88,35 +88,53 @@ export async function generateInlineImage(
 }
 
 function buildCoverPrompt(title: string, excerpt: string): string {
-  return `Generate a professional, modern blog banner image for the following article. Wide format (16:9 aspect ratio), visually striking, suitable as a hero/cover image for a tech blog.
+  return `Create a wide-format editorial photograph (16:9) for a professional blog article. The image must feel like a real photograph taken by a skilled photographer — NOT a 3D render, NOT a CGI illustration, NOT generic stock imagery.
 
-Article title: "${title}"
-Article summary: "${excerpt}"
+Article: "${title}"
+Summary: "${excerpt}"
 
-Style requirements:
-- Modern, premium aesthetic with clean lines
-- Dark/moody atmosphere with warm accent colors (teal, orange, green tones)
-- Abstract or conceptual — do NOT include any text, logos, or watermarks
-- Professional photography or 3D render style
-- Technology company focused on interactive displays, VR, AI, and collaboration
-- High contrast, cinematic lighting
-- No people's faces, no stock photo feel
+Instructions:
+1. READ the article topic carefully and choose an appropriate real-world scene that visually tells the story. Examples:
+   - AI / automation article → person working at a clean desk, hands on keyboard, soft natural light from a window, shallow depth of field
+   - Collaboration / meetings → two or three people around a table, seen from behind or 3/4 angle, lively body language, a modern office
+   - Retail / customer experience → a real store aisle or showroom with warm ambient light, product displays in the background
+   - VR / immersive tech → someone wearing a headset in a bright, open space (not dark) — show wonder, not dystopia
+   - Business strategy → close-up of hands on a notepad or whiteboard, natural textures, candid feel
+
+2. PHOTOGRAPHY STYLE — choose the most appropriate for the topic:
+   - Documentary / editorial: natural light, candid moments, authentic textures
+   - Architectural / product: clean geometry, precise framing, calm atmosphere
+   - Lifestyle: warm golden light, shallow depth of field, human presence implied
+   - Corporate reportage: real offices, real people (backs or silhouettes only), no posed feel
+
+3. AVOID at all costs:
+   - Dark backgrounds with floating glowing 3D objects
+   - Blue/teal/neon color grading
+   - Sci-fi CGI aesthetics
+   - Generic stock photo compositions (handshakes, suits pointing at charts)
+   - Any text, logos, watermarks, or UI elements in the image
+
+4. MAKE IT SPECIFIC to this article. A "collaboration" article and an "AI" article should produce visually distinct images.
 
 Generate the image only, no text in the response.`;
 }
 
 function buildInlinePrompt(description: string): string {
-  return `Generate a professional editorial photograph or illustration for a technology blog article. The image should be used inline within the article body.
+  return `Create an editorial photograph to illustrate a specific moment or concept within a professional blog article.
 
-Scene description: "${description}"
+Scene: "${description}"
 
-Style requirements:
-- Real-world photography style (not AI art look)
-- Natural, editorial feel — bright, clean composition
-- Modern workplace or technology environment
-- No text, no logos, no watermarks in the image
-- Professional quality, magazine-worthy
-- Warm tones, good lighting, realistic depth of field
+The image must look like a real photograph — natural lighting, authentic environment, genuine textures. Think: shot by a photojournalist or a high-end magazine photographer on assignment.
+
+Guidelines:
+- Choose a specific, concrete scene that SHOWS the concept rather than symbolising it abstractly
+- Real environment: office, workshop, street, showroom — whatever fits the scene
+- Human presence where relevant: hands, silhouettes, backs of people — never faces
+- Natural, varied lighting: could be morning light, office overhead, window backlight — whatever serves the mood
+- Candid, unposed feel — something is actually happening in the frame
+- Interesting composition: rule of thirds, leading lines, foreground/background relationship
+- Avoid: dark glowing 3D renders, neon colors, floating abstract shapes, hollow tech clichés
+- No text, no logos, no watermarks
 
 Generate the image only, no text in the response.`;
 }
