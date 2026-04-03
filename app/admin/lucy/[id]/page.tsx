@@ -1,8 +1,9 @@
 // Detail licence admin
-export default function AdminLicenseDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminLicenseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <div>
-      <h1>Licence {params.id}</h1>
+      <h1>Licence {id}</h1>
       {/* TODO: Détails licence, historique, actions */}
     </div>
   );
