@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-// POST /api/lucy/trial — Creation licence d essai 30j
+// POST /api/lucy/meeting — Creer une reunion
 export async function POST(request: Request) {
-  // TODO: Implémenter la création de trial
+  // TODO: Implémenter la création de réunion
   return NextResponse.json({ message: 'Not implemented' }, { status: 501 });
 }

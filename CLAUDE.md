@@ -368,3 +368,29 @@ NEXT_PUBLIC_SITE_URL=https://projectview.fr
 - Test `next build` after each phase
 - Lighthouse target: > 90 all metrics
 - WCAG AA contrast ratios in both themes
+
+---
+
+## Module Lucy (retranscription de réunion)
+
+Lucy est un module intégré dans la plateforme ProjectView.
+
+### Routes API Lucy
+- /api/lucy/* — Toutes les routes sont dans app/api/lucy/
+- /api/stripe/webhook — Gère les événements Stripe pour les licences Lucy
+- Voir .claude/skills/lucy-api-routes/SKILL.md pour les specs détaillées
+
+### Libs Lucy
+- lib/lucy/ contient toute la logique métier Lucy
+- Voir les skills dans .claude/skills/ pour chaque module
+
+### Collections Firestore Lucy
+- `licenses` — Clés, fingerprint, statut, expiration, Stripe
+- `meetings` — Réunions avec transcription, CR, fichiers
+- `devices` — Devices enregistrés avec fingerprint
+
+### Pages admin
+- /admin/lucy — Dashboard licences (super admin uniquement)
+
+### Pages client
+- /client/lucy — Espace client Lucy (licences, réunions, player)
