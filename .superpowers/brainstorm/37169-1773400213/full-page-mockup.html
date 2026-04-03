@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — /obtenir-ma-plateforme</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #09090B; color: #FAFAFA; font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+
+  /* GRADIENT TEXT */
+  .grad { background: linear-gradient(135deg, #0EA5E9, #A855F7, #F97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* NOISE */
+  .noise { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* HEADER */
+  .header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(20px); background: rgba(9,9,11,0.7); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 16px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 1.2em; font-weight: 700; letter-spacing: -0.03em; }
+  .header-badge { font-size: 0.7em; background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.25); color: #0EA5E9; padding: 4px 12px; border-radius: 20px; }
+
+  /* HERO */
+  .hero { min-height: 92vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 40px; position: relative; overflow: hidden; }
+  .hero-mesh { position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 40%, rgba(14,165,233,0.13) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 20%, rgba(168,85,247,0.09) 0%, transparent 55%),
+      radial-gradient(ellipse at 60% 80%, rgba(249,115,22,0.08) 0%, transparent 55%); }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 6px 16px; border-radius: 20px; font-size: 0.75em; color: #a1a1aa; margin-bottom: 32px; }
+  .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; display: inline-block; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+  .hero h1 { font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 24px; max-width: 800px; position: relative; z-index: 1; }
+  .hero p { font-size: 1.1em; color: #a1a1aa; max-width: 560px; margin-bottom: 40px; position: relative; z-index: 1; }
+  .cta-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; }
+  .btn-primary { background: linear-gradient(135deg, #0EA5E9, #A855F7); color: white; padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 0.95em; border: none; cursor: pointer; box-shadow: 0 0 30px rgba(168,85,247,0.3); }
+  .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #fafafa; padding: 13px 24px; border-radius: 50px; font-size: 0.9em; cursor: pointer; }
+  .hero-sub { position: relative; z-index: 1; margin-top: 48px; font-size: 0.75em; color: #52525b; display: flex; align-items: center; gap: 8px; }
+  .chevron { animation: bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+  /* STATS */
+  .stats { padding: 80px 40px; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 28px 20px; text-align: center; transition: border-color 0.2s; }
+  .stat-card:hover { border-color: rgba(255,255,255,0.15); }
+  .stat-icon { width: 40px; height: 40px; border-radius: 10px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 1.2em; }
+  .stat-number { font-size: 2.2em; font-weight: 900; letter-spacing: -0.03em; font-family: monospace; }
+  .stat-label { font-size: 0.8em; color: #71717a; margin-top: 6px; }
+
+  /* BENEFITS */
+  .benefits { padding: 80px 40px; max-width: 1100px; margin: 0 auto; }
+  .section-badge { display: inline-block; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 20px; font-size: 0.7em; color: #a1a1aa; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; }
+  .section-title { font-size: clamp(1.6rem, 3vw, 2.6rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 48px; }
+  .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .benefit-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 32px 28px; transition: all 0.2s; }
+  .benefit-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.14); }
+  .benefit-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4em; margin-bottom: 20px; }
+  .benefit-card h3 { font-size: 1.05em; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.02em; }
+  .benefit-card p { font-size: 0.85em; color: #71717a; line-height: 1.7; }
+  .benefit-stat { margin-top: 16px; font-size: 0.8em; font-family: monospace; font-weight: 700; }
+
+  /* URGENCY */
+  .urgency { max-width: 1100px; margin: 0 auto 0; padding: 0 40px; }
+  .urgency-banner { background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(168,85,247,0.08)); border: 1px solid rgba(168,85,247,0.2); border-radius: 16px; padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+  .urgency-dot { width: 8px; height: 8px; border-radius: 50%; background: #A855F7; flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+  .urgency-text { font-size: 0.9em; flex: 1; }
+  .urgency-text strong { color: #fafafa; }
+  .urgency-text span { color: #71717a; font-size: 0.9em; }
+  .urgency-cta { font-size: 0.8em; background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); color: #A855F7; padding: 8px 18px; border-radius: 20px; white-space: nowrap; }
+
+  /* CALENDAR */
+  .calendar-section { padding: 100px 40px; max-width: 900px; margin: 0 auto; text-align: center; }
+  .calendar-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 12px; }
+  .calendar-sub { color: #71717a; font-size: 0.95em; margin-bottom: 16px; }
+  .calendar-reassurances { display: flex; gap: 24px; justify-content: center; font-size: 0.8em; color: #52525b; margin-bottom: 40px; flex-wrap: wrap; }
+  .reassurance { display: flex; align-items: center; gap: 6px; }
+  .calendar-frame { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; padding: 8px; }
+  .calendar-placeholder { height: 580px; background: rgba(255,255,255,0.02); border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; border: 1px dashed rgba(255,255,255,0.1); }
+  .cal-icon { font-size: 3em; opacity: 0.3; }
+  .cal-text { color: #52525b; font-size: 0.85em; }
+  .cal-note { color: #71717a; font-size: 0.75em; font-family: monospace; }
+
+  /* FAQ */
+  .faq { padding: 80px 40px; max-width: 700px; margin: 0 auto; }
+  .faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); padding: 20px 0; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q { font-weight: 600; font-size: 0.95em; color: #e4e4e7; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .faq-a { font-size: 0.85em; color: #71717a; line-height: 1.7; }
+  .faq-chevron { color: #52525b; flex-shrink: 0; }
+
+  /* FOOTER */
+  .lp-footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 24px 40px; text-align: center; font-size: 0.75em; color: #3f3f46; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .lp-footer a { color: #52525b; text-decoration: none; }
+
+  /* ANNOTATION LAYER */
+  .annotation { position: absolute; right: -220px; top: 50%; transform: translateY(-50%); width: 200px; background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.7em; color: #EAB308; line-height: 1.5; pointer-events: none; }
+  .annotation::before { content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 6px solid rgba(234,179,8,0.3); }
+  .wrapper { position: relative; max-width: 900px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">Project<span class="grad">view</span></div>
+  <div class="header-badge">Démo gratuite · Sans engagement</div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-mesh"></div>
+  <div class="hero-badge"><span></span> Démo disponible · Réponse sous 24h</div>
+  <h1 style="position:relative;z-index:1;">
+    Votre espace mérite de<br>
+    <span class="grad">créer des émotions.</span>
+  </h1>
+  <p style="position:relative;z-index:1;">
+    Obtenez votre propre plateforme interactive sur-mesure — comme celle de Projectview. Découvrez en 30 minutes comment transformer vos espaces en expériences mémorables.
+  </p>
+  <div class="cta-group">
+    <button class="btn-primary">Réserver ma démo gratuite →</button>
+    <button class="btn-secondary">Voir un exemple de plateforme</button>
+  </div>
+  <div class="hero-sub">
+    <span class="chevron">↓</span>
+    Déjà 500+ espaces transformés · 98% de satisfaction
+  </div>
+</section>
+
+<!-- STATS -->
+<section style="padding:60px 20px;">
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(14,165,233,0.12);">📊</div>
+      <div class="stat-number grad">+340%</div>
+      <div class="stat-label">d'engagement client</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(34,197,94,0.12);">⭐</div>
+      <div class="stat-number" style="color:#22C55E;">98%</div>
+      <div class="stat-label">de satisfaction client</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(168,85,247,0.12);">🏢</div>
+      <div class="stat-number" style="color:#A855F7;">500+</div>
+      <div class="stat-label">espaces transformés</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(249,115,22,0.12);">⚡</div>
+      <div class="stat-number" style="color:#F97316;">8+</div>
+      <div class="stat-label">années d'expertise</div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="benefits">
+  <div class="section-badge">Ce que vous obtenez</div>
+  <div class="section-title">
+    Une plateforme complète,<br>
+    <span class="grad">pensée pour votre métier.</span>
+  </div>
+  <div class="benefits-grid">
+    <div class="benefit-card">
+      <div class="benefit-icon" style="background:rgba(14,165,233,0.12); font-size:1.4em;">🖥️</div>
+      <h3>Affichage dynamique & interactif</h3>
+      <p>Écrans tactiles, contenus animés en temps réel, showrooms immersifs. Vos produits mis en valeur comme jamais.</p>
+      <div class="benefit-stat grad">+340% d'engagement</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon" style="background:rgba(168,85,247,0.12);">🤖</div>
+      <h3>Assistant IA personnalisé</h3>
+      <p>Votre propre IA qui répond à vos clients 24h/7j, qualifie les leads et automatise vos processus.</p>
+      <div class="benefit-stat" style="color:#A855F7;">10h gagnées / semaine</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon" style="background:rgba(249,115,22,0.12);">🥽</div>
+      <h3>Présentation VR & immersive</h3>
+      <p>Faites visualiser vos projets avant livraison. Table tactile de négociation, réalité virtuelle, présentation 3D.</p>
+      <div class="benefit-stat" style="color:#F97316;">89% de mémorisation</div>
+    </div>
+  </div>
+</section>
+
+<!-- URGENCY -->
+<section class="urgency" style="padding-bottom:60px;">
+  <div class="urgency-banner">
+    <div class="urgency-dot"></div>
+    <div class="urgency-text">
+      <strong>Créneaux de démo limités</strong>
+      <span> — Nous accompagnons un nombre limité de nouveaux clients chaque mois pour garantir un suivi sur-mesure.</span>
+    </div>
+    <div class="urgency-cta">Voir les disponibilités →</div>
+  </div>
+</section>
+
+<!-- CALENDAR -->
+<section class="calendar-section" id="rdv">
+  <div class="section-badge">Étape 1 sur 1</div>
+  <div class="calendar-title">
+    Réservez votre démo<br>
+    <span class="grad">gratuite de 30 minutes</span>
+  </div>
+  <div class="calendar-sub">Choisissez le créneau qui vous convient. Notre équipe vous présentera une plateforme adaptée à votre secteur.</div>
+  <div class="calendar-reassurances">
+    <div class="reassurance">✓ Sans engagement</div>
+    <div class="reassurance">✓ 100% confidentiel</div>
+    <div class="reassurance">✓ Réponse sous 24h</div>
+    <div class="reassurance">✓ Démo personnalisée</div>
+  </div>
+  <div class="calendar-frame">
+    <div class="calendar-placeholder">
+      <div class="cal-icon">📅</div>
+      <div class="cal-text">Google Calendar Appointment Scheduling</div>
+      <div class="cal-note">iframe src="https://calendar.google.com/calendar/appointments/..."</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div style="text-align:center; margin-bottom:48px;">
+    <div class="section-badge">Questions fréquentes</div>
+    <div class="section-title" style="font-size:1.6rem;">Tout ce que vous<br>devez savoir.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Qu'est-ce qu'une démo Projectview ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Un échange de 30 minutes avec notre équipe pour découvrir comment votre propre plateforme interactive peut transformer vos espaces. Nous vous présentons des cas concrets de votre secteur.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Combien coûte une plateforme ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Chaque projet est unique. Lors de la démo, nous définissons ensemble vos besoins et vous recevez un devis personnalisé sous 48h. Pas de forfait standard — uniquement ce dont vous avez besoin.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">En combien de temps est-ce déployé ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">De 2 semaines à 3 mois selon la complexité. La plupart de nos clients sont opérationnels en moins de 6 semaines avec un accompagnement complet.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Dois-je avoir des compétences techniques ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Non. Nous gérons l'intégralité du déploiement et formons vos équipes. Notre interface d'administration est conçue pour être utilisée sans aucune connaissance technique.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-footer">
+  <span>© 2025 Projectview · 6 rue de Genève, 69800 Saint-Priest</span>
+  <a href="mailto:contact@projectview.fr">contact@projectview.fr</a>
+  <a href="/mentions-legales">Mentions légales</a>
+  <a href="/confidentialite">Confidentialité</a>
+</footer>
+
+<script>
+// Simulate button click → scroll to calendar
+document.querySelector('.btn-primary').addEventListener('click', () => {
+  document.getElementById('rdv').scrollIntoView({ behavior: 'smooth' });
+});
+// Show annotation on hover for dev info
+document.querySelectorAll('.benefit-card').forEach(c => {
+  c.addEventListener('mouseenter', () => c.style.borderColor = 'rgba(255,255,255,0.14)');
+  c.addEventListener('mouseleave', () => c.style.borderColor = 'rgba(255,255,255,0.07)');
+});
+</script>
+</body>
+</html>

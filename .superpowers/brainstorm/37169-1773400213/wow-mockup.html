@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOW Version — /obtenir-ma-plateforme</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #09090B; color: #FAFAFA; font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; overflow-x: hidden; }
+
+  .grad { background: linear-gradient(135deg, #0EA5E9, #A855F7, #F97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .noise { position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  .header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(24px); background: rgba(9,9,11,0.8); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 48px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 1.2em; font-weight: 800; letter-spacing: -0.04em; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .live-badge { display: flex; align-items: center; gap: 6px; font-size: 0.72em; color: #a1a1aa; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,0.4)} 50%{opacity:.7;box-shadow:0 0 0 4px rgba(34,197,94,0)} }
+  .header-cta { background: linear-gradient(135deg, #0EA5E9, #A855F7); color: white; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 0.8em; border: none; cursor: pointer; }
+
+  /* ═══ HERO ═══ */
+  .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; padding: 100px 64px 60px; position: relative; overflow: hidden; max-width: 1300px; margin: 0 auto; }
+  .hero-mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 15% 50%, rgba(14,165,233,0.14) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 20%, rgba(168,85,247,0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(249,115,22,0.07) 0%, transparent 50%); }
+
+  .hero-left { position: relative; z-index: 1; }
+  .hero-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; }
+  .eyebrow-badge { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 20px; font-size: 0.72em; color: #a1a1aa; }
+  .hero h1 { font-size: clamp(2.2rem, 3.5vw, 3.8rem); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 24px; }
+  .hero-sub { font-size: 1em; color: #71717a; margin-bottom: 40px; max-width: 460px; line-height: 1.75; }
+  .hero-sub strong { color: #a1a1aa; }
+
+  .cta-block { display: flex; flex-direction: column; gap: 16px; }
+  .btn-primary { background: linear-gradient(135deg, #0EA5E9, #A855F7); color: white; padding: 16px 32px; border-radius: 50px; font-weight: 800; font-size: 1em; border: none; cursor: pointer; box-shadow: 0 8px 32px rgba(168,85,247,0.35); width: fit-content; transition: transform 0.2s, box-shadow 0.2s; }
+  .btn-primary:hover { transform: scale(1.03); box-shadow: 0 12px 40px rgba(168,85,247,0.5); }
+  .micro-trust { display: flex; align-items: center; gap: 20px; font-size: 0.78em; color: #52525b; }
+  .micro-trust span { display: flex; align-items: center; gap: 5px; }
+  .check { color: #22C55E; }
+
+  /* ═══ HERO VISUAL — Floating Platform Preview ═══ */
+  .hero-right { position: relative; z-index: 1; }
+  .platform-preview { position: relative; }
+  .screen-frame { background: #111113; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(168,85,247,0.1); }
+  .screen-bar { background: #1a1a1f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .screen-url { margin-left: 12px; font-size: 0.68em; color: #52525b; font-family: monospace; background: rgba(255,255,255,0.03); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); flex: 1; }
+  .screen-content { padding: 20px; }
+
+  /* Mini platform mockup inside the screen */
+  .mini-platform { background: #09090B; border-radius: 12px; overflow: hidden; }
+  .mini-nav { background: rgba(255,255,255,0.03); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .mini-logo { font-size: 0.75em; font-weight: 700; }
+  .mini-nav-links { display: flex; gap: 10px; }
+  .mini-link { font-size: 0.6em; color: #71717a; background: rgba(255,255,255,0.04); padding: 3px 8px; border-radius: 20px; }
+  .mini-hero-area { padding: 20px 16px; text-align: center; background: radial-gradient(ellipse at center, rgba(14,165,233,0.1) 0%, transparent 60%); }
+  .mini-h1 { font-size: 0.9em; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.03em; }
+  .mini-sub { font-size: 0.6em; color: #71717a; margin-bottom: 12px; }
+  .mini-btns { display: flex; gap: 8px; justify-content: center; }
+  .mini-btn { font-size: 0.6em; padding: 5px 12px; border-radius: 20px; }
+  .mini-btn.primary { background: linear-gradient(135deg, #0EA5E9, #A855F7); color: white; }
+  .mini-btn.sec { border: 1px solid rgba(255,255,255,0.15); color: #fafafa; }
+  .mini-cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0 12px 12px; }
+  .mini-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 10px; }
+  .mini-card-icon { font-size: 1em; margin-bottom: 4px; }
+  .mini-card-title { font-size: 0.55em; font-weight: 700; color: #e4e4e7; margin-bottom: 2px; }
+  .mini-card-stat { font-size: 0.55em; font-family: monospace; }
+
+  /* Floating cards */
+  .float-card { position: absolute; background: rgba(17,17,19,0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); animation: float 6s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .float-card.left { bottom: 20px; left: -40px; animation-delay: -2s; }
+  .float-card.top-right { top: -20px; right: -30px; animation-delay: -4s; }
+  .float-title { font-size: 0.65em; font-weight: 700; margin-bottom: 3px; }
+  .float-sub { font-size: 0.6em; color: #71717a; }
+  .float-metric { font-size: 1.1em; font-weight: 900; font-family: monospace; }
+
+  /* ═══ TRANSFORMATION ═══ */
+  .transformation { padding: 100px 64px; max-width: 1200px; margin: 0 auto; }
+  .transform-title { text-align: center; margin-bottom: 60px; }
+  .transform-title .section-badge { display: inline-block; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 20px; font-size: 0.7em; color: #a1a1aa; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+  .transform-title h2 { font-size: clamp(1.8rem, 3vw, 3rem); font-weight: 900; letter-spacing: -0.04em; }
+  .before-after { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; }
+  .ba-card { border-radius: 20px; overflow: hidden; }
+  .ba-card.before { border: 1px solid rgba(239,68,68,0.2); }
+  .ba-card.after { border: 1px solid rgba(34,197,94,0.3); box-shadow: 0 0 40px rgba(34,197,94,0.08); }
+  .ba-label { padding: 10px 20px; font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px; }
+  .ba-card.before .ba-label { background: rgba(239,68,68,0.08); color: #EF4444; border-bottom: 1px solid rgba(239,68,68,0.15); }
+  .ba-card.after .ba-label { background: rgba(34,197,94,0.08); color: #22C55E; border-bottom: 1px solid rgba(34,197,94,0.15); }
+  .ba-content { padding: 28px; background: rgba(255,255,255,0.02); }
+  .ba-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; font-size: 0.85em; color: #71717a; }
+  .ba-item:last-child { margin-bottom: 0; }
+  .ba-icon { flex-shrink: 0; margin-top: 2px; }
+  .ba-arrow { display: flex; align-items: center; justify-content: center; font-size: 2em; color: #A855F7; }
+
+  /* ═══ CASE STUDY ═══ */
+  .case-study { padding: 60px 64px; max-width: 1200px; margin: 0 auto; }
+  .cs-card { background: linear-gradient(135deg, rgba(14,165,233,0.06), rgba(168,85,247,0.06)); border: 1px solid rgba(168,85,247,0.2); border-radius: 24px; padding: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .cs-tag { display: inline-block; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #A855F7; font-size: 0.7em; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; }
+  .cs-quote { font-size: 1.15em; font-weight: 600; color: #e4e4e7; line-height: 1.6; margin-bottom: 24px; font-style: italic; }
+  .cs-quote::before { content: '"'; font-size: 2em; color: #A855F7; line-height: 0; vertical-align: -0.4em; margin-right: 4px; }
+  .cs-author { display: flex; align-items: center; gap: 12px; }
+  .cs-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #A855F7); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9em; color: white; }
+  .cs-name { font-weight: 700; font-size: 0.9em; }
+  .cs-role { font-size: 0.78em; color: #71717a; }
+  .cs-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cs-metric { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; text-align: center; }
+  .cs-metric-num { font-size: 2.2em; font-weight: 900; font-family: monospace; letter-spacing: -0.04em; }
+  .cs-metric-label { font-size: 0.72em; color: #71717a; margin-top: 4px; }
+
+  /* ═══ STATS ═══ */
+  .stats { padding: 60px 64px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px; text-align: center; }
+  .stat-icon { font-size: 1.5em; margin-bottom: 12px; }
+  .stat-number { font-size: 2em; font-weight: 900; letter-spacing: -0.04em; font-family: monospace; }
+  .stat-label { font-size: 0.78em; color: #71717a; margin-top: 6px; }
+
+  /* ═══ BENEFITS ═══ */
+  .benefits { padding: 80px 64px; max-width: 1200px; margin: 0 auto; }
+  .section-badge { display: inline-block; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 14px; border-radius: 20px; font-size: 0.7em; color: #a1a1aa; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+  .section-title { font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 48px; }
+  .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .benefit-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; padding: 32px; position: relative; overflow: hidden; transition: all 0.3s; }
+  .benefit-card::before { content: ''; position: absolute; inset: 0; border-radius: 20px; background: var(--glow); opacity: 0; transition: opacity 0.3s; }
+  .benefit-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.14); }
+  .benefit-card:hover::before { opacity: 1; }
+  .benefit-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; margin-bottom: 20px; }
+  .benefit-card h3 { font-size: 1em; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.02em; }
+  .benefit-card p { font-size: 0.83em; color: #71717a; line-height: 1.75; }
+  .benefit-badge { margin-top: 16px; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 700; font-family: monospace; }
+
+  /* ═══ URGENCY BANNER ═══ */
+  .urgency-wrap { padding: 0 64px; max-width: 1200px; margin: 0 auto 60px; }
+  .urgency-banner { background: linear-gradient(135deg, rgba(14,165,233,0.07), rgba(168,85,247,0.07)); border: 1px solid rgba(168,85,247,0.2); border-radius: 16px; padding: 18px 28px; display: flex; align-items: center; gap: 16px; }
+  .u-dot { width: 8px; height: 8px; border-radius: 50%; background: #A855F7; flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+  .u-text { flex: 1; font-size: 0.88em; }
+  .u-text strong { color: #fafafa; }
+  .u-text span { color: #71717a; }
+  .u-action { font-size: 0.78em; background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.25); color: #A855F7; padding: 7px 16px; border-radius: 20px; white-space: nowrap; cursor: pointer; }
+
+  /* ═══ CALENDAR ═══ */
+  .calendar-section { padding: 100px 64px; max-width: 900px; margin: 0 auto; text-align: center; }
+  .cal-eyebrow { display: inline-block; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #22C55E; padding: 5px 14px; border-radius: 20px; font-size: 0.72em; margin-bottom: 20px; }
+  .cal-title { font-size: clamp(1.8rem, 3vw, 3rem); font-weight: 900; letter-spacing: -0.04em; margin-bottom: 12px; }
+  .cal-sub { color: #71717a; font-size: 0.95em; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .cal-reassurances { display: flex; gap: 20px; justify-content: center; font-size: 0.78em; color: #52525b; margin-bottom: 40px; flex-wrap: wrap; }
+  .cal-reassurances span { display: flex; align-items: center; gap: 5px; }
+  .cal-frame { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; overflow: hidden; padding: 8px; box-shadow: 0 0 60px rgba(34,197,94,0.06); }
+  .cal-placeholder { height: 580px; border-radius: 18px; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .cal-icon { font-size: 3.5em; opacity: 0.25; }
+  .cal-text { color: #52525b; font-size: 0.82em; }
+  .cal-code { color: #3f3f46; font-size: 0.7em; font-family: monospace; background: rgba(255,255,255,0.02); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+
+  /* ═══ FAQ ═══ */
+  .faq { padding: 80px 64px; max-width: 720px; margin: 0 auto; }
+  .faq-header { text-align: center; margin-bottom: 48px; }
+  .faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); padding: 20px 0; cursor: pointer; }
+  .faq-q { font-weight: 600; font-size: 0.92em; color: #e4e4e7; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  .faq-a { font-size: 0.83em; color: #71717a; line-height: 1.75; margin-top: 10px; }
+  .faq-chevron { color: #52525b; font-size: 0.8em; }
+
+  /* ═══ FOOTER ═══ */
+  .lp-footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 24px 48px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; font-size: 0.72em; color: #3f3f46; }
+  .lp-footer a { color: #52525b; text-decoration: none; }
+
+  /* Responsive hint */
+  @media(max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 80px 24px 40px; }
+    .hero-right { display: none; }
+    .transformation, .case-study, .stats, .benefits, .urgency-wrap, .calendar-section, .faq { padding-left: 24px; padding-right: 24px; }
+    .before-after { grid-template-columns: 1fr; }
+    .ba-arrow { display: none; }
+    .cs-card { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .benefits-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">Project<span class="grad">view</span></div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div> Démo disponible aujourd'hui</div>
+    <button class="header-cta" onclick="document.getElementById('rdv').scrollIntoView({behavior:'smooth'})">Réserver →</button>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<div style="position:relative; overflow:hidden;">
+  <div class="hero-mesh"></div>
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">
+        <div class="eyebrow-badge">Démo gratuite · Sans engagement</div>
+      </div>
+      <h1>
+        Vos concurrents ont déjà<br>
+        <span class="grad">transformé leurs espaces.</span><br>
+        <span style="color:#71717a; font-size:0.7em; font-weight:500; letter-spacing:-0.02em;">Et vous ?</span>
+      </h1>
+      <p class="hero-sub">
+        En 30 minutes, découvrez comment obtenir <strong>votre propre plateforme interactive sur-mesure</strong> — comme celle de Projectview — et transformer chaque visite en expérience mémorable.
+      </p>
+      <div class="cta-block">
+        <button class="btn-primary" onclick="document.getElementById('rdv').scrollIntoView({behavior:'smooth'})">
+          Réserver ma démo gratuite →
+        </button>
+        <div class="micro-trust">
+          <span><span class="check">✓</span> Sans engagement</span>
+          <span><span class="check">✓</span> 100% confidentiel</span>
+          <span><span class="check">✓</span> Réponse sous 24h</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating platform preview -->
+    <div class="hero-right">
+      <div class="platform-preview">
+        <!-- Floating card top-right -->
+        <div class="float-card top-right">
+          <div class="float-title">📈 Semaine dernière</div>
+          <div class="float-metric grad">+340%</div>
+          <div class="float-sub">d'engagement client</div>
+        </div>
+
+        <div class="screen-frame">
+          <div class="screen-bar">
+            <div class="dot" style="background:#EF4444;"></div>
+            <div class="dot" style="background:#EAB308;"></div>
+            <div class="dot" style="background:#22C55E;"></div>
+            <div class="screen-url">projectview.fr/votre-espace</div>
+          </div>
+          <div class="screen-content">
+            <div class="mini-platform">
+              <div class="mini-nav">
+                <span class="mini-logo">Project<span class="grad">view</span></span>
+                <div class="mini-nav-links">
+                  <span class="mini-link">Solutions</span>
+                  <span class="mini-link">Blog</span>
+                  <span class="mini-link" style="background:linear-gradient(135deg,#0EA5E9,#A855F7);color:white;">Contact</span>
+                </div>
+              </div>
+              <div class="mini-hero-area">
+                <div class="mini-h1">La technologie au service de <span class="grad">l'émotion</span></div>
+                <div class="mini-sub">Transformez vos espaces en expériences interactives mémorables</div>
+                <div class="mini-btns">
+                  <div class="mini-btn primary">Découvrir →</div>
+                  <div class="mini-btn sec">En savoir plus</div>
+                </div>
+              </div>
+              <div class="mini-cards-row">
+                <div class="mini-card">
+                  <div class="mini-card-icon">🖥️</div>
+                  <div class="mini-card-title">Affichage Dynamique</div>
+                  <div class="mini-card-stat" style="color:#0EA5E9;">+340%</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-icon">🤖</div>
+                  <div class="mini-card-title">Assistant IA</div>
+                  <div class="mini-card-stat" style="color:#A855F7;">24/7</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-icon">🥽</div>
+                  <div class="mini-card-title">VR & Immersif</div>
+                  <div class="mini-card-stat" style="color:#F97316;">89%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating card bottom-left -->
+        <div class="float-card left">
+          <div class="float-title">🟢 Nouveau lead qualifié</div>
+          <div class="float-sub" style="margin-top:2px;">Sophie M. — Architecte, Lyon</div>
+          <div class="float-sub" style="color:#52525b; font-size:0.88em;">Il y a 3 minutes via IA</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══ AVANT / APRÈS ═══ -->
+<section class="transformation">
+  <div class="transform-title">
+    <div class="section-badge">La transformation</div>
+    <h2>Ce qui change <span class="grad">concrètement</span></h2>
+  </div>
+  <div class="before-after">
+    <div class="ba-card before">
+      <div class="ba-label">✕ Sans plateforme</div>
+      <div class="ba-content">
+        <div class="ba-item"><span class="ba-icon">😴</span> Présentations PowerPoint statiques que les clients oublient en 24h</div>
+        <div class="ba-item"><span class="ba-icon">📞</span> Appels manqués, leads perdus en dehors des heures de bureau</div>
+        <div class="ba-item"><span class="ba-icon">🤷</span> Clients qui "veulent réfléchir" et ne rappellent jamais</div>
+        <div class="ba-item"><span class="ba-icon">⏳</span> Des heures perdues à répondre aux mêmes questions</div>
+        <div class="ba-item"><span class="ba-icon">📉</span> Espaces qui ne se démarquent pas de la concurrence</div>
+      </div>
+    </div>
+    <div class="ba-arrow">→</div>
+    <div class="ba-card after">
+      <div class="ba-label">✓ Avec votre plateforme</div>
+      <div class="ba-content">
+        <div class="ba-item"><span style="color:#22C55E;">✦</span> <span>Expériences immersives et interactives qui restent en mémoire</span></div>
+        <div class="ba-item"><span style="color:#22C55E;">✦</span> <span>IA personnalisée qui qualifie vos leads 24h/7j automatiquement</span></div>
+        <div class="ba-item"><span style="color:#22C55E;">✦</span> <span>Clients qui se projettent et signent plus vite</span></div>
+        <div class="ba-item"><span style="color:#22C55E;">✦</span> <span>Équipes libérées des tâches répétitives, focus sur la valeur</span></div>
+        <div class="ba-item"><span style="color:#22C55E;">✦</span> <span>Un espace qui impressionne à chaque visite</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CASE STUDY / TÉMOIGNAGE ═══ -->
+<section class="case-study">
+  <div class="cs-card">
+    <div>
+      <div class="cs-tag">Cas client — Retail Premium</div>
+      <div class="cs-quote">
+        Notre showroom était beau mais silencieux. Depuis Projectview, les visiteurs passent en moyenne 3x plus de temps et repartent avec une offre signée dans 67% des cas.
+      </div>
+      <div class="cs-author">
+        <div class="cs-avatar">MK</div>
+        <div>
+          <div class="cs-name">Marc Kowalski</div>
+          <div class="cs-role">Directeur Commercial, Maison K. Design — Paris</div>
+        </div>
+      </div>
+    </div>
+    <div class="cs-metrics">
+      <div class="cs-metric">
+        <div class="cs-metric-num grad">×3</div>
+        <div class="cs-metric-label">Temps passé en showroom</div>
+      </div>
+      <div class="cs-metric">
+        <div class="cs-metric-num" style="color:#22C55E;">67%</div>
+        <div class="cs-metric-label">Taux de conversion visites</div>
+      </div>
+      <div class="cs-metric">
+        <div class="cs-metric-num" style="color:#A855F7;">24/7</div>
+        <div class="cs-metric-label">Disponibilité IA assistante</div>
+      </div>
+      <div class="cs-metric">
+        <div class="cs-metric-num" style="color:#F97316;">6sem</div>
+        <div class="cs-metric-label">Déploiement complet</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<section class="stats">
+  <div class="stat-card">
+    <div class="stat-icon">📊</div>
+    <div class="stat-number grad">+340%</div>
+    <div class="stat-label">d'engagement client en moyenne</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⭐</div>
+    <div class="stat-number" style="color:#22C55E;">98%</div>
+    <div class="stat-label">de satisfaction client</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🏢</div>
+    <div class="stat-number" style="color:#A855F7;">500+</div>
+    <div class="stat-label">espaces transformés</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⚡</div>
+    <div class="stat-number" style="color:#F97316;">8+</div>
+    <div class="stat-label">années d'expertise</div>
+  </div>
+</section>
+
+<!-- ═══ BENEFITS ═══ -->
+<section class="benefits">
+  <div class="section-badge">Ce que vous obtenez</div>
+  <div class="section-title">Une plateforme complète,<br><span class="grad">pensée pour votre métier.</span></div>
+  <div class="benefits-grid">
+    <div class="benefit-card" style="--glow: radial-gradient(ellipse at top left, rgba(14,165,233,0.06), transparent);">
+      <div class="benefit-icon" style="background:rgba(14,165,233,0.12);">🖥️</div>
+      <h3>Affichage dynamique & interactif</h3>
+      <p>Écrans tactiles, contenus animés en temps réel, showrooms immersifs. Fini les affiches ignorées.</p>
+      <div class="benefit-badge" style="background:rgba(14,165,233,0.1); border:1px solid rgba(14,165,233,0.2); color:#0EA5E9;">+340% d'engagement</div>
+    </div>
+    <div class="benefit-card" style="--glow: radial-gradient(ellipse at top left, rgba(168,85,247,0.06), transparent);">
+      <div class="benefit-icon" style="background:rgba(168,85,247,0.12);">🤖</div>
+      <h3>Assistant IA personnalisé 24h/7j</h3>
+      <p>Votre IA qui répond, qualifie les leads et automatise les tâches répétitives pendant que vous dormez.</p>
+      <div class="benefit-badge" style="background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); color:#A855F7;">10h gagnées / semaine</div>
+    </div>
+    <div class="benefit-card" style="--glow: radial-gradient(ellipse at top left, rgba(249,115,22,0.06), transparent);">
+      <div class="benefit-icon" style="background:rgba(249,115,22,0.12);">🥽</div>
+      <h3>Présentation VR & immersive</h3>
+      <p>Faites visualiser vos projets avant livraison. Table tactile, réalité virtuelle, projection 3D interactive.</p>
+      <div class="benefit-badge" style="background:rgba(249,115,22,0.1); border:1px solid rgba(249,115,22,0.2); color:#F97316;">89% de mémorisation</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ URGENCY ═══ -->
+<section class="urgency-wrap">
+  <div class="urgency-banner">
+    <div class="u-dot"></div>
+    <div class="u-text">
+      <strong>Accompagnement limité à 5 nouveaux clients par mois</strong>
+      <span> — Pour garantir un suivi sur-mesure et des résultats concrets, nous limitons volontairement notre capacité d'onboarding.</span>
+    </div>
+    <div class="u-action" onclick="document.getElementById('rdv').scrollIntoView({behavior:'smooth'})">Voir les disponibilités →</div>
+  </div>
+</section>
+
+<!-- ═══ CALENDAR ═══ -->
+<section class="calendar-section" id="rdv">
+  <div class="cal-eyebrow">✦ Étape 1 sur 1 — Gratuit & sans engagement</div>
+  <div class="cal-title">Réservez votre démo<br><span class="grad">gratuite de 30 minutes</span></div>
+  <div class="cal-sub">Choisissez un créneau. Notre équipe vous présente une plateforme concrète adaptée à votre secteur et répond à toutes vos questions.</div>
+  <div class="cal-reassurances">
+    <span><span style="color:#22C55E;">✓</span> Sans engagement</span>
+    <span><span style="color:#22C55E;">✓</span> 100% confidentiel</span>
+    <span><span style="color:#22C55E;">✓</span> Démo personnalisée</span>
+    <span><span style="color:#22C55E;">✓</span> Réponse garantie sous 24h</span>
+  </div>
+  <div class="cal-frame">
+    <div class="cal-placeholder">
+      <div class="cal-icon">📅</div>
+      <div class="cal-text">Google Calendar Appointment Scheduling</div>
+      <div class="cal-code">&lt;iframe src="https://calendar.google.com/..." /&gt;</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═══ -->
+<section class="faq">
+  <div class="faq-header">
+    <div class="section-badge">Questions fréquentes</div>
+    <div style="font-size:clamp(1.5rem,3vw,2rem); font-weight:900; letter-spacing:-0.04em; margin-top:12px;">Tout ce que vous devez savoir.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Qu'est-ce qu'une démo Projectview concrètement ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Un échange de 30 minutes avec notre équipe. On vous montre une plateforme similaire à votre secteur (retail, architecture, immobilier...), on définit ensemble ce qui serait pertinent pour vous, et on répond à toutes vos questions. Zéro commercial agressif.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Quel est le prix d'une plateforme ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Chaque projet est différent — c'est pourquoi la démo est gratuite. Après l'échange, vous recevez un devis personnalisé sous 48h. Nos solutions s'adaptent aux PME comme aux grands comptes.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">En combien de temps est-ce opérationnel ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Entre 3 et 8 semaines selon la complexité. La plupart de nos clients voient leur première installation fonctionner en moins de 6 semaines avec un accompagnement complet et une formation de vos équipes.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Dois-je avoir des compétences techniques ? <span class="faq-chevron">+</span></div>
+    <div class="faq-a">Aucune. Nous gérons l'intégralité : installation, paramétrage, formation. L'interface d'administration a été conçue pour être utilisée sans aucune connaissance technique.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-footer">
+  <span>© 2025 Projectview · 6 rue de Genève, 69800 Saint-Priest</span>
+  <a href="mailto:contact@projectview.fr">contact@projectview.fr</a>
+  <a href="tel:+33777300658">0 777 300 658</a>
+  <a href="/mentions-legales">Mentions légales</a>
+</footer>
+
+</body>
+</html>
