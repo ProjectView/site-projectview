@@ -16,7 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { v4 as uuidv4 } from 'uuid';
+// crypto.randomUUID() natif Node >=14.17 - pas de dependance externe
 
 // ─── Firebase Admin (init une seule fois) ──────────────────────────────────
 function getAdminDb() {
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     const licenseKey = generateLicenseKey();
     const now        = new Date();
     const expiresAt  = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-    const id         = uuidv4();
+    const id         = crypto.randomUUID();
 
     await db.collection('lucy_licenses').doc(id).set({
       id,
