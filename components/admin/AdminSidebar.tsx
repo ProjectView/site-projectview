@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,6 +18,7 @@ import {
   UserCheck,
   Zap,
   Share2,
+  Mic,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 
@@ -33,6 +33,7 @@ const navItems = [
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { label: 'Planning Éditorial', href: '/admin/editorial', icon: Newspaper },
   { label: 'Agenda', href: '/admin/agenda', icon: CalendarDays },
+  { label: 'Lucy — Réunions', href: '/admin/lucy/meetings', icon: Mic },
   { label: 'Chatbot', href: '/admin/chatbot', icon: Bot },
   { label: 'Paramètres', href: '/admin/settings', icon: Settings },
 ];
@@ -48,7 +49,6 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed, onToggle, onSignOut, userName, userEmail, unreadMessages = 0 }: AdminSidebarProps) {
   const pathname = usePathname();
-
   return (
     <aside
       className={`fixed top-0 left-0 h-full z-30 bg-dark-surface border-r border-white/[0.06] flex flex-col transition-all duration-300 ${
