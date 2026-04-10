@@ -4,14 +4,16 @@ import { getAdminFirestore, checkAdminSession } from '@/lib/firebase-admin'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+type Params = { id: string }
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  segmentData: { params: Promise<Params> }
 ) {
   const authError = await checkAdminSession(request)
   if (authError) return authError
 
-  const { id } = params
+  const { id } = await segmentData.params
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   try {
