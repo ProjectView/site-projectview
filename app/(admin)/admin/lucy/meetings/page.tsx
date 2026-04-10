@@ -1,12 +1,14 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { Mic, Search, Calendar, Users, Clock, Download, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Mic, Search, Calendar, Users, Clock, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 
 interface Meeting {
   id: string; title: string; date: string; duration: number
   participants: string[]; clientName: string; deviceName: string
   summary: string; language: string; licenseKey: string; audioUrl: string; nextcloudPath: string
 }
+
 interface MRes { meetings: Meeting[]; total: number; page: number; limit: number; pages: number }
 
 function dur(s: number) {
@@ -15,12 +17,14 @@ function dur(s: number) {
   if (m >= 60) { const h = Math.floor(m / 60); return `${h}h${(m % 60).toString().padStart(2, '0')}` }
   return `${m} min`
 }
+
 function fmt(d: string) {
   try { return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d)) }
   catch { return d }
 }
 
 export default function AdminLucyMeetingsPage() {
+  const router = useRouter()
   const [data, setData] = useState<MRes | null>(null)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -41,7 +45,7 @@ export default function AdminLucyMeetingsPage() {
       const r = await fetch(`/api/admin/lucy/meetings?${params}`)
       if (!r.ok) { const j = await r.json(); throw new Error(j.error || 'Erreur') }
       setData(await r.json())
-    } catch (e: any) { setErr(e.message) }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : 'Erreur') }
     finally { setLoading(false) }
   }, [])
 
@@ -191,14 +195,21 @@ export default function AdminLucyMeetingsPage() {
         </div>
       )}
 
-      {/* Detail drawer */}
+      {/* Quick-preview drawer */}
       {selected && (
         <div className="fixed inset-0 z-50 flex">
           <div className="flex-1 bg-black/50" onClick={() => setSelected(null)} />
           <div className="w-full max-w-lg bg-dark-surface border-l border-white/[0.08] overflow-y-auto p-6">
-            <button onClick={() => setSelected(null)} className="mb-6 flex items-center gap-2 text-sm text-ink-tertiary hover:text-ink-primary transition-colors">
-              <ChevronLeft className="w-4 h-4" /> Fermer
-            </button>
+            <div className="flex items-center justify-between mb-6">
+              <button onClick={() => setSelected(null)} className="flex items-center gap-2 text-sm text-ink-tertiary hover:text-ink-primary transition-colors">
+                <ChevronLeft className="w-4 h-4" /> Fermer
+              </button>
+              <button
+                onClick={() => router.push(`/admin/lucy/meetings/${selected.id}`)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-brand-teal/10 border border-brand-teal/30 rounded-lg text-brand-teal text-sm hover:bg-brand-teal/20 transition-colors">
+                <ExternalLink className="w-3.5 h-3.5" /> Voir le détail
+              </button>
+            </div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-teal to-brand-purple flex items-center justify-center flex-shrink-0">
                 <Mic className="w-6 h-6 text-white" />
@@ -209,16 +220,15 @@ export default function AdminLucyMeetingsPage() {
               </div>
             </div>
             <div className="space-y-4">
-              {[
+              {([
                 ['Client', selected.clientName || '—'],
                 ['Device', selected.deviceName || '—'],
                 ['Durée', dur(selected.duration)],
                 ['Langue', selected.language || '—'],
                 ['Participants', selected.participants?.join(', ') || '—'],
-                ['Clé licence', selected.licenseKey ? selected.licenseKey.slice(0, 14) + '…' : '—'],
                 ['Audio', selected.audioUrl ? '✓ disponible' : '—'],
                 ['Nextcloud', selected.nextcloudPath || '—'],
-              ].map(([k, v]) => (
+              ] as [string, string][]).map(([k, v]) => (
                 <div key={k} className="flex justify-between items-start gap-4 py-3 border-b border-white/[0.04]">
                   <span className="text-sm text-ink-tertiary flex-shrink-0">{k}</span>
                   <span className="text-sm text-ink-primary text-right font-mono break-all">{v}</span>
@@ -229,10 +239,17 @@ export default function AdminLucyMeetingsPage() {
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-ink-secondary mb-3">Résumé</h3>
                 <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-4 text-sm text-ink-secondary leading-relaxed whitespace-pre-wrap">
-                  {selected.summary}
+                  {(() => {
+                    try { const p = JSON.parse(selected.summary); return p.summary || selected.summary } catch { return selected.summary }
+                  })()}
                 </div>
               </div>
             )}
+            <button
+              onClick={() => router.push(`/admin/lucy/meetings/${selected.id}`)}
+              className="mt-6 w-full py-2.5 bg-brand-teal/10 border border-brand-teal/30 rounded-xl text-brand-teal text-sm font-medium hover:bg-brand-teal/20 transition-colors flex items-center justify-center gap-2">
+              <ExternalLink className="w-4 h-4" /> Ouvrir la page complète
+            </button>
           </div>
         </div>
       )}
