@@ -566,7 +566,8 @@ export default function MeetingDetailPage() {
                   {actionItems.length > 0 ? (
                     <div className="space-y-2">
                       {actionItems.map((a, i) => {
-                        const item = typeof a === 'string' ? { task: a } : a
+                        const item: { task: string; owner?: string; deadline?: string; priority?: string } =
+                          typeof a === 'string' ? { task: a } : a as { task: string; owner?: string; deadline?: string; priority?: string }
                         return (
                           <div key={i} className="flex gap-3 p-3 bg-white/[0.02] rounded-lg">
                             <div className="w-5 h-5 rounded-full border-2 border-brand-purple flex-shrink-0 mt-0.5" />
