@@ -404,9 +404,14 @@ export default function MeetingDetailPage() {
                 </h2>
               </div>
               <div className="p-5 space-y-2">
-                {hasAudio && <AudioPlayer url={meeting.audioUrl} label="Audio de la réunion" icon={Mic} />}
-                {hasCamera && <VideoPlayer url={meeting.cameraUrl} label="Caméra" icon={Camera} />}
-                {hasScreen && <VideoPlayer url={meeting.screenUrl} label="Capture d'écran" icon={Monitor} />}
+                  {/* Logique simplifiée : vidéo (avec son) OU audio seul */}
+                  {hasCamera ? (
+                    <VideoPlayer url={meeting.cameraUrl} label="Caméra + Audio" icon={Camera} />
+                  ) : hasScreen ? (
+                    <VideoPlayer url={meeting.screenUrl} label="Écran + Audio" icon={Monitor} />
+                  ) : hasAudio ? (
+                    <AudioPlayer url={meeting.audioUrl} label="Audio de la réunion" icon={Mic} />
+                  ) : null}
               </div>
             </div>
           )}
