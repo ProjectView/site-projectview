@@ -4,6 +4,21 @@ import { getAdminFirestore, checkAdminSession } from '@/lib/firebase-admin'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const RETENTION_DAYS = 90
+const WARNING_THRESHOLD = 76
+
+function computeRetention(createdAt: string | null) {
+  if (!createdAt) return { ageDays: 0, daysRemaining: RETENTION_DAYS, status: 'ok' as const }
+  const created = new Date(createdAt)
+  const now = new Date()
+  const ageDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
+  const daysRemaining = Math.max(0, RETENTION_DAYS - ageDays)
+  const status = ageDays > RETENTION_DAYS ? 'expired' as const
+    : ageDays >= WARNING_THRESHOLD ? 'warning' as const
+    : 'ok' as const
+  return { ageDays, daysRemaining, status }
+}
+
 export async function GET(request: NextRequest) {
   const authError = await checkAdminSession(request)
   if (authError) return authError
@@ -31,6 +46,7 @@ export async function GET(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let meetings = snap.docs.map((doc: any) => {
       const d = doc.data()
+      const createdAtStr = d.createdAt?.toDate?.()?.toISOString() ?? d.createdAt ?? null
       return {
         id:             doc.id,
         title:          d.title,
@@ -41,11 +57,15 @@ export async function GET(request: NextRequest) {
         deviceName:     d.deviceName,
         summary:        d.summary,
         audioUrl:       d.audioUrl,
+        cameraUrl:      d.cameraUrl ?? '',
+        screenUrl:      d.screenUrl ?? '',
         nextcloudPath:  d.nextcloudPath,
         language:       d.language,
         licenseKey:     d.licenseKey,
-        createdAt:      d.createdAt,
+        mode:           d.mode ?? 'cloud',
+        createdAt:      createdAtStr,
         syncedAt:       d.syncedAt?.toDate?.()?.toISOString() ?? null,
+        retention:      computeRetention(createdAtStr),
       }
     })
 
