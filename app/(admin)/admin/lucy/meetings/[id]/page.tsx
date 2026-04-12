@@ -158,6 +158,36 @@ function AudioPlayer({ url, label, icon: IconComp }: { url: string; label: strin
   )
 }
 
+
+/* ─── VideoPlayer ───────────────────────────────────────────────────────────── */
+function VideoPlayer({ url, label, icon: IconComp }: { url: string; label: string; icon?: React.ElementType }) {
+  const proxied = proxyUrl(url)
+  const I = IconComp || Camera
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.06] rounded-lg">
+        <I className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
+        <span className="text-sm text-ink-secondary flex-1">{label}</span>
+        <a href={proxied} target="_blank" rel="noreferrer" download
+          className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
+          <Download className="w-4 h-4 text-ink-tertiary" />
+        </a>
+      </div>
+      <video
+        controls
+        preload="metadata"
+        className="w-full rounded-lg border border-white/[0.06] bg-black"
+        style={{ maxHeight: '300px' }}
+      >
+        <source src={proxied} type="video/webm" />
+        <source src={proxied} type="video/mp4" />
+        Votre navigateur ne supporte pas la lecture vidéo.
+      </video>
+    </div>
+  )
+}
+
 /* ─── Main Page Component ────────────────────────────────────────────────────── */
 export default function MeetingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -375,17 +405,8 @@ export default function MeetingDetailPage() {
               </div>
               <div className="p-5 space-y-2">
                 {hasAudio && <AudioPlayer url={meeting.audioUrl} label="Audio de la réunion" icon={Mic} />}
-                {hasCamera && <AudioPlayer url={meeting.cameraUrl} label="Caméra" icon={Camera} />}
-                {hasScreen && (
-                  <div className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.06] rounded-lg">
-                    <Monitor className="w-4 h-4 text-ink-tertiary" />
-                    <span className="text-sm text-ink-secondary flex-1">Capture d&apos;écran</span>
-                    <a href={proxyUrl(meeting.screenUrl)} target="_blank" rel="noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-brand-teal hover:underline">
-                      Ouvrir <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                )}
+                {hasCamera && <VideoPlayer url={meeting.cameraUrl} label="Caméra" icon={Camera} />}
+                {hasScreen && <VideoPlayer url={meeting.screenUrl} label="Capture d'écran" icon={Monitor} />}
               </div>
             </div>
           )}
