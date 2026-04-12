@@ -108,18 +108,29 @@ const SENTIMENT_COLORS: Record<string, string> = {
   negatif: '#ef4444',
 }
 
+/** Proxy Nextcloud WebDAV URLs through our API to handle auth server-side */
+function proxyUrl(url: string): string {
+  if (url.includes('cloud.projectview.fr') || url.includes('/remote.php/dav/')) {
+    return `/api/admin/lucy/media?url=${encodeURIComponent(url)}`
+  }
+  return url
+}
+
 /* ─── AudioPlayer ────────────────────────────────────────────────────────────── */
 function AudioPlayer({ url, label, icon: IconComp }: { url: string; label: string; icon?: React.ElementType }) {
   const [playing, setPlaying] = useState(false)
+  const [error, setError] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const proxied = proxyUrl(url)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const audio = new Audio(url)
+    const audio = new Audio(proxied)
     audioRef.current = audio
     audio.onended = () => setPlaying(false)
+    audio.onerror = () => { setPlaying(false); setError(true) }
     return () => { audio.pause(); audio.src = '' }
-  }, [url])
+  }, [proxied])
 
   function toggle() {
     const audio = audioRef.current
@@ -139,7 +150,7 @@ function AudioPlayer({ url, label, icon: IconComp }: { url: string; label: strin
       </button>
       <I className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
       <span className="text-sm text-ink-secondary flex-1">{label}</span>
-      <a href={url} target="_blank" rel="noreferrer" download
+      <a href={proxied} target="_blank" rel="noreferrer" download
         className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors opacity-0 group-hover:opacity-100">
         <Download className="w-4 h-4 text-ink-tertiary" />
       </a>
@@ -369,7 +380,7 @@ export default function MeetingDetailPage() {
                   <div className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.06] rounded-lg">
                     <Monitor className="w-4 h-4 text-ink-tertiary" />
                     <span className="text-sm text-ink-secondary flex-1">Capture d&apos;écran</span>
-                    <a href={meeting.screenUrl} target="_blank" rel="noreferrer"
+                    <a href={proxyUrl(meeting.screenUrl)} target="_blank" rel="noreferrer"
                       className="flex items-center gap-1.5 text-xs text-brand-teal hover:underline">
                       Ouvrir <ExternalLink className="w-3.5 h-3.5" />
                     </a>
