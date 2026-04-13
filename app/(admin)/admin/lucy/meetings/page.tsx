@@ -53,6 +53,14 @@ export default function AdminLucyMeetingsPage() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [selected, setSelected] = useState<Meeting | null>(null)
+  const [companyLookup, setCompanyLookup] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    fetch('/api/admin/lucy/clients/lookup')
+      .then(r => r.json())
+      .then(d => setCompanyLookup(d.lookup ?? {}))
+      .catch(() => {})
+  }, [])
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -191,7 +199,7 @@ export default function AdminLucyMeetingsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-ink-secondary">{m.clientName || '—'}</span>
+                    <span className="text-sm text-ink-secondary">{companyLookup[m.clientName] || m.clientName || '—'}</span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${modeClass}`}>
@@ -350,7 +358,7 @@ export default function AdminLucyMeetingsPage() {
 
             <div className="space-y-4">
               {([
-                ['Client', selected.clientName || '—'],
+                ['Client', companyLookup[selected.clientName] || selected.clientName || '—'],
                 ['Device', selected.deviceName || '—'],
                 ['Durée', dur(selected.duration)],
                 ['Langue', selected.language || '—'],

@@ -261,6 +261,7 @@ function LucyLicensesPageContent() {
   const [created, setCreated] = useState<License | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [companyLookup, setCompanyLookup] = useState<Record<string, string>>({})
 
   const fetchLicenses = useCallback(async () => {
     setLoading(true)
@@ -281,6 +282,10 @@ function LucyLicensesPageContent() {
   }, [statusFilter, typeFilter])
 
   useEffect(() => { fetchLicenses() }, [fetchLicenses])
+
+  useEffect(() => {
+    fetch('/api/admin/lucy/clients/lookup').then(r => r.json()).then(d => setCompanyLookup(d.lookup ?? {})).catch(() => {})
+  }, [])
 
   async function updateStatus(id: string, status: string) {
     await fetch(`/api/admin/lucy/licenses/${id}`, {
@@ -414,7 +419,8 @@ function LucyLicensesPageContent() {
                 </td>
                 {/* Client */}
                 <td className="px-4 py-3">
-                  <p className="text-sm text-ink-primary">{lic.clientName || '—'}</p>
+                  <p className="text-sm text-ink-primary">{companyLookup[lic.clientName] || lic.clientName || '—'}</p>
+                  {companyLookup[lic.clientName] && lic.clientName && <p className="text-xs text-ink-tertiary">{lic.clientName}</p>}
                   <p className="text-xs text-ink-tertiary">{lic.screenName || ''}</p>
                   <p className="text-xs text-ink-tertiary">{lic.email || ''}</p>
                 </td>

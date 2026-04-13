@@ -198,8 +198,8 @@ export default function ClientDetailPage() {
             Clients
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-ink-primary truncate">{clientName}</h1>
-            {profile.company && <p className="text-xs text-ink-tertiary truncate">{profile.company}</p>}
+            <h1 className="text-sm font-bold text-ink-primary truncate">{profile.company || clientName}</h1>
+            {profile.company && profile.company !== clientName && <p className="text-xs text-ink-tertiary truncate">{clientName}</p>}
           </div>
           {/* Stats pills */}
           <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
