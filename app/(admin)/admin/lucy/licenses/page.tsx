@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Key, Plus, Search, Filter, CheckCircle, XCircle, Clock,
@@ -248,7 +248,7 @@ function CreatedModal({ license, onClose }: { license: License; onClose: () => v
   )
 }
 
-export default function LucyLicensesPage() {
+function LucyLicensesPageContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const [licenses, setLicenses] = useState<License[]>([])
@@ -514,5 +514,13 @@ export default function LucyLicensesPage() {
         <CreatedModal license={created} onClose={() => setCreated(null)} />
       )}
     </div>
+  )
+}
+
+export default function LucyLicensesPage() {
+  return (
+    <Suspense fallback={<div className='flex items-center justify-center h-64 text-ink-secondary'>Chargement...</div>}>
+      <LucyLicensesPageContent />
+    </Suspense>
   )
 }
