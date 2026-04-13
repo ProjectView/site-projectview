@@ -188,6 +188,55 @@ function VideoPlayer({ url, label, icon: IconComp }: { url: string; label: strin
   )
 }
 
+
+/* -- DualPIPPlayer : camera + ecran en PIP -- */
+function DualPIPPlayer({ camUrl, scrUrl }: { camUrl: string; scrUrl: string }) {
+  const proxiedCam = proxyUrl(camUrl)
+  const proxiedScr = proxyUrl(scrUrl)
+  const camRef = useRef<HTMLVideoElement>(null)
+  const scrRef = useRef<HTMLVideoElement>(null)
+  const [swapped, setSwapped] = useState(false)
+  const mainRef = swapped ? scrRef : camRef
+  const pipRef  = swapped ? camRef : scrRef
+  const mainSrc = swapped ? proxiedScr : proxiedCam
+  const pipSrc  = swapped ? proxiedCam : proxiedScr
+  const syncPlay  = () => pipRef.current?.play().catch(() => {})
+  const syncPause = () => pipRef.current?.pause()
+  const syncSeek  = () => { const m = mainRef.current; const p = pipRef.current; if (m && p) p.currentTime = m.currentTime }
+  const handleSwap = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const m = mainRef.current; const p = pipRef.current
+    if (m && p) { p.currentTime = m.currentTime; if (!m.paused) p.play().catch(() => {}) }
+    setSwapped(v => !v)
+  }
+  return (
+    <div style={{ position: 'relative', width: '100%', borderRadius: 8, overflow: 'hidden', background: '#000' }}>
+      <video ref={mainRef} src={mainSrc} controls preload="metadata" playsInline
+        onPlay={syncPlay} onPause={syncPause} onSeeked={syncSeek}
+        style={{ display: 'block', width: '100%', maxHeight: 320, objectFit: 'contain', background: '#000' }}
+      />
+      <video ref={pipRef} src={pipSrc} muted preload="metadata" playsInline
+        onClick={handleSwap}
+        style={{ position: 'absolute', top: 8, right: 8, width: '28%', borderRadius: 6,
+          border: '2px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: '#000',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.5)', zIndex: 2 }}
+      />
+      <button onClick={handleSwap} title="Inverser camera / ecran"
+        style={{ position: 'absolute', bottom: 48, left: 8, zIndex: 3, width: 28, height: 28,
+          borderRadius: '50%', background: 'rgba(0,0,0,0.65)', color: '#fff',
+          border: 'none', cursor: 'pointer', fontSize: 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        &#x21C4;
+      </button>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
+        background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'space-between',
+        fontSize: 11, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none' }}>
+        <span>{swapped ? 'Ecran' : 'Camera'} (principal)</span>
+        <span style={{ opacity: 0.5 }}>Cliquer sur PIP pour inverser</span>
+      </div>
+    </div>
+  )
+}
 /* ─── Main Page Component ────────────────────────────────────────────────────── */
 export default function MeetingDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -404,14 +453,7 @@ export default function MeetingDetailPage() {
                 </h2>
               </div>
               <div className="p-5 space-y-2">
-                  {/* Logique simplifiée : vidéo (avec son) OU audio seul */}
-                  {hasCamera ? (
-                    <VideoPlayer url={meeting.cameraUrl} label="Caméra + Audio" icon={Camera} />
-                  ) : hasScreen ? (
-                    <VideoPlayer url={meeting.screenUrl} label="Écran + Audio" icon={Monitor} />
-                  ) : hasAudio ? (
-                    <AudioPlayer url={meeting.audioUrl} label="Audio de la réunion" icon={Mic} />
-                  ) : null}
+                  {/* Dual PIP si camera + ecran disponibles, sinon video seule, sinon audio */}                  {hasCamera && hasScreen ? (                    <DualPIPPlayer camUrl={meeting.cameraUrl} scrUrl={meeting.screenUrl} />                  ) : hasCamera ? (                    <VideoPlayer url={meeting.cameraUrl} label="Caméra + Audio" icon={Camera} />                  ) : hasScreen ? (                    <VideoPlayer url={meeting.screenUrl} label="Écran + Audio" icon={Monitor} />                  ) : hasAudio ? (                    <AudioPlayer url={meeting.audioUrl} label="Audio de la réunion" icon={Mic} />                  ) : null}
               </div>
             </div>
           )}
