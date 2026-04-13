@@ -419,8 +419,8 @@ function LucyLicensesPageContent() {
                 </td>
                 {/* Client */}
                 <td className="px-4 py-3">
-                  <p className="text-sm text-ink-primary">{companyLookup[lic.clientName] || lic.clientName || '—'}</p>
-                  {companyLookup[lic.clientName] && lic.clientName && <p className="text-xs text-ink-tertiary">{lic.clientName}</p>}
+                  <p className="text-sm text-ink-primary">{companyLookup[lic.clientName || 'Sans nom'] || lic.clientName || '—'}</p>
+                  {companyLookup[lic.clientName || 'Sans nom'] && <p className="text-xs text-ink-tertiary">{lic.clientName || 'Sans nom'}</p>}
                   <p className="text-xs text-ink-tertiary">{lic.screenName || ''}</p>
                   <p className="text-xs text-ink-tertiary">{lic.email || ''}</p>
                 </td>

@@ -54,11 +54,12 @@ export default function AdminLucyMeetingsPage() {
   const [to, setTo] = useState('')
   const [selected, setSelected] = useState<Meeting | null>(null)
   const [companyLookup, setCompanyLookup] = useState<Record<string, string>>({})
+  const [licenseKeyLookup, setLicenseKeyLookup] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetch('/api/admin/lucy/clients/lookup')
       .then(r => r.json())
-      .then(d => setCompanyLookup(d.lookup ?? {}))
+      .then(d => { setCompanyLookup(d.lookup ?? {}); setLicenseKeyLookup(d.licenseKeyLookup ?? {}) })
       .catch(() => {})
   }, [])
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -199,7 +200,7 @@ export default function AdminLucyMeetingsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-ink-secondary">{companyLookup[m.clientName] || m.clientName || '—'}</span>
+                    <span className="text-sm text-ink-secondary">{licenseKeyLookup[m.licenseKey] || companyLookup[m.clientName] || m.clientName || '—'}</span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${modeClass}`}>
@@ -358,7 +359,7 @@ export default function AdminLucyMeetingsPage() {
 
             <div className="space-y-4">
               {([
-                ['Client', companyLookup[selected.clientName] || selected.clientName || '—'],
+                ['Client', licenseKeyLookup[selected.licenseKey] || companyLookup[selected.clientName] || selected.clientName || '—'],
                 ['Device', selected.deviceName || '—'],
                 ['Durée', dur(selected.duration)],
                 ['Langue', selected.language || '—'],
