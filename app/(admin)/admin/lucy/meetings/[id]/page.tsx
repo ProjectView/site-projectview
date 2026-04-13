@@ -189,54 +189,151 @@ function VideoPlayer({ url, label, icon: IconComp }: { url: string; label: strin
 }
 
 
-/* -- DualPIPPlayer : camera + ecran en PIP -- */
+/* -- DualPIPPlayer : camera + ecran en PIP --
+ * Fix swap-sans-restart : camRef/scrRef ont toujours le meme src.
+ *   Seul le CSS change pour inverser les roles main <-> pip.
+ * Fix fullscreen dual-flux : requestFullscreen() sur le container div
+ *   (pas sur le <video>) => les deux videos restent visibles en plein ecran.
+ *   Le bouton natif fullscreen du <video> est masque via CSS.
+ * --------------------------------------------------------------- */
 function DualPIPPlayer({ camUrl, scrUrl }: { camUrl: string; scrUrl: string }) {
   const proxiedCam = proxyUrl(camUrl)
   const proxiedScr = proxyUrl(scrUrl)
   const camRef = useRef<HTMLVideoElement>(null)
   const scrRef = useRef<HTMLVideoElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [swapped, setSwapped] = useState(false)
-  const mainRef = swapped ? scrRef : camRef
-  const pipRef  = swapped ? camRef : scrRef
-  const mainSrc = swapped ? proxiedScr : proxiedCam
-  const pipSrc  = swapped ? proxiedCam : proxiedScr
-  const syncPlay  = () => pipRef.current?.play().catch(() => {})
-  const syncPause = () => pipRef.current?.pause()
-  const syncSeek  = () => { const m = mainRef.current; const p = pipRef.current; if (m && p) p.currentTime = m.currentTime }
+  const [isFs, setIsFs] = useState(false)
+
+  // Sync fullscreen state with browser
+  useEffect(() => {
+    const handler = () => setIsFs(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  // camRef = toujours camera, scrRef = toujours ecran.
+  // getMain/getPip resolvent le role courant selon swapped.
+  // On ne change JAMAIS src => pas de rechargement au swap.
+  const getMain = () => swapped ? scrRef.current : camRef.current
+  const getPip  = () => swapped ? camRef.current : scrRef.current
+
+  const syncPlayToPip  = () => { getPip()?.play().catch(() => {}) }
+  const syncPauseToPip = () => { getPip()?.pause() }
+  const syncSeekToPip  = () => {
+    const m = getMain(); const p = getPip()
+    if (m && p) p.currentTime = m.currentTime
+  }
+
   const handleSwap = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const m = mainRef.current; const p = pipRef.current
-    if (m && p) { p.currentTime = m.currentTime; if (!m.paused) p.play().catch(() => {}) }
+    const m = getMain(); const p = getPip()
+    if (m && p) {
+      // Aligne pip sur le timestamp courant du main avant l'inversion
+      p.currentTime = m.currentTime
+      if (!m.paused) p.play().catch(() => {})
+    }
     setSwapped(v => !v)
   }
+
+  const toggleFs = async () => {
+    if (!document.fullscreenElement) {
+      await containerRef.current?.requestFullscreen()
+    } else {
+      await document.exitFullscreen()
+    }
+  }
+
+  // Styles : la video principale remplit le container, la pip est en overlay
+  const mainStyle: React.CSSProperties = {
+    display: 'block', width: '100%',
+    ...(isFs ? { height: '100%' } : { maxHeight: 320 }),
+    objectFit: 'contain', background: '#000',
+  }
+  const pipStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: isFs ? 16 : 8,
+    right: isFs ? 16 : 8,
+    width: isFs ? '22%' : '28%',
+    borderRadius: 6,
+    border: '2px solid rgba(255,255,255,0.35)',
+    cursor: 'pointer', background: '#000',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)', zIndex: 2,
+  }
+
   return (
-    <div style={{ position: 'relative', width: '100%', borderRadius: 8, overflow: 'hidden', background: '#000' }}>
-      <video ref={mainRef} src={mainSrc} controls preload="metadata" playsInline
-        onPlay={syncPlay} onPause={syncPause} onSeeked={syncSeek}
-        style={{ display: 'block', width: '100%', maxHeight: 320, objectFit: 'contain', background: '#000' }}
+    <div ref={containerRef} className="lucy-pip"
+      style={{
+        position: 'relative', width: '100%',
+        ...(isFs ? { height: '100%' } : { borderRadius: 8, overflow: 'hidden' }),
+        background: '#000',
+      }}>
+
+      {/* Cache le bouton fullscreen natif : il ne mettrait qu'une video en plein ecran */}
+      <style>{`.lucy-pip video::-webkit-media-controls-fullscreen-button{display:none!important}`}</style>
+
+      {/* Camera — src ne change jamais, seul le CSS change */}
+      <video ref={camRef} src={proxiedCam} preload="metadata" playsInline
+        controls={!swapped} muted={swapped}
+        onPlay={!swapped ? syncPlayToPip : undefined}
+        onPause={!swapped ? syncPauseToPip : undefined}
+        onSeeked={!swapped ? syncSeekToPip : undefined}
+        onClick={swapped ? handleSwap : undefined}
+        style={!swapped ? mainStyle : pipStyle}
       />
-      <video ref={pipRef} src={pipSrc} muted preload="metadata" playsInline
-        onClick={handleSwap}
-        style={{ position: 'absolute', top: 8, right: 8, width: '28%', borderRadius: 6,
-          border: '2px solid rgba(255,255,255,0.25)', cursor: 'pointer', background: '#000',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.5)', zIndex: 2 }}
+
+      {/* Ecran — src ne change jamais, seul le CSS change */}
+      <video ref={scrRef} src={proxiedScr} preload="metadata" playsInline
+        controls={swapped} muted={!swapped}
+        onPlay={swapped ? syncPlayToPip : undefined}
+        onPause={swapped ? syncPauseToPip : undefined}
+        onSeeked={swapped ? syncSeekToPip : undefined}
+        onClick={!swapped ? handleSwap : undefined}
+        style={swapped ? mainStyle : pipStyle}
       />
-      <button onClick={handleSwap} title="Inverser camera / ecran"
-        style={{ position: 'absolute', bottom: 48, left: 8, zIndex: 3, width: 28, height: 28,
-          borderRadius: '50%', background: 'rgba(0,0,0,0.65)', color: '#fff',
+
+      {/* Bouton swap camera <-> ecran */}
+      <button onClick={handleSwap} title="Inverser caméra / écran"
+        style={{
+          position: 'absolute', bottom: isFs ? 72 : 48, left: 8, zIndex: 3,
+          width: 28, height: 28, borderRadius: '50%',
+          background: 'rgba(0,0,0,0.65)', color: '#fff',
           border: 'none', cursor: 'pointer', fontSize: 14,
-          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
         &#x21C4;
       </button>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
-        background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'space-between',
-        fontSize: 11, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none' }}>
-        <span>{swapped ? 'Ecran' : 'Camera'} (principal)</span>
-        <span style={{ opacity: 0.5 }}>Cliquer sur PIP pour inverser</span>
-      </div>
+
+      {/* Bouton fullscreen sur le container (garde les 2 flux visibles) */}
+      <button onClick={toggleFs}
+        title={isFs ? 'Quitter le plein écran' : 'Plein écran (les 2 flux)'}
+        style={{
+          position: 'absolute',
+          ...(isFs ? { top: 16, right: 16 } : { bottom: 48, right: 8 }),
+          zIndex: 3,
+          width: 28, height: 28, borderRadius: '50%',
+          background: 'rgba(0,0,0,0.65)', color: '#fff',
+          border: 'none', cursor: 'pointer', fontSize: 14,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+        {isFs ? '✕' : '⛶'}
+      </button>
+
+      {/* Label bas (masque en fullscreen, les controls natifs suffisent) */}
+      {!isFs && (
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
+          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'space-between',
+          fontSize: 11, color: 'rgba(255,255,255,0.6)', pointerEvents: 'none', zIndex: 1,
+        }}>
+          <span>{swapped ? 'Écran' : 'Caméra'} (principal)</span>
+          <span style={{ opacity: 0.5 }}>Cliquer sur PIP pour inverser</span>
+        </div>
+      )}
     </div>
   )
 }
+
 /* ─── Main Page Component ────────────────────────────────────────────────────── */
 export default function MeetingDetailPage() {
   const { id } = useParams<{ id: string }>()
