@@ -1,7 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminFirestore } from './firebase-admin'
 
-export const TRIAL_DURATION_DAYS = 30
+export const TRIAL_DURATION_DAYS = 15
 
 export const DEFAULT_FEATURES = {
   maxDuration: 180,

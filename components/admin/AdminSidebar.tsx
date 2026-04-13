@@ -22,6 +22,7 @@ import {
   Building2,
   Key,
   LayoutGrid,
+  Download,
   ChevronDown,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
@@ -46,6 +47,7 @@ const lucyItems = [
   { label: 'Clients', href: '/admin/lucy/clients', icon: Building2 },
   { label: 'Licences', href: '/admin/lucy/licenses', icon: Key },
   { label: 'Réunions', href: '/admin/lucy/meetings', icon: Mic },
+  { label: 'Téléchargements', href: '/admin/lucy/downloads', icon: Download },
 ];
 
 interface AdminSidebarProps {

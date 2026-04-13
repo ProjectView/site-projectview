@@ -1,0 +1,3 @@
+module.exports=[93695,(a,b,c)=>{b.exports=a.x("next/dist/shared/lib/no-fallback-error.external.js",()=>require("next/dist/shared/lib/no-fallback-error.external.js"))},38899,a=>{a.n(a.i(69266))},25329,a=>{a.n(a.i(58123))},50736,a=>{a.n(a.i(1924))},22959,a=>{a.n(a.i(35652))},93238,a=>{a.n(a.i(54011))},63453,a=>{a.n(a.i(52768))},84631,a=>{a.n(a.i(65054))},90806,a=>{"use strict";var b=a.i(16922);async function c({params:a}){let{id:c}=await a;return(0,b.jsx)("div",{children:(0,b.jsxs)("h1",{children:["Licence ",c]})})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__285588b3._.js.map

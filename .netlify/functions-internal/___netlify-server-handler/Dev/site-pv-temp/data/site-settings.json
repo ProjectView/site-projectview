@@ -1,0 +1,32 @@
+{
+  "company": {
+    "name": "Projectview",
+    "email": "contact@projectview.fr",
+    "phone": "0 777 300 658",
+    "address": "18 rue Jules Ferry, 69360 Saint Symphorien d'Ozon",
+    "website": "https://projectview.fr"
+  },
+  "social": {
+    "linkedin": "",
+    "twitter": "",
+    "instagram": "",
+    "youtube": ""
+  },
+  "seo": {
+    "defaultTitle": "Projectview — La technologie au service de l'émotion",
+    "defaultDescription": "Nous transformons vos espaces physiques en environnements interactifs qui captivent, engagent et convertissent.",
+    "analyticsId": ""
+  },
+  "integrations": {
+    "n8nWebhook": "",
+    "githubConnected": false,
+    "netlifyConnected": false
+  },
+  "socialTokens": {
+    "facebookPageId": "",
+    "facebookPageAccessToken": "",
+    "instagramBusinessAccountId": "",
+    "linkedinAccessToken": "",
+    "linkedinOrganizationId": ""
+  }
+}
