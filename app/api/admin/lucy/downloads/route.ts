@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import { checkAdminSession } from '@/lib/firebase-admin'
 
 export const runtime = 'nodejs'
@@ -28,7 +28,7 @@ function fmtSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const auth = await checkAdminSession(request)
     if (!auth.ok) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
