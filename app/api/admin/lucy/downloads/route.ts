@@ -30,8 +30,8 @@ function fmtSize(bytes: number): string {
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await checkAdminSession(request)
-    if (!auth.ok) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    const authError = await checkAdminSession(request)
+    if (authError) return authError
 
     // Tente de récupérer la dernière release GitHub
     let releaseData = null
