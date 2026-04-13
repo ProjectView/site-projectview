@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { checkAdminSession } from '@/lib/auth'
+import { checkAdminSession } from '@/lib/firebase-admin'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
