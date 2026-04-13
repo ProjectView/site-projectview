@@ -4,7 +4,7 @@ import { getAdminFirestore, checkAdminSession } from '@/lib/firebase-admin'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-type Params = { params: { clientId: string } }
+type Params = { params: Promise<{ clientId: string }> }
 
 const ALLOWED_FIELDS = [
   'company', 'contactName', 'email', 'phone',
@@ -39,7 +39,8 @@ export async function GET(request: NextRequest, { params }: Params) {
   const authError = await checkAdminSession(request)
   if (authError) return authError
 
-  const clientName = decodeURIComponent(params.clientId)
+  const { clientId } = await params
+  const clientName = decodeURIComponent(clientId)
   const db = getAdminFirestore()
 
   try {
@@ -93,7 +94,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const authError = await checkAdminSession(request)
   if (authError) return authError
 
-  const clientName = decodeURIComponent(params.clientId)
+  const { clientId } = await params
+  const clientName = decodeURIComponent(clientId)
   const db = getAdminFirestore()
 
   try {
