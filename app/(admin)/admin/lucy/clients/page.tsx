@@ -4,6 +4,7 @@ import {
   Building2, Monitor, Mic, Search, ChevronDown, ChevronRight,
   Key, Shield, AlertCircle, RefreshCw, CheckCircle, XCircle, Clock
 } from 'lucide-react'
+import Link from 'next/link'
 
 interface Device {
   id: string
@@ -125,6 +126,13 @@ function ClientRow({ client }: { client: Client }) {
             </span>
           </div>
         </div>
+        <Link
+          href={`/admin/lucy/clients/${encodeURIComponent(client.name)}`}
+          onClick={e => e.stopPropagation()}
+          className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 text-xs font-medium transition-colors flex-shrink-0"
+        >
+          Gérer
+        </Link>
         {open
           ? <ChevronDown className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
           : <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
