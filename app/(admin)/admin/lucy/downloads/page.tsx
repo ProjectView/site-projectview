@@ -102,7 +102,6 @@ export default function LucyDownloadsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => fetchRelease(true)}
-                onClick={() => fetchRelease(true)}
             disabled={refreshing}
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-all"
           >
