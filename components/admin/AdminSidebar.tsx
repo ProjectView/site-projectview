@@ -19,6 +19,10 @@ import {
   Zap,
   Share2,
   Mic,
+  Building2,
+  Key,
+  LayoutGrid,
+  ChevronDown,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 
@@ -33,9 +37,15 @@ const navItems = [
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { label: 'Planning Éditorial', href: '/admin/editorial', icon: Newspaper },
   { label: 'Agenda', href: '/admin/agenda', icon: CalendarDays },
-  { label: 'Lucy — Réunions', href: '/admin/lucy/meetings', icon: Mic },
   { label: 'Chatbot', href: '/admin/chatbot', icon: Bot },
   { label: 'Paramètres', href: '/admin/settings', icon: Settings },
+];
+
+const lucyItems = [
+  { label: 'Dashboard', href: '/admin/lucy/dashboard', icon: LayoutGrid },
+  { label: 'Clients', href: '/admin/lucy/clients', icon: Building2 },
+  { label: 'Licences', href: '/admin/lucy/licenses', icon: Key },
+  { label: 'Réunions', href: '/admin/lucy/meetings', icon: Mic },
 ];
 
 interface AdminSidebarProps {
@@ -49,6 +59,9 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed, onToggle, onSignOut, userName, userEmail, unreadMessages = 0 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const isLucySection = pathname.startsWith('/admin/lucy');
+  const [lucyOpen, setLucyOpen] = useState(isLucySection);
+
   return (
     <aside
       className={`fixed top-0 left-0 h-full z-30 bg-dark-surface border-r border-white/[0.06] flex flex-col transition-all duration-300 ${
@@ -90,7 +103,6 @@ export function AdminSidebar({ collapsed, onToggle, onSignOut, userName, userEma
               }`}
               title={collapsed ? item.label : undefined}
             >
-              {/* Active indicator */}
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-brand-teal to-brand-purple" />
               )}
@@ -113,6 +125,59 @@ export function AdminSidebar({ collapsed, onToggle, onSignOut, userName, userEma
             </Link>
           );
         })}
+
+        {/* ── Section Lucy ──────────────────────────────── */}
+        <div className="pt-1">
+          {/* Section header */}
+          <button
+            onClick={() => !collapsed && setLucyOpen(o => !o)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative ${
+              isLucySection
+                ? 'text-ink-primary'
+                : 'text-ink-secondary hover:bg-white/[0.04] hover:text-ink-primary'
+            }`}
+            title={collapsed ? 'Lucy' : undefined}
+          >
+            {isLucySection && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-brand-teal to-brand-purple" />
+            )}
+            <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 ${
+              isLucySection ? 'bg-gradient-to-br from-brand-teal to-brand-purple' : 'bg-white/[0.06]'
+            }`}>
+              <Mic className="w-3 h-3 text-white" />
+            </div>
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-left font-semibold">Lucy</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${lucyOpen ? 'rotate-180' : ''}`} />
+              </>
+            )}
+          </button>
+
+          {/* Sub-items */}
+          {(lucyOpen || collapsed) && (
+            <div className={`${collapsed ? '' : 'pl-3 mt-0.5'} space-y-0.5`}>
+              {lucyItems.map(item => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 relative ${
+                      isActive
+                        ? 'bg-brand-teal/10 text-brand-teal font-medium'
+                        : 'text-ink-tertiary hover:bg-white/[0.04] hover:text-ink-secondary'
+                    }`}
+                    title={collapsed ? `Lucy — ${item.label}` : undefined}
+                  >
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-brand-teal' : ''}`} />
+                    {!collapsed && <span>{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* User section */}
