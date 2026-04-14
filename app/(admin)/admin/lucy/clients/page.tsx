@@ -97,7 +97,7 @@ function DeviceRow({ device }: { device: Device }) {
   )
 }
 
-function ClientRow({ client }: { client: Client }) {
+function ClientRow({ client, company }: { client: Client; company: string }) {
   const [open, setOpen] = useState(false)
   const totalMeetings = client.devices.reduce((s, d) => s + d.meetingCount, 0)
   const activeCount   = client.devices.filter(d => d.status === 'active').length
@@ -112,7 +112,8 @@ function ClientRow({ client }: { client: Client }) {
           <Building2 className="w-5 h-5 text-brand-teal" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-ink-primary">{client.name}</p>
+          <p className="text-sm font-semibold text-ink-primary">{company || client.name}</p>
+          {company && <p className="text-xs text-ink-tertiary">{client.name}</p>}
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             <span className="text-xs text-ink-tertiary">
               {client.devices.length} device{client.devices.length > 1 ? 's' : ''}
@@ -157,6 +158,7 @@ export default function LucyClientsPage() {
   const [loading, setLoading] = useState(true)
   const [err, setErr]         = useState('')
   const [search, setSearch]   = useState('')
+  const [companyLookup, setCompanyLookup] = useState<Record<string, string>>({})
 
   async function fetchClients() {
     setLoading(true)
@@ -174,6 +176,10 @@ export default function LucyClientsPage() {
   }
 
   useEffect(() => { fetchClients() }, [])
+
+  useEffect(() => {
+    fetch('/api/admin/lucy/clients/lookup').then(r => r.json()).then(d => setCompanyLookup(d.lookup ?? {})).catch(() => {})
+  }, [])
 
   const filtered = clients.filter(c => {
     if (!search) return true
@@ -244,7 +250,7 @@ export default function LucyClientsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map(c => <ClientRow key={c.name} client={c} />)}
+          {filtered.map(c => <ClientRow key={c.name} client={c} company={companyLookup[c.name] || ''} />)}
         </div>
       )}
     </div>
