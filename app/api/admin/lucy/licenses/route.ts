@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     // orgId : superadmin peut choisir librement, sinon = org de l'utilisateur courant
     let orgId: string | null = bodyOrgId
-    if (auth.user.role !== 'superadmin') {
+    if (auth.user.globalRole !== 'superadmin') {
       orgId = auth.user.orgId ?? null
     }
 
