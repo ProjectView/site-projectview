@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getClientAuth } from '@/lib/firebase-client';
 import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
@@ -10,7 +10,7 @@ import { GradientText } from '@/components/ui/GradientText';
 export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
-  const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -47,8 +47,8 @@ export default function LoginPage() {
       }
 
       // 3. Redirection vers le dashboard
-      router.push('/admin/dashboard');
-      router.refresh();
+      window.location.href = '/admin/dashboard';
+
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code;
       if (
