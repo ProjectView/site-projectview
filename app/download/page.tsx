@@ -166,7 +166,7 @@ export default async function DownloadPage() {
           <div className="dl-info-item"><h4>🆕 Mises à jour</h4><p>Sur <a href={release?.githubUrl ?? `https://github.com/${GITHUB_REPO}/releases`} target="_blank" rel="noopener">GitHub Releases</a>.</p></div>
           <div className="dl-info-item"><h4>💬 Support</h4><p><a href="mailto:support@projectview.fr">support@projectview.fr</a> ou via Pulse.</p></div>
         </div></div>
-        <div className="dl-footer"><p>Lucy est un produit <a href="https://projectview.fr" target="_blank" rel="noopener">ProjectView</i>.</p></div>
+        <div className="dl-footer"><p>Lucy est un produit <a href="https://projectview.fr" target="_blank" rel="noopener">ProjectView</a>.</p></div>
       </div>
     </>
   )
