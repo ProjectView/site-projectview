@@ -30,7 +30,7 @@ export async function PATCH(
 
     if (auth.user.globalRole !== 'superadmin') {
       if (id !== auth.user.orgId && org.parentOrgId !== auth.user.orgId) {
-        return NextResponse.json({ error: 'Accès refusé.' }, { status: 403 })
+        return NextResponse.json({ error: 'AccÃ¨s refusÃ©.' }, { status: 403 })
       }
     }
 
@@ -57,7 +57,7 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/admin/orgs/[id] — superadmin uniquement
+// DELETE /api/admin/orgs/[id] â superadmin uniquement
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -71,7 +71,7 @@ export async function DELETE(
     const users = await listUsersByOrg(id)
     if (users.length > 0) {
       return NextResponse.json(
-        { error: `Impossible de supprimer : ${users.length} utilisateur(s) rattach�(s).` },
+        { error: `Impossible de supprimer : ${users.length} utilisateur(s) rattaché(s).` },
         { status: 409 },
       )
     }

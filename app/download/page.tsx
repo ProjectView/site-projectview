@@ -163,7 +163,7 @@ export default async function DownloadPage() {
         <div className="dl-info"><div className="dl-info-grid">
           <div className="dl-info-item"><h4>🔒 Confidentialité</h4><p>Mode local : aucune donnée ne quitte votre machine. Whisper + Ollama tournent 100 % en local.</p></div>
           <div className="dl-info-item"><h4>⏱ Essai gratuit</h4><p>15 jours sans carte bancaire. <a href="https://projectview.fr/client/lucy" target="_blank" rel="noopener">Activer la licence</a>.</p></div>
-          <div className="dl-info-item"><h4>🆕 Mises à jour</h4><p>Sur <a href={release?.githubUrl ?? `https://github.com/${GITHUB_REPO_@/releases`} target="_blank" rel="noopener">GitHub Releases</a>.</p></div>
+          <div className="dl-info-item"><h4>🆕 Mises à jour</h4><p>Sur <a href={release?.githubUrl ?? `https://github.com/${GITHUB_REPO}/releases`} target="_blank" rel="noopener">GitHub Releases</a>.</p></div>
           <div className="dl-info-item"><h4>💬 Support</h4><p><a href="mailto:support@projectview.fr">support@projectview.fr</a> ou via Pulse.</p></div>
         </div></div>
         <div className="dl-footer"><p>Lucy est un produit <a href="https://projectview.fr" target="_blank" rel="noopener">ProjectView</i>.</p></div>
