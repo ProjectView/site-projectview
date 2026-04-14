@@ -26,6 +26,7 @@ import {
   Download,
   ChevronDown,
   ShieldCheck,
+  Globe,
 } from 'lucide-react';
 import { GradientText } from '@/components/ui/GradientText';
 import type { GlobalRole } from './AdminShell';
@@ -59,6 +60,13 @@ const orgsItem = {
   label: 'Organisations',
   href: '/admin/organisations',
   icon: Building2,
+};
+
+// ── Vue d'ensemble (superadmin uniquement) ────────────────────────────────────────────
+const overviewItem = {
+  label: "Vue d'ensemble",
+  href: '/admin/overview',
+  icon: Globe,
 };
 
 // ── Registre des sections SaaS ──────────────────────────────────────────────
@@ -203,6 +211,22 @@ export function AdminSidebar({
           >
             <orgsItem.icon className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span className="flex-1">{orgsItem.label}</span>}
+          </Link>
+        )}
+
+        {/* -- Vue d'ensemble (superadmin uniquement) ------------------------------------------ */}
+        {isSuperadmin && (
+          <Link
+            href={overviewItem.href}
+            title={collapsed ? overviewItem.label : undefined}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+              pathname.startsWith(overviewItem.href)
+                ? 'bg-white/[0.08] text-ink-primary'
+                : 'text-ink-secondary hover:bg-white/[0.05] hover:text-ink-primary'
+            }`}
+          >
+            <overviewItem.icon className='w-4 h-4 flex-shrink-0' />
+            {!collapsed && <span className='flex-1'>{overviewItem.label}</span>}
           </Link>
         )}
 
