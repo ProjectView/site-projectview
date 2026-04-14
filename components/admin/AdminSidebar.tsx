@@ -54,6 +54,13 @@ const usersItem = {
   icon: ShieldCheck,
 };
 
+// ── Organisations (superadmin uniquement) ────────────────────────────────────
+const orgsItem = {
+  label: 'Organisations',
+  href: '/admin/organisations',
+  icon: Building2,
+};
+
 // ── Registre des sections SaaS ──────────────────────────────────────────────
 // Chaque section est affichée si `enabledApps[slug]` est true pour l'user.
 // Pour ajouter un nouveau SaaS : pousser une entrée ici.
@@ -181,6 +188,22 @@ export function AdminSidebar({
             collapsed={collapsed}
             active={pathname.startsWith(usersItem.href)}
           />
+        )}
+
+        {/* ── Organisations (superadmin uniquement) ───────────────────── */}
+        {isSuperadmin && (
+          <Link
+            href={orgsItem.href}
+            title={collapsed ? orgsItem.label : undefined}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+              pathname.startsWith(orgsItem.href)
+                ? 'bg-white/[0.08] text-ink-primary'
+                : 'text-ink-secondary hover:bg-white/[0.05] hover:text-ink-primary'
+            }`}
+          >
+            <orgsItem.icon className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span className="flex-1">{orgsItem.label}</span>}
+          </Link>
         )}
 
         {/* ── Sections SaaS dynamiques (filtrées par enabledApps) ─────── */}
