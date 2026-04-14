@@ -1,20 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminFirestore, checkAdminSession } from '@/lib/firebase-admin'
+import { getAdminFirestore } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { getSessionUser, getAllowedOrgIds, applyOrgScope } from '@/lib/rbac'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
 function generateLicenseKey(): string {
   const seg = () => Array.from({ length: 4 }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('')
   return `LUCY-${seg()}-${seg()}-${seg()}`
 }
 
-// ── GET : liste toutes les licences ─────────────────────────────────────────
+// ── GET : liste les licences (scopées par orgId selon rôle) ────────────────
 export async function GET(request: NextRequest) {
-  const authError = await checkAdminSession(request)
-  if (authError) return authError
+  const auth = await getSessionUser(request)
+  if (!auth.ok) return auth.response
 
   try {
     const db = getAdminFirestore()
@@ -23,13 +25,19 @@ export async function GET(request: NextRequest) {
     const typeFilter   = searchParams.get('type')
     const search       = searchParams.get('search')?.toLowerCase().trim()
 
-    let query = db.collection('licenses').orderBy('createdAt', 'desc') as FirebaseFirestore.Query
+    const allowedOrgIds = await getAllowedOrgIds(auth.user)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let query: any = db.collection('licenses').orderBy('createdAt', 'desc')
+    query = applyOrgScope(query, allowedOrgIds)
+
     if (statusFilter) query = query.where('status', '==', statusFilter)
     if (typeFilter)   query = query.where('type',   '==', typeFilter)
 
     const snap = await query.limit(200).get()
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let licenses = snap.docs.map(d => {
+    let licenses = snap.docs.map((d: any) => {
       const data = d.data()
       return {
         id:           d.id,
@@ -41,6 +49,7 @@ export async function GET(request: NextRequest) {
         screenName:   data.screenName || '',
         fingerprint:  data.fingerprint || '',
         monthlyPrice: data.monthlyPrice ?? (data.type === 'paid' ? 29 : 0),
+        orgId:        data.orgId ?? null,
         expiresAt:    data.expiresAt?.toDate?.()?.toISOString() ?? data.expiresAt ?? null,
         createdAt:    data.createdAt?.toDate?.()?.toISOString() ?? data.createdAt ?? null,
         features:     data.features ?? {},
@@ -48,7 +57,8 @@ export async function GET(request: NextRequest) {
     })
 
     if (search) {
-      licenses = licenses.filter(l =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      licenses = licenses.filter((l: any) =>
         l.key.toLowerCase().includes(search) ||
         l.email.toLowerCase().includes(search) ||
         l.clientName.toLowerCase().includes(search) ||
@@ -65,27 +75,33 @@ export async function GET(request: NextRequest) {
 
 // ── POST : créer une nouvelle licence ────────────────────────────────────────
 export async function POST(request: NextRequest) {
-  const authError = await checkAdminSession(request)
-  if (authError) return authError
+  const auth = await getSessionUser(request)
+  if (!auth.ok) return auth.response
 
   try {
     const db   = getAdminFirestore()
     const body = await request.json()
-
     const {
-      type        = 'paid',
-      expiryDays  = 365,
-      email       = '',
-      clientName  = '',
-      screenName  = '',
+      type         = 'paid',
+      expiryDays   = 365,
+      email        = '',
+      clientName   = '',
+      screenName   = '',
       monthlyPrice = type === 'paid' ? 29 : 0,
-      features    = {
+      orgId: bodyOrgId = null,
+      features     = {
         maxDuration:   3600,
         multiLanguage: true,
         videoCapture:  true,
         claudeVision:  true,
       },
     } = body
+
+    // orgId : superadmin peut choisir librement, sinon = org de l'utilisateur courant
+    let orgId: string | null = bodyOrgId
+    if (auth.user.role !== 'superadmin') {
+      orgId = auth.user.orgId ?? null
+    }
 
     // Générer une clé unique
     let key = generateLicenseKey()
@@ -108,6 +124,7 @@ export async function POST(request: NextRequest) {
       screenName,
       fingerprint:  '',
       monthlyPrice,
+      orgId,
       features,
       expiresAt,
       createdAt:    FieldValue.serverTimestamp(),
@@ -123,6 +140,7 @@ export async function POST(request: NextRequest) {
         clientName,
         screenName,
         monthlyPrice,
+        orgId,
         expiresAt: expiresAt.toISOString(),
         features,
       }

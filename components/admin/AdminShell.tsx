@@ -9,10 +9,16 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
+export type GlobalRole = 'superadmin' | 'admin_client' | 'user_client';
+
 interface UserInfo {
   email: string;
   name: string;
   uid: string;
+  orgId?: string | null;
+  globalRole?: GlobalRole | null;
+  enabledApps?: Record<string, boolean>;
+  appRoles?: Record<string, string>;
 }
 
 function getUserInfo(): UserInfo | null {
@@ -32,7 +38,7 @@ export function AdminShell({ children }: AdminShellProps) {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const router = useRouter();
 
-  // Lire les infos utilisateur depuis le cookie
+  // Lire les infos utilisateur depuis le cookie (inclut RBAC : globalRole, enabledApps…)
   useEffect(() => {
     setUserInfo(getUserInfo());
   }, []);
@@ -46,14 +52,15 @@ export function AdminShell({ children }: AdminShellProps) {
           router.replace('/admin/login');
         }
       } catch {
-        // Ignore les erreurs réseau — l'utilisateur restera sur la page
+        // Silent
       }
     }
     checkSession();
   }, [router]);
 
-  // Fetch unread message count
+  // Fetch unread message count — superadmin only (les autres rôles n'ont pas accès aux messages PV)
   useEffect(() => {
+    if (userInfo && userInfo.globalRole && userInfo.globalRole !== 'superadmin') return;
     async function fetchUnread() {
       try {
         const res = await fetch('/api/admin/messages');
@@ -66,10 +73,9 @@ export function AdminShell({ children }: AdminShellProps) {
       }
     }
     fetchUnread();
-    // Refresh every 30 seconds
     const interval = setInterval(fetchUnread, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [userInfo]);
 
   const handleSignOut = async () => {
     try {
@@ -89,6 +95,8 @@ export function AdminShell({ children }: AdminShellProps) {
         userName={userInfo?.name || undefined}
         userEmail={userInfo?.email || undefined}
         unreadMessages={unreadMessages}
+        globalRole={userInfo?.globalRole ?? null}
+        enabledApps={userInfo?.enabledApps ?? {}}
       />
       <AdminTopbar
         sidebarCollapsed={collapsed}

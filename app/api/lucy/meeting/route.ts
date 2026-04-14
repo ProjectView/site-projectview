@@ -39,7 +39,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const licenseKey = authHeader.slice(7).trim()
-
     const body = await request.json() as PulseMeetingPayload
 
     if (!body.id || !body.title || !body.date) {
@@ -56,6 +55,7 @@ export async function POST(request: Request) {
     if (license.status === 'expired' || license.status === 'revoked') {
       return NextResponse.json({ error: 'License expired or revoked' }, { status: 403 })
     }
+
     // Auto-expire check
     if (license.expiresAt && license.expiresAt.toDate() < new Date()) {
       const db = getAdminFirestore()
@@ -70,6 +70,9 @@ export async function POST(request: Request) {
     const cameraUrl  = body.media_urls?.camera || ''
     const screenUrl  = body.media_urls?.screen || ''
     const createdAt  = body.createdAt  || body.synced_at || body.date
+    // orgId hérité de la licence (RBAC) — peut être null (licence orpheline)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orgId = (license as any).orgId ?? null
 
     // summary peut être un objet JSON (nouveau format) ou une string (legacy)
     const summaryStr =
@@ -79,10 +82,10 @@ export async function POST(request: Request) {
 
     const db = getAdminFirestore()
     const meetingRef = db.collection('meetings').doc(body.id)
-
     await meetingRef.set({
       licenseId:     license.id,
       licenseKey,
+      orgId,
       title:         body.title,
       date:          body.date,
       duration:      body.duration      ?? 0,
@@ -102,7 +105,6 @@ export async function POST(request: Request) {
     }, { merge: true })
 
     return NextResponse.json({ meetingId: body.id, synced: true })
-
   } catch (err) {
     console.error('[API /lucy/meeting POST]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

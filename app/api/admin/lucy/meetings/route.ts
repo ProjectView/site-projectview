@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminFirestore, checkAdminSession } from '@/lib/firebase-admin'
+import { getAdminFirestore } from '@/lib/firebase-admin'
+import { getSessionUser, getAllowedOrgIds, applyOrgScope } from '@/lib/rbac'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,8 +21,8 @@ function computeRetention(createdAt: string | null) {
 }
 
 export async function GET(request: NextRequest) {
-  const authError = await checkAdminSession(request)
-  if (authError) return authError
+  const auth = await getSessionUser(request)
+  if (!auth.ok) return auth.response
 
   try {
     const { searchParams } = new URL(request.url)
@@ -32,8 +33,11 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.toLowerCase().trim()
 
     const db = getAdminFirestore()
+    const allowedOrgIds = await getAllowedOrgIds(auth.user)
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = db.collection('meetings').orderBy('date', 'desc')
+    query = applyOrgScope(query, allowedOrgIds)
 
     if (from) query = query.where('date', '>=', from)
     if (to)   query = query.where('date', '<=', to)
@@ -62,6 +66,7 @@ export async function GET(request: NextRequest) {
         nextcloudPath:  d.nextcloudPath,
         language:       d.language,
         licenseKey:     d.licenseKey,
+        orgId:          d.orgId ?? null,
         mode:           d.mode ?? 'cloud',
         createdAt:      createdAtStr,
         syncedAt:       d.syncedAt?.toDate?.()?.toISOString() ?? null,

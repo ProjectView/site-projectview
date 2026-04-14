@@ -1,27 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminFirestore, checkAdminSession } from '@/lib/firebase-admin'
+import { getAdminFirestore } from '@/lib/firebase-admin'
+import { getSessionUser, getAllowedOrgIds, applyOrgScope } from '@/lib/rbac'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  const authError = await checkAdminSession(request)
-  if (authError) return authError
+  const auth = await getSessionUser(request)
+  if (!auth.ok) return auth.response
 
   try {
     const db = getAdminFirestore()
+    const allowedOrgIds = await getAllowedOrgIds(auth.user)
 
-    // ── Licences ──────────────────────────────────────────────
-    const licensesSnap = await db.collection('licenses').get()
+    // ── Licences (scoped par orgId) ───────────────────────────
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const licenses = licensesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[]
+    let licensesQuery: any = db.collection('licenses')
+    licensesQuery = applyOrgScope(licensesQuery, allowedOrgIds)
+    const licensesSnap = await licensesQuery.get()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const licenses = licensesSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })) as any[]
 
-    // ── Réunions : nb meetings par licenseKey ─────────────────
-    const meetingsSnap = await db.collection('meetings').select('licenseKey', 'date').get()
-    const meetingCounts: Record<string, number> = {}
+    // ── Réunions : nb meetings par licenseKey (scoped par orgId) ─
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let meetingsQuery: any = db.collection('meetings')
+    meetingsQuery = applyOrgScope(meetingsQuery, allowedOrgIds)
+    const meetingsSnap = await meetingsQuery.select('licenseKey', 'date').get()
+
+    const meetingCounts: Record<string, number>   = {}
     const lastMeetingDate: Record<string, string> = {}
-
-    meetingsSnap.docs.forEach(d => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    meetingsSnap.docs.forEach((d: any) => {
       const { licenseKey, date } = d.data()
       if (!licenseKey) return
       meetingCounts[licenseKey] = (meetingCounts[licenseKey] ?? 0) + 1
@@ -41,6 +50,7 @@ export async function GET(request: NextRequest) {
         status: string
         fingerprint: string
         email: string
+        orgId: string | null
         expiresAt: string | null
         meetingCount: number
         lastMeeting: string | null
@@ -62,6 +72,7 @@ export async function GET(request: NextRequest) {
         status:       lic.status || 'active',
         fingerprint:  lic.fingerprint || '',
         email:        lic.email || '',
+        orgId:        lic.orgId ?? null,
         expiresAt:    lic.expiresAt?.toDate?.()?.toISOString() ?? lic.expiresAt ?? null,
         meetingCount: meetingCounts[key] ?? 0,
         lastMeeting:  lastMeetingDate[key] ?? null,

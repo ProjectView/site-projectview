@@ -16,6 +16,7 @@ interface License {
   screenName: string
   fingerprint: string
   monthlyPrice: number
+  orgId: string | null
   expiresAt: string | null
   createdAt: string | null
   features: {
@@ -76,14 +77,25 @@ interface CreateFormData {
   screenName: string
   expiryDays: number
   monthlyPrice: number
+  orgId: string
 }
+
+interface OrgOption { id: string; name: string }
 
 function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (lic: License) => void }) {
   const [form, setForm] = useState<CreateFormData>({
-    type: 'paid', email: '', clientName: '', screenName: '', expiryDays: 365, monthlyPrice: 29
+    type: 'paid', email: '', clientName: '', screenName: '', expiryDays: 365, monthlyPrice: 29, orgId: ''
   })
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
+  const [orgs, setOrgs] = useState<OrgOption[]>([])
+
+  useEffect(() => {
+    fetch('/api/admin/orgs')
+      .then(r => r.ok ? r.json() : { orgs: [] })
+      .then(d => setOrgs(d.orgs || []))
+      .catch(() => setOrgs([]))
+  }, [])
 
   async function submit() {
     setLoading(true)
@@ -172,6 +184,24 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
               placeholder="contact@acme.com"
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-ink-primary placeholder:text-ink-tertiary focus:outline-none focus:border-brand-teal/40"
             />
+          </div>
+
+          {/* Organisation (société de rattachement) */}
+          <div>
+            <label className="text-xs font-medium text-ink-tertiary block mb-1.5">
+              Organisation
+              {orgs.length > 1 && <span className="text-ink-tertiary/60"> · affectation manuelle</span>}
+            </label>
+            <select
+              value={form.orgId}
+              onChange={e => setForm(f => ({ ...f, orgId: e.target.value }))}
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-ink-primary focus:outline-none focus:border-brand-teal/40"
+            >
+              <option value="">— Aucune (orpheline) —</option>
+              {orgs.map(o => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Durée + Prix */}

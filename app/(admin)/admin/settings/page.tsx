@@ -73,7 +73,6 @@ interface SiteSettings {
 
 const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'profile', label: 'Profil', icon: User },
-  { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'company', label: 'Entreprise', icon: Building2 },
   { id: 'seo', label: 'SEO', icon: SearchIcon },
   { id: 'integrations', label: 'Intégrations', icon: Plug },
