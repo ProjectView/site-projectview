@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       .where('parentOrgId', '==', auth.user.orgId)
       .get()
     const childIds = childOrgsSnap.docs.map((d) => d.id)
-    const childUsers: Array<Record<string, unknown>> = []
+    const childUsers: Awaited<ReturnType<typeof listUsersByOrg>> = []
     for (const oid of childIds) {
       const u = await listUsersByOrg(oid)
       childUsers.push(...u)
