@@ -1,16 +1,14 @@
 /**
- * lib/email.ts — Wrapper Resend pour l'envoi d'emails transactionnels Pulse.
+ * lib/email.ts — Wrapper Brevo (ex-Sendinblue) pour emails transactionnels.
+ *
+ * Utilise l'API REST Brevo directement via fetch — pas de SDK, zéro dépendance.
+ * Doc : https://developers.brevo.com/reference/sendtransacemail
  *
  * Variables d'environnement requises :
- *   RESEND_API_KEY    clé API Resend (commence par "re_...")
- *   EMAIL_FROM        adresse d'envoi par défaut, ex: "Lucy <lucy@projectview.fr>"
- *   EMAIL_REPLY_TO    (optionnel) reply-to, ex: "bernard@projectview.fr"
- *
- * Utilisation :
- *   await sendEmail({ to, subject, html, text })
+ *   BREVO_API_KEY    clé API Brevo (commence par "xkeysib-...")
+ *   EMAIL_FROM       "Lucy <lucy@projectview.fr>" ou juste "lucy@projectview.fr"
+ *   EMAIL_REPLY_TO   (optionnel) reply-to, ex: "bernard@projectview.fr"
  */
-
-import { Resend } from 'resend'
 
 export interface SendEmailInput {
   to: string | string[]
@@ -26,31 +24,59 @@ export interface SendEmailResult {
   error?: string
 }
 
-let _client: Resend | null = null
-function getClient(): Resend {
-  if (_client) return _client
-  const key = process.env.RESEND_API_KEY
-  if (!key) throw new Error('RESEND_API_KEY not set')
-  _client = new Resend(key)
-  return _client
+/** Parse "Name <email@x.com>" ou "email@x.com" → { name?, email } */
+function parseAddress(addr: string): { name?: string; email: string } {
+  const m = addr.match(/^\s*(.+?)\s*<\s*([^>]+)\s*>\s*$/)
+  if (m) return { name: m[1].trim(), email: m[2].trim() }
+  return { email: addr.trim() }
+}
+
+function toRecipients(to: string | string[]): Array<{ email: string; name?: string }> {
+  const arr = Array.isArray(to) ? to : [to]
+  return arr.map(parseAddress)
 }
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
-  const from = process.env.EMAIL_FROM
-  if (!from) return { ok: false, error: 'EMAIL_FROM not set' }
+  const apiKey = process.env.BREVO_API_KEY
+  if (!apiKey) return { ok: false, error: 'BREVO_API_KEY not set' }
+
+  const fromRaw = process.env.EMAIL_FROM
+  if (!fromRaw) return { ok: false, error: 'EMAIL_FROM not set' }
+  const sender = parseAddress(fromRaw)
+
+  const replyToRaw = input.replyTo ?? process.env.EMAIL_REPLY_TO
+  const replyTo = replyToRaw ? parseAddress(replyToRaw) : undefined
+
+  const payload: Record<string, unknown> = {
+    sender,
+    to: toRecipients(input.to),
+    subject: input.subject,
+    htmlContent: input.html,
+  }
+  if (input.text) payload.textContent = input.text
+  if (replyTo) payload.replyTo = replyTo
 
   try {
-    const client = getClient()
-    const { data, error } = await client.emails.send({
-      from,
-      to: input.to,
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-      replyTo: input.replyTo ?? process.env.EMAIL_REPLY_TO,
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     })
-    if (error) return { ok: false, error: error.message ?? String(error) }
-    return { ok: true, id: data?.id }
+
+    const data = (await res.json().catch(() => ({}))) as {
+      messageId?: string
+      message?: string
+      code?: string
+    }
+
+    if (!res.ok) {
+      return { ok: false, error: data.message || data.code || `HTTP ${res.status}` }
+    }
+    return { ok: true, id: data.messageId }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) }
   }
