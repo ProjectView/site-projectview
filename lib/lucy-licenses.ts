@@ -37,8 +37,8 @@ export interface LucyLicense {
   email?:       string
   clientName?:  string
   screenName?:  string
-  expiresAt:    string | FirestoreTimestampLike
-  activatedAt?: string | FirestoreTimestampLike
+  expiresAt:    string
+  activatedAt?: string
   features:     LicenseFeatures
   createdAt:    string
   updatedAt:    string
@@ -205,8 +205,8 @@ export async function findLicenseByKey(key: string): Promise<LucyLicense | null>
     email:       data.email,
     clientName:  data.clientName,
     screenName:  data.screenName,
-    expiresAt:   data.expiresAt   ?? '',
-    activatedAt: data.activatedAt,
+    expiresAt:   data.expiresAt?.toDate?.()?.toISOString?.() ?? data.expiresAt ?? '',
+    activatedAt: data.activatedAt?.toDate?.()?.toISOString?.() ?? data.activatedAt,
     features:    data.features    ?? PLAN_FEATURES[data.plan ?? 'trial'],
     createdAt:   data.createdAt   ?? new Date().toISOString(),
     updatedAt:   data.updatedAt   ?? new Date().toISOString(),
