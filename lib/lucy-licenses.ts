@@ -3,20 +3,6 @@
  *
  * Helpers pour gérer les licences Lucy dans Firestore.
  * Collection principale : `lucyLicenses`
- *
- * Document shape :
- * {
- *   id:          string,   // = doc.id
- *   key:         string,   // clé secrète partagée avec le client
- *   type:        'trial' | 'subscription',
- *   status:      'active' | 'expired' | 'revoked' | 'suspended',
- *   plan:        'trial' | 'starter' | 'pro' | 'business' | 'enterprise',
- *   fingerprint: string,   // empreinte hardware
- *   expiresAt:   string,   // ISO 8601
- *   features:    LicenseFeatures,
- *   createdAt:   string,
- *   updatedAt:   string,
- * }
  */
 
 import { FieldValue } from 'firebase-admin/firestore'
@@ -27,17 +13,16 @@ import { getAdminFirestore } from '@/lib/firebase-admin'
 export type AllowedOperatingMode = 'online' | 'offline' | 'hybrid'
 
 export interface LicenseFeatures {
-  maxDuration:          number               // secondes max par réunion (0 = illimité)
+  maxDuration:          number
   multiLanguage:        boolean
   videoCapture:         boolean
   claudeVision:         boolean
-  /** null = illimité */
   maxMeetingsPerMonth:  number | null
-  /** modes de traitement autorisés */
   allowedModes:         AllowedOperatingMode[]
-  /** null = illimité */
   maxDevices:           number | null
 }
+
+export type FirestoreTimestampLike = { toDate(): Date }
 
 export interface LucyLicense {
   id:           string
@@ -52,8 +37,8 @@ export interface LucyLicense {
   email?:       string
   clientName?:  string
   screenName?:  string
-  expiresAt:    string
-  activatedAt?: string
+  expiresAt:    string | FirestoreTimestampLike
+  activatedAt?: string | FirestoreTimestampLike
   features:     LicenseFeatures
   createdAt:    string
   updatedAt:    string
@@ -82,7 +67,6 @@ export interface LicenseDoc {
 // ── Gamme tarifaire ──────────────────────────────────────────────────────────
 
 export const PLAN_FEATURES: Record<LucyLicense['plan'], LicenseFeatures> = {
-  /** Essai gratuit — toutes les fonctionnalités, limité à 10 réunions/mois */
   trial: {
     maxDuration:         3600,
     multiLanguage:       true,
@@ -92,7 +76,6 @@ export const PLAN_FEATURES: Record<LucyLicense['plan'], LicenseFeatures> = {
     allowedModes:        ['online', 'hybrid', 'offline'],
     maxDevices:          2,
   },
-  /** Starter 29 €/mois — Cloud uniquement, 15 réunions/mois */
   starter: {
     maxDuration:         3600,
     multiLanguage:       false,
@@ -102,7 +85,6 @@ export const PLAN_FEATURES: Record<LucyLicense['plan'], LicenseFeatures> = {
     allowedModes:        ['online'],
     maxDevices:          1,
   },
-  /** Pro 49 €/mois — Cloud + Hybride, 40 réunions/mois */
   pro: {
     maxDuration:         7200,
     multiLanguage:       true,
@@ -112,7 +94,6 @@ export const PLAN_FEATURES: Record<LucyLicense['plan'], LicenseFeatures> = {
     allowedModes:        ['online', 'hybrid'],
     maxDevices:          2,
   },
-  /** Business 89 €/mois — Tous modes, illimité */
   business: {
     maxDuration:         14400,
     multiLanguage:       true,
@@ -122,9 +103,8 @@ export const PLAN_FEATURES: Record<LucyLicense['plan'], LicenseFeatures> = {
     allowedModes:        ['online', 'hybrid', 'offline'],
     maxDevices:          5,
   },
-  /** Enterprise 129 €/mois — Tous modes, illimité, flotte gérée */
   enterprise: {
-    maxDuration:         0,    // 0 = pas de limite
+    maxDuration:         0,
     multiLanguage:       true,
     videoCapture:        true,
     claudeVision:        true,
@@ -149,7 +129,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Génère une clé de licence aléatoire (format LCY-XXXX…).
+ * Génère une clé de licence aléatoire (format LCY-XXXX...).
  * @deprecated La génération est faite directement dans trial/route.ts via crypto.
  */
 export function generateLicenseKey(): string {
@@ -194,10 +174,9 @@ export async function trialExistsForEmail(email: string): Promise<boolean> {
 /**
  * Trouve une licence par sa clé secrète.
  * Résultat mis en cache 5 min pour éviter trop de lectures Firestore.
- * Retourne `null` si la clé est introuvable.
+ * Retourne null si la clé est introuvable.
  */
 export async function findLicenseByKey(key: string): Promise<LucyLicense | null> {
-  // Cache hit
   const cached = licenseCache.get(key)
   if (cached && Date.now() < cached.expiresAt) return cached.license
 
@@ -243,7 +222,7 @@ export function invalidateLicenseCache(key: string): void {
 }
 
 /**
- * Enregistre ou met à jour un device dans la collection `devices`.
+ * Enregistre ou met à jour un device dans la collection devices.
  * Appelé depuis activate/route.ts et validate/route.ts.
  */
 export async function upsertDevice(params: {
