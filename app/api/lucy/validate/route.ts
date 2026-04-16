@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       valid: true,
       type: license.type,
-      expiresAt: license.expiresAt.toDate().toISOString(),
+      expiresAt: license.expiresAt,
       features: license.features,
     })
   } catch (err) {
