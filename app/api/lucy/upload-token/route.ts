@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   }
 
   const now = Date.now()
-  const expTs = license.expiresAt?.toDate?.()?.getTime?.() ?? 0
+  const expTs = license.expiresAt ? new Date(license.expiresAt).getTime() : 0
   if (expTs < now) {
     return NextResponse.json({ error: 'Licence expirée.' }, { status: 403 })
   }
