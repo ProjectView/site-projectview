@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     // Auto-expire check
-    if (license.expiresAt && license.expiresAt.toDate() < new Date()) {
+    if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
       const db = getAdminFirestore()
       await db.collection('licenses').doc(license.id).update({ status: 'expired' })
       return NextResponse.json({ error: 'License expired' }, { status: 403 })
