@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Licence ${license.status}.` }, { status: 403 })
     }
 
-    const expTs = license.expiresAt?.toDate?.()?.getTime?.() ?? 0
+    const expTs = license.expiresAt ? new Date(license.expiresAt).getTime() : 0
     if (expTs < Date.now()) {
       return NextResponse.json({ error: 'Licence expiree.' }, { status: 403 })
     }
