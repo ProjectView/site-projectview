@@ -207,7 +207,7 @@ export async function findLicenseByKey(key: string): Promise<LucyLicense | null>
     screenName:  data.screenName,
     expiresAt:   data.expiresAt?.toDate?.()?.toISOString?.() ?? data.expiresAt ?? '',
     activatedAt: data.activatedAt?.toDate?.()?.toISOString?.() ?? data.activatedAt,
-    features:    data.features    ?? PLAN_FEATURES[data.plan ?? 'trial'],
+    features:    data.features    ?? PLAN_FEATURES[(data.plan ?? 'trial') as LucyLicense['plan']],
     createdAt:   data.createdAt   ?? new Date().toISOString(),
     updatedAt:   data.updatedAt   ?? new Date().toISOString(),
   }
