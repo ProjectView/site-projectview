@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const now = Date.now()
-    const expTs = license.expiresAt?.toDate?.()?.getTime?.() ?? 0
+    const expTs = license.expiresAt ? new Date(license.expiresAt).getTime() : 0
     if (expTs < now) {
       const db = getAdminFirestore()
       await db.collection('licenses').doc(license.id).update({ status: 'expired' })
