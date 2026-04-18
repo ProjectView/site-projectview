@@ -148,7 +148,7 @@ export function generateLicenseKey(): string {
 export async function trialExistsForFingerprint(fingerprint: string): Promise<boolean> {
   const db = getAdminFirestore()
   const snap = await db
-    .collection('lucyLicenses')
+    .collection('licenses')
     .where('fingerprint', '==', fingerprint)
     .where('type', '==', 'trial')
     .limit(1)
@@ -163,7 +163,7 @@ export async function trialExistsForFingerprint(fingerprint: string): Promise<bo
 export async function trialExistsForEmail(email: string): Promise<boolean> {
   const db = getAdminFirestore()
   const snap = await db
-    .collection('lucyLicenses')
+    .collection('licenses')
     .where('email', '==', email)
     .where('type', '==', 'trial')
     .limit(1)
@@ -182,7 +182,7 @@ export async function findLicenseByKey(key: string): Promise<LucyLicense | null>
 
   const db = getAdminFirestore()
   const snap = await db
-    .collection('lucyLicenses')
+    .collection('licenses')
     .where('key', '==', key)
     .limit(1)
     .get()
