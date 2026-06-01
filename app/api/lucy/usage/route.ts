@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Licence ' + license.status + '.' }, { status: 403 })
     }
     const db = getAdminFirestore()
-    const snap = await db.collection('lucyLicenses').doc(license.id).get()
+    const snap = await db.collection('licenses').doc(license.id).get()
     const data = snap.data() ?? {}
     const currentMonth = new Date().toISOString().slice(0, 7)
     const used = data.meetingsUsedMonth === currentMonth
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Licence expiree.' }, { status: 403 })
     }
     const db = getAdminFirestore()
-    const docRef = db.collection('lucyLicenses').doc(license.id)
+    const docRef = db.collection('licenses').doc(license.id)
     const snap = await docRef.get()
     const data = snap.data() ?? {}
     const currentMonth = new Date().toISOString().slice(0, 7)
