@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import {
   Key, Plus, Search, Filter, CheckCircle, XCircle, Clock,
   Copy, Trash2, Edit2, RefreshCw, AlertCircle, Shield, X
@@ -252,6 +252,96 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   )
 }
 
+function EditModal({ license, onClose, onSaved }: { license: License; onClose: () => void; onSaved: (patch: Partial<License>) => void }) {
+  const [expiresAt, setExpiresAt] = useState(license.expiresAt ? license.expiresAt.slice(0, 10) : '')
+  const [status, setStatus] = useState(license.status)
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function submit() {
+    setLoading(true)
+    setErr('')
+    try {
+      const body: Record<string, unknown> = { status }
+      if (expiresAt) body.expiresAt = new Date(`${expiresAt}T00:00:00.000Z`).toISOString()
+      const res = await fetch(`/api/admin/lucy/licenses/${license.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur')
+      onSaved({ status, expiresAt: (body.expiresAt as string) ?? license.expiresAt })
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Erreur inconnue')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="relative bg-dark-surface border border-white/[0.12] rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-base font-bold text-ink-primary flex items-center gap-2">
+            <Edit2 className="w-4 h-4 text-blue-400" /> Modifier la licence
+          </h2>
+          <button onClick={onClose} className="text-ink-tertiary hover:text-ink-primary transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="mb-4 text-xs text-ink-tertiary font-mono break-all">{license.key}</div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-ink-tertiary block mb-1.5">Date d&apos;expiration</label>
+            <input
+              type="date"
+              value={expiresAt}
+              onChange={e => setExpiresAt(e.target.value)}
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-ink-primary focus:outline-none focus:border-brand-teal/40"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-ink-tertiary block mb-1.5">Statut</label>
+            <select
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-ink-primary focus:outline-none focus:border-brand-teal/40"
+            >
+              <option value="active">Active</option>
+              <option value="expired">Expirée</option>
+              <option value="revoked">Révoquée</option>
+              <option value="suspended">Suspendue</option>
+            </select>
+          </div>
+        </div>
+
+        {err && (
+          <div className="mt-4 flex items-center gap-2 text-xs text-red-400 bg-red-500/[0.08] border border-red-500/20 rounded-lg p-2.5">
+            <AlertCircle className="w-3.5 h-3.5" /> {err}
+          </div>
+        )}
+
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="flex-1 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-ink-secondary hover:text-ink-primary transition-colors">
+            Annuler
+          </button>
+          <button
+            onClick={submit}
+            disabled={loading}
+            className="flex-1 py-2.5 bg-blue-500/15 border border-blue-500/30 rounded-xl text-sm text-blue-400 font-semibold hover:bg-blue-500/25 transition-all disabled:opacity-50"
+          >
+            {loading ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CreatedModal({ license, onClose }: { license: License; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -279,7 +369,6 @@ function CreatedModal({ license, onClose }: { license: License; onClose: () => v
 }
 
 function LucyLicensesPageContent() {
-  const router       = useRouter()
   const searchParams = useSearchParams()
   const [licenses, setLicenses] = useState<License[]>([])
   const [loading, setLoading]   = useState(true)
@@ -288,6 +377,7 @@ function LucyLicensesPageContent() {
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '')
   const [typeFilter, setTypeFilter]     = useState(searchParams.get('type') ?? '')
   const [modal, setModal]     = useState<ModalMode>(searchParams.get('action') === 'create' ? 'create' : null)
+  const [editing, setEditing] = useState<License | null>(null)
   const [created, setCreated] = useState<License | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -513,8 +603,8 @@ function LucyLicensesPageContent() {
                         </button>
                       )}
                       <button
-                        onClick={() => router.push(`/admin/lucy/licenses/${lic.id}`)}
-                        title="Modifier"
+                        onClick={() => setEditing(lic)}
+                        title="Modifier (date / statut)"
                         className="p-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 hover:bg-blue-500/20 transition-colors"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -548,6 +638,16 @@ function LucyLicensesPageContent() {
       )}
       {created && (
         <CreatedModal license={created} onClose={() => setCreated(null)} />
+      )}
+      {editing && (
+        <EditModal
+          license={editing}
+          onClose={() => setEditing(null)}
+          onSaved={patch => {
+            setLicenses(ls => ls.map(l => l.id === editing.id ? { ...l, ...patch } : l))
+            setEditing(null)
+          }}
+        />
       )}
     </div>
   )
