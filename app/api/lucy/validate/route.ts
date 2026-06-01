@@ -16,7 +16,9 @@ export async function POST(request: Request) {
       )
     }
 
-    const license = await findLicenseByKey(licenseKey)
+    // fresh: true → toujours lire l'état live (reflète une édition Firestore
+    // admin immédiatement, sans attendre l'expiration du cache 5 min).
+    const license = await findLicenseByKey(licenseKey, { fresh: true })
 
     if (!license) {
       return NextResponse.json({ valid: false, error: 'Licence introuvable.' }, { status: 403 })

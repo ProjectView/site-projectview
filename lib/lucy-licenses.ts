@@ -176,9 +176,16 @@ export async function trialExistsForEmail(email: string): Promise<boolean> {
  * Résultat mis en cache 5 min pour éviter trop de lectures Firestore.
  * Retourne null si la clé est introuvable.
  */
-export async function findLicenseByKey(key: string): Promise<LucyLicense | null> {
-  const cached = licenseCache.get(key)
-  if (cached && Date.now() < cached.expiresAt) return cached.license
+export async function findLicenseByKey(
+  key: string,
+  opts?: { fresh?: boolean },
+): Promise<LucyLicense | null> {
+  // `fresh` : bypass le cache 5 min (ex. /validate, pour refléter immédiatement
+  // une édition Firestore d'admin sans attendre l'expiration du cache).
+  if (!opts?.fresh) {
+    const cached = licenseCache.get(key)
+    if (cached && Date.now() < cached.expiresAt) return cached.license
+  }
 
   const db = getAdminFirestore()
   const snap = await db
