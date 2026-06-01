@@ -16,7 +16,9 @@ export async function POST(request: Request) {
       )
     }
 
-    const license = await findLicenseByKey(licenseKey)
+    // fresh: true → toujours lire l'état live (reflète une édition Firestore
+    // admin immédiatement, sans attendre l'expiration du cache 5 min).
+    const license = await findLicenseByKey(licenseKey, { fresh: true })
 
     if (!license) {
       return NextResponse.json({ valid: false, error: 'Licence introuvable.' }, { status: 403 })
@@ -30,8 +32,11 @@ export async function POST(request: Request) {
     }
 
     const now = Date.now()
-    const expTs = license.expiresAt ? new Date(license.expiresAt).getTime() : 0
-    if (expTs < now) {
+    const expTs = license.expiresAt ? new Date(license.expiresAt).getTime() : NaN
+    // N'expire QUE si une date d'expiration valide est dans le passé.
+    // expiresAt absent/illisible → licence traitée comme sans expiration (on ne
+    // marque PAS expirée à tort, ce qui bloquait des licences valides sans date).
+    if (Number.isFinite(expTs) && expTs < now) {
       const db = getAdminFirestore()
       await db.collection('licenses').doc(license.id).update({ status: 'expired' })
       return NextResponse.json({ valid: false, error: 'Licence expiree.' }, { status: 403 })

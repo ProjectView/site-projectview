@@ -89,13 +89,25 @@ export async function POST(request: NextRequest) {
       screenName   = '',
       monthlyPrice = type === 'paid' ? 29 : 0,
       orgId: bodyOrgId = null,
-      features     = {
+      features: featuresInput = {
         maxDuration:   3600,
         multiLanguage: true,
         videoCapture:  true,
         claudeVision:  true,
       },
     } = body
+
+    // ── allowedModes : l'app attend 'local'/'cloud'. On garantit leur présence
+    //    pour éviter les erreurs de licence (mauvaise détection plan / cloud
+    //    bloqué). Respecte une valeur explicite si l'UI en fournit une (permet
+    //    une licence Pro local-only via allowedModes: ['local']).
+    const cloudEnabled = type === 'paid' || type === 'subscription' || type === 'trial'
+    const features = {
+      ...featuresInput,
+      allowedModes:        featuresInput.allowedModes        ?? (cloudEnabled ? ['local', 'cloud'] : ['local']),
+      maxDevices:          featuresInput.maxDevices          ?? 1,
+      maxMeetingsPerMonth: featuresInput.maxMeetingsPerMonth ?? null,
+    }
 
     // orgId : superadmin peut choisir librement, sinon = org de l'utilisateur courant
     let orgId: string | null = bodyOrgId

@@ -18,7 +18,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminFirestore } from '@/lib/firebase-admin'
 import { PLAN_FEATURES } from '@/lib/lucy-licenses'
-import crypto from 'crypto'
+import { generateLicenseKey } from '@/lib/lucy/license'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     // ── Chercher une licence existante pour ce fingerprint ────────────────
     const existing = await db
-      .collection('lucyLicenses')
+      .collection('licenses')
       .where('fingerprint', '==', fingerprint)
       .limit(1)
       .get()
@@ -87,16 +87,18 @@ export async function POST(request: Request) {
       return NextResponse.json({
         licenseKey: data.key,
         expiresAt:  data.expiresAt,
-        features:   data.features ?? PLAN_FEATURES.trial,
+        features:   data.features ?? { ...PLAN_FEATURES.trial, allowedModes: ['local', 'cloud'] },
         plan:       data.plan ?? 'trial',
         reused:     true,   // signal au client qu'on a récupéré la licence existante
       })
     }
 
     // ── Pas de licence existante : créer le trial ─────────────────────────
-    const licenseKey = 'LCY-' + crypto.randomBytes(12).toString('hex').toUpperCase()
+    const licenseKey = generateLicenseKey()
     const expiresAt  = new Date(Date.now() + TRIAL_DURATION_DAYS * 86_400_000).toISOString()
     const now        = new Date().toISOString()
+    // L'app attend allowedModes 'local'/'cloud' (≠ 'online'/'hybrid'/'offline' du global).
+    const trialFeatures = { ...PLAN_FEATURES.trial, allowedModes: ['local', 'cloud'] }
 
     const licenseDoc = {
       key:        licenseKey,
@@ -109,13 +111,13 @@ export async function POST(request: Request) {
       email:      email      ?? '',
       clientName: clientName ?? '',
       screenName: screenName ?? '',
-      features:   PLAN_FEATURES.trial,
+      features:   trialFeatures,
       expiresAt,
       createdAt:  now,
       updatedAt:  now,
     }
 
-    await db.collection('lucyLicenses').add(licenseDoc)
+    await db.collection('licenses').add(licenseDoc)
 
     // Envoyer email de bienvenue (non bloquant)
     if (email) {
@@ -125,7 +127,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       licenseKey,
       expiresAt,
-      features: PLAN_FEATURES.trial,
+      features: trialFeatures,
       plan:     'trial',
     })
   } catch (err) {
