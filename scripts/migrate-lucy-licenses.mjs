@@ -9,11 +9,12 @@
  *   détecte mal le plan (Cloud vu comme Pro, mode cloud bloqué, etc.).
  *
  * Ce que fait le script :
- *   1) Collection `licenses` : normalise `features.allowedModes`
- *        - 'offline'          → 'local'
- *        - 'online' | 'hybrid'→ 'cloud'
- *      Dédupliqué. Ne touche QUE les docs contenant des valeurs legacy
- *      (idempotent : un doc déjà en local/cloud est laissé tel quel).
+ *   1) Collection `licenses` :
+ *      a) normalise `features.allowedModes` ('offline'→'local',
+ *         'online'|'hybrid'→'cloud', dédupliqué). Idempotent.
+ *      b) remplit `expiresAt` manquant/illisible (createdAt +365j, sinon
+ *         maintenant +365j) — sinon /validate marque la licence expirée à tort.
+ *         Réactive le `status:'expired'` flippé pour cette raison.
  *   2) Collection `lucyLicenses` (legacy, clés 'LCY-') : RAPPORT SEUL,
  *      aucune écriture. Les nouvelles trials vont déjà dans `licenses`
  *      (fix backend) ; ces devices n'ont qu'à re-trial. Aucune suppression.
@@ -85,27 +86,56 @@ function normalizeModes(modes) {
 const report = []
 report.push(['collection', 'id', 'key', 'type', 'status', 'before', 'after', 'action'].join(','))
 
-// --- 1) Normaliser `licenses` ---
+// --- Helper : ms d'une date Firestore (Timestamp) ou string ISO ; NaN si absent/illisible ---
+const DEFAULT_VALIDITY_DAYS = 365
+function expiryMs(v) {
+  if (!v) return NaN
+  return v?.toDate ? v.toDate().getTime() : new Date(v).getTime()
+}
+
+// --- 1) Corriger `licenses` : allowedModes legacy + expiresAt manquant ---
 const licSnap = await db.collection('licenses').get()
 console.log(`• ${licSnap.size} docs dans 'licenses'.`)
-let normalized = 0
+let changed = 0
 for (const doc of licSnap.docs) {
   const data = doc.data()
-  const before = data.features?.allowedModes
-  const after = normalizeModes(before)
-  if (!after) continue
-  normalized++
+  const updates = {}
+  const actions = []
+
+  // a) Normaliser allowedModes (online/hybrid/offline → local/cloud)
+  const beforeModes = data.features?.allowedModes
+  const afterModes = normalizeModes(beforeModes)
+  if (afterModes) {
+    updates['features.allowedModes'] = afterModes
+    actions.push(`allowedModes ${JSON.stringify(beforeModes)}->${JSON.stringify(afterModes)}`)
+  }
+
+  // b) Remplir expiresAt manquant/illisible (sinon /validate la marque expirée à tort)
+  if (!Number.isFinite(expiryMs(data.expiresAt))) {
+    const baseMs = Number.isFinite(expiryMs(data.createdAt)) ? expiryMs(data.createdAt) : Date.now()
+    const exp = new Date(baseMs + DEFAULT_VALIDITY_DAYS * 86_400_000)
+    updates.expiresAt = exp // firebase-admin stocke un Date JS en Timestamp
+    actions.push(`expiresAt MANQUANT -> ${exp.toISOString()}`)
+    // Réactiver si la licence avait été marquée 'expired' À TORT (faute d'expiresAt)
+    if (data.status === 'expired') {
+      updates.status = 'active'
+      actions.push('status expired->active')
+    }
+  }
+
+  if (actions.length === 0) continue
+  changed++
+  updates.updatedAt = new Date().toISOString()
   report.push([
     'licenses', doc.id, data.key ?? '', data.type ?? '', data.status ?? '',
-    `"${JSON.stringify(before)}"`, `"${JSON.stringify(after)}"`,
-    APPLY ? 'UPDATED' : 'WOULD_UPDATE',
+    `"${JSON.stringify(beforeModes ?? null)}"`,
+    `"${JSON.stringify(updates['features.allowedModes'] ?? beforeModes ?? null)}"`,
+    `"${actions.join(' | ')}"`,
   ].join(','))
-  console.log(`  ${APPLY ? '✏️ ' : '→ '} ${data.key ?? doc.id} : ${JSON.stringify(before)} → ${JSON.stringify(after)}`)
-  if (APPLY) {
-    await doc.ref.update({ 'features.allowedModes': after, updatedAt: new Date().toISOString() })
-  }
+  console.log(`  ${APPLY ? '✏️ ' : '→ '} ${data.key ?? doc.id} : ${actions.join(' | ')}`)
+  if (APPLY) await doc.ref.update(updates)
 }
-console.log(`  ${normalized} doc(s) ${APPLY ? 'normalisé(s)' : 'à normaliser'}.\n`)
+console.log(`  ${changed} doc(s) ${APPLY ? 'corrigé(s)' : 'à corriger'}.\n`)
 
 // --- 2) Rapport lucyLicenses (read-only) ---
 let orphans = 0
@@ -134,6 +164,6 @@ const outPath = join(__dirname, `migration-lucy-licenses-report-${stamp}.csv`)
 writeFileSync(outPath, report.join('\n'), 'utf-8')
 console.log(`\n📄 Rapport : ${outPath}`)
 console.log(`\n=== Fin — ${APPLY ? 'écritures appliquées' : 'DRY-RUN, aucune écriture'} ===`)
-if (!APPLY && normalized > 0) {
-  console.log(`Relance avec --apply pour normaliser les ${normalized} licence(s).`)
+if (!APPLY && changed > 0) {
+  console.log(`Relance avec --apply pour corriger les ${changed} licence(s).`)
 }
